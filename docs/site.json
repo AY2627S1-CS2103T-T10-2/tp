@@ -1,7 +1,7 @@
 {
   "baseUrl": "",
-  "titlePrefix": "",
-  "titleSuffix": "AddressBook Level-3",
+  "titlePrefix": "TAssist",
+  "titleSuffix": "",
   "faviconPath": "images/SeEduLogo.png",
   "style": {
     "codeTheme": "light"
