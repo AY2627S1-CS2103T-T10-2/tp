@@ -101,7 +101,9 @@ public class EditCommand extends Command {
         Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags);
+        // Remarks are changed only through RemarkCommand, so the existing remark is kept.
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, personToEdit.getRemark(),
+                updatedTags);
     }
 
     @Override
