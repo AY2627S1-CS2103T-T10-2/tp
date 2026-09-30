@@ -296,45 +296,237 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+These use cases describe representative tutor workflows from the intended product requirements. UC01–UC05 follow the agreed MVP feature specifications. Later features, such as module assignment and marks, remain part of the wider requirements but are not assumed to exist in the MVP. For all use cases, the **System** is TAssist, the **Actor** is a university Computer Science tutor, and **MSS** means Main Success Scenario. Unless stated otherwise, TAssist is running.
 
-**Use case: Delete a person**
+#### UC01: Add and inspect a student
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1. Tutor requests to add a student, supplying a name, matriculation number, and email address.
+2. TAssist validates the details, adds the student, and confirms the addition.
+3. Tutor requests to list all students.
+4. TAssist displays the students, including the new student and their displayed index.
+5. Tutor requests to view the new student's profile using that index.
+6. TAssist displays the student's saved particulars.
 
-    Use case ends.
+Use case ends.
+
+**Extensions**
+
+* 1a. A required detail is missing or a supplied detail has an invalid format.
+
+  * 1a1. TAssist explains the invalid input and does not add a student.
+
+  Use case resumes at step 1.
+
+* 1b. The matriculation number belongs to an existing student.
+
+  * 1b1. TAssist reports the duplicate and does not add another student.
+
+  Use case resumes at step 1.
+
+* 4a. TAssist cannot display the student list.
+
+  * 4a1. TAssist reports the error.
+
+  Use case ends.
+
+* 5a. The index does not identify a student in the displayed list.
+
+  * 5a1. TAssist reports the invalid index without changing any record.
+
+  Use case resumes at step 5.
+
+#### UC02: Find and view a student
+
+**MSS**
+
+1. Tutor requests to search students by name.
+2. TAssist displays all matching students, including their matriculation numbers and displayed indices.
+3. Tutor chooses a student by the index in the current search results and requests to view their profile.
+4. TAssist displays that student's particulars and available attendance records while retaining the current search results.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. The search name is missing or invalid.
+
+  * 1a1. TAssist explains the error without changing any records.
+
+  Use case resumes at step 1.
+
+* 2a. No students match the name.
+
+  * 2a1. TAssist reports zero results.
+
+  Use case ends.
+
+* 3a. The index is missing, invalid, or outside the current results.
+
+  * 3a1. TAssist reports the error and retains the current results.
+
+  Use case resumes at step 3.
+
+#### UC03: Delete a student
+
+**MSS**
+
+1. Tutor requests to list all students.
+2. TAssist displays the student list and each student's matriculation number.
+3. Tutor requests to delete a student using their matriculation number.
+4. TAssist deletes the matching record and confirms the deletion.
+
+Use case ends.
 
 **Extensions**
 
 * 2a. The list is empty.
 
+  * 2a1. TAssist reports that no students were found.
+
   Use case ends.
 
-* 3a. The given index is invalid.
+* 3a. The matriculation number is missing or malformed.
 
-    * 3a1. AddressBook shows an error message.
+  * 3a1. TAssist explains the expected input without deleting a student.
 
-      Use case resumes at step 2.
+  Use case resumes at step 3.
 
-*{More to be added}*
+* 3b. No student has the supplied matriculation number.
+
+  * 3b1. TAssist reports that the student does not exist and deletes nothing.
+
+  Use case resumes at step 3.
+
+#### UC04: Record a student's attendance
+
+**MSS**
+
+1. Tutor requests to search for a student by name.
+2. TAssist displays the matching students and their matriculation numbers.
+3. Tutor requests to record attendance for the intended student using their matriculation number and a date.
+4. TAssist records the student as present on that date and confirms the record.
+5. Tutor requests to view the student's profile using the index in the current search results.
+6. TAssist displays the recorded attendance date in the profile.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. No students match the search.
+
+  * 2a1. TAssist reports zero results.
+
+  Use case ends.
+
+* 3a. Tutor omits the date.
+
+  * 3a1. TAssist uses the current local date.
+
+  Use case resumes at step 4.
+
+* 3b. The matriculation number is missing, malformed, or does not belong to an existing student.
+
+  * 3b1. TAssist explains the error without adding an attendance record.
+
+  Use case resumes at step 3.
+
+* 3c. The date is not a valid calendar date in the required format.
+
+  * 3c1. TAssist explains the required date format without adding an attendance record.
+
+  Use case resumes at step 3.
+
+* 3d. Attendance has already been recorded for that student on that date.
+
+  * 3d1. TAssist reports the existing record without adding a duplicate.
+
+  Use case ends.
+
+#### UC05: Resume work with saved records
+
+**Precondition:** The tutor has added a student or recorded attendance in an earlier session, and the change was saved successfully.
+
+**MSS**
+
+1. Tutor closes TAssist and reopens it.
+2. TAssist restores the saved student and attendance records.
+3. Tutor requests to list all students.
+4. TAssist displays the restored students.
+5. Tutor requests to view a student's profile using the displayed index.
+6. TAssist displays the restored particulars and attendance records for that student.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. No saved data file exists.
+
+  * 2a1. TAssist starts with an empty student list.
+
+  Use case ends.
+
+* 2b. The saved data file is unreadable or invalid.
+
+  * 2b1. TAssist reports the restoration error and does not overwrite the file.
+
+  Use case ends.
+
+* 4a. The restored student list is empty.
+
+  * 4a1. TAssist reports that no students were found.
+
+  Use case ends.
+
+* 5a. The index does not identify a student in the displayed list.
+
+  * 5a1. TAssist reports the invalid index.
+
+  Use case resumes at step 5.
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+These requirements apply to the intended product, including future features where relevant. They specify quality targets and product constraints, not current test results. Compatibility, packaging, storage, and display requirements follow the applicable [CS2103T project constraints](https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-constraints.html). The numerical performance and learnability thresholds below are proposed product acceptance targets, not course-mandated thresholds.
 
-*{More to be added}*
+Performance checks use a desktop with at least two CPU cores, 8 GB RAM, an SSD, and Java 25, with no other resource-intensive applications running. The test dataset contains 1,000 students distributed across 10 modules and 40 classes, with 40 attendance records and 10 assignment marks per student. The test report shall record the actual hardware, OS, and runtime versions.
+
+1. **Platform compatibility:** The App shall run on Windows, Linux, and macOS with Java 25 as the only installed Java version. The same release shall support the documented workflows on all three platforms; any bundled native libraries shall support the platform being tested.
+2. **Portability and distribution:** The App shall be distributed as a single JAR of at most 100 MB, with its required libraries bundled; if that is not feasible, the JAR and required files shall be packaged in one ZIP of at most 100 MB. Given Java 25, a tutor shall be able to launch it from a writable folder without an installer or additional software installation.
+3. **Local, editable storage:** Persistent application data shall be held in local, human-editable text files, without a database management system. With the App closed, a valid edit to a documented student field using a text editor shall be reflected on the next launch. This assumes one tutor using one running instance with exclusive access to the data files.
+4. **Capacity and responsiveness:** With the test dataset loaded, at least 95 of 100 executions of each core operation shall display the result within 2 seconds of submission, after five warm-up executions per operation. Core operations are adding, editing, deleting, listing, searching, profile viewing, class assignment, class filtering, attendance recording, mark recording, and grade sorting. Measurements include saving for operations that change data and exclude tutor input time. Bulk file import is outside this latency target.
+5. **Startup performance:** With the test dataset saved locally, the App shall restore the records and accept a command within 10 seconds of launch in at least 9 of 10 launches on the test desktop.
+6. **Keyboard operability:** All student-management operations shall be completable using the keyboard alone after launch, including operations added in later iterations. Routine record operations shall accept all required input in one command, without requiring separate prompts for each field.
+7. **Learnability:** At least 4 of 5 first-time users who are comfortable with CLI applications shall, with the User Guide available, complete a prepared exercise of adding, finding, viewing, and deleting a student and recording attendance within 15 minutes without assistance. The exercise shall supply all student particulars and attendance dates.
+8. **Error tolerance:** Invalid user input shall not crash the App or change existing records. Error feedback shall identify the offending input or missing information and explain how to correct it. Check missing parameters, malformed matriculation numbers, invalid displayed indices, nonexistent students, and invalid dates; later commands shall meet the same standard for their own parameters.
+9. **Persistence reliability:** After the App reports a data change as successfully saved, normal shutdown and relaunch shall preserve all saved field values and relationships. Verify a save-and-relaunch cycle for each supported data-changing operation. A simulated save failure shall be reported visibly and shall not be presented as a successful save.
+10. **Preservation on restoration failure:** A saved file that cannot be read or validated shall remain unmodified during the failed restoration attempt and subsequent normal shutdown. Verify this by comparing its contents before and after the attempt; the App shall report the failure rather than claim that records were restored.
+11. **Offline availability:** All local student-management operations, including saving and restoring records, shall work with networking disabled and shall not depend on a remote server. Accessing online help or an external email service is outside this requirement.
+12. **Display usability:** At 1920 x 1080 and higher resolutions with 100% or 125% scaling, command input, feedback, and student information shall remain readable without overlapping controls or inaccessible content. At 1280 x 720 and higher resolutions with 150% scaling, all functions shall remain accessible, allowing scrolling or resizing where necessary.
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+| Term | Definition |
+|------|------------|
+| Student record | The stored information for one student, including particulars, module and class memberships, and associated academic records. |
+| Student particulars | The identifying and contact details held in a student record. The MVP stores name, matriculation number, and email address. |
+| Matriculation number | The student's unique identifier. In the MVP, it is case-insensitive and consists of `A`, seven digits, and a final letter. It identifies the student for deletion and attendance recording. |
+| Displayed index | A student's temporary position in the currently displayed list or search results. Profile viewing uses this index; it is not a permanent identifier. |
+| Student profile | The view of one student's particulars and available attendance records. Later versions may also show class, assignment, and grade information. |
+| Module | A university course identified by a module code, such as CS2103T. |
+| Class / class section | A tutorial or lab group within a module. A class identifier is interpreted together with its module code. |
+| Class roster | The students assigned to a particular module's tutorial or lab group. |
+| Class session | One occurrence of a tutorial or lab. This term is relevant to later class-aware attendance features; the MVP attendance command identifies an attendance record by student and date only. |
+| Attendance record | In the MVP, a record that a student was present on a particular calendar date. The same student cannot have two records for the same date. No record does not mean the student was absent. |
+| Assignment | An assessed piece of work within a module, identified separately from other assignments in that module. |
+| Assignment mark | A student's numeric score on an assignment's marking scale. An unrecorded mark is not a zero mark. |
+| Grade | An academic result used for comparison, such as an assignment mark. Sorting by grades must identify which assessment result is being compared; marks from different assignments are not interchangeable. |
+| Assignment progress | The recorded completion or submission state of a student's assignment, distinct from its assessed mark. |
+| Participation | A recorded measure of a student's contribution during a tutorial or lab, distinct from attendance. |
+| Attendance statistics | Summaries of recorded attendance for a stated student or class over a stated period. These require the applicable attendance data to be defined and are beyond the MVP's present-on-date records. |
+| Persistent filter | A student-list filter retained across subsequent operations until changed or cleared. This term alone does not imply that the filter survives an App restart. |
+| Command alias | A tutor-defined alternative name for an existing command. |
+| Persisted records | Records saved to local storage so that they can be restored when the App is reopened. |
 
 --------------------------------------------------------------------------------------------------------------------
 
