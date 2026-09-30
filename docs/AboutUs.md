@@ -31,14 +31,14 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 * Role: Team Lead
 * Responsibilities: UI
 
-### Johnny Doe
+### Amanda Tasya Dedi
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/amndatasyaa.png" width="200px">
 
-[[github](http://github.com/johndoe)] [[portfolio](team/johndoe.md)]
+[[github](http://github.com/amndatasyaa)] 
 
-* Role: Developer
-* Responsibilities: Data
+* Role: Deliverables and Deadlines
+* Responsibilities: UI
 
 ### Jean Doe
 
@@ -52,9 +52,10 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ### James Doe
 
-<img src="images/amndatasyaa.png" width="200px">
+<img src="images/johndoe.png" width="200px">
 
-[[github](http://github.com/amndatasyaa)]
+[[github](http://github.com/johndoe)]
+[[portfolio](team/johndoe.md)]
 
-* Role: Deliverables and Deadlines
+* Role: Developer
 * Responsibilities: UI
