@@ -67,4 +67,4 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[github](http://github.com/f1r8)]
 
 * Role: Developer
-* Responsibilities: Test
+* Responsibilities: Testing, In charge of Logic
