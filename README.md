@@ -2,13 +2,18 @@
 # TAssist
 ![Ui](docs/images/Ui.png)
 
-* This is **a sample project for Software Engineering (SE) students**.<br>
-  Example usages:
-  * as a starting point of a course project (as opposed to writing everything from scratch)
-  * as a case study
-* The project simulates an ongoing software project for a desktop application (called _AddressBook_) used for managing contact details.
-  * It is **written in an object-oriented programming (OOP) style** and provides a **reasonably well-written** codebase of about 6 KLoC. It is **larger** than what students typically write in beginner-level software-engineering modules, without being overwhelming.
-  * It comes with a **reasonable level of user and developer documentation**.
-* It is named `AddressBook Level 3` (`AB3` for short) because it was initially created as a part of a series of `AddressBook` projects (`Level 1`, `Level 2`, `Level 3` ...).
-* For the detailed documentation of this project, see the **[Address Book Product Website](https://se-education.org/addressbook-level3)**.
+* **TAssist** is a desktop application for **university Computer Science tutors** to manage the students in their tutorial groups across multiple modules.
+  * It is optimized for tutors who **prefer typing**: all actions are done through a Command Line Interface (CLI).
+  * It is written in Java and has about [X] KLoC.
+* Main features:
+  * Add, edit, delete and search for students (by name or matriculation number)
+  * Filter students by course and tutorial group
+  * Record grades, sort by grades, and view class statistics
+  * Mark and view attendance for each tutorial
+  * Track assignment submissions
+  * View a student's profile: particulars, grades, attendance and assignment metrics
+  * Import and export student data
+  * Undo and redo mistakes, and reuse previous commands
+* Target users: tutors handling several modules or lab sections who need to look up and compare student information quickly.
+* For the detailed documentation of this project, see the **[TAssist Product Website](https://ay2627s1-cs2103t-t10-2.github.io/tp/)**.
 * This project is a **part of the se-education.org** initiative. If you would like to contribute code to this project, see [se-education.org](https://se-education.org/#contributing-to-se-edu) for more info.
