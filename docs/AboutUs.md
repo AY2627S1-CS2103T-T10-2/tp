@@ -37,8 +37,8 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](http://github.com/amndatasyaa)] 
 
-* Role: Deliverables and Deadlines
-* Responsibilities: UI
+* Role: Developer
+* Responsibilities: Deliverables and Deadlines + UI
 
 ### Jean Doe
 
