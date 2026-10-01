@@ -303,7 +303,7 @@ These use cases follow the feature names and purposes in the feature specificati
 **MSS**
 
 1. Tutor requests to add a student, supplying a name, matriculation number, and email address.
-2. TAssist validates the details, adds the student to the address book, and confirms the addition.
+2. TAssist validates the details, adds the student to TAssist, and confirms the addition.
 
 Use case ends.
 
@@ -326,7 +326,7 @@ Use case ends.
 **MSS**
 
 1. Tutor requests to delete a student using their matriculation number.
-2. TAssist deletes the matching student from the address book and confirms the deletion.
+2. TAssist deletes the matching student from TAssist and confirms the deletion.
 
 Use case ends.
 
@@ -407,7 +407,7 @@ Use case ends.
 **MSS**
 
 1. Tutor requests to list all students.
-2. TAssist displays each stored student exactly once in the address book's existing order and confirms that all students have been listed.
+2. TAssist displays each stored student exactly once in the order maintained by TAssist and confirms that all students have been listed.
 
 Use case ends.
 
@@ -419,13 +419,13 @@ Use case ends.
 
   Use case resumes at step 1.
 
-* 2a. The address book contains no students.
+* 2a. TAssist has no stored student records.
 
-  * 2a1. TAssist displays an empty list and reports that no students were found in the address book.
+  * 2a1. TAssist displays an empty list and reports that no student records were found.
 
   Use case ends.
 
-* 2b. The address book data cannot be loaded or is corrupted, or the student list cannot be displayed.
+* 2b. The stored student records cannot be loaded or are corrupted, or the student list cannot be displayed.
 
   * 2b1. TAssist reports the error.
 
@@ -433,11 +433,12 @@ Use case ends.
 
 #### UC06: View a student's profile
 
+**Guarantees:** The current student list, its order, any active search or filter, and stored information remain unchanged. If the request fails, the previously displayed profile also remains unchanged.
+
 **MSS**
 
 1. Tutor requests to view a student's profile using the student's index in the currently displayed list.
-2. TAssist displays the selected student's stored information, grouped into student particulars, class membership, and attendance, with attendance ordered from most recent to oldest.
-3. TAssist confirms whose profile is shown, preserving the current student list, its order, and any active search or filter without changing stored information.
+2. TAssist displays the selected student's stored information, grouped into student particulars, class membership, and attendance, with attendance ordered from most recent to oldest, and confirms whose profile is shown.
 
 Use case ends.
 
@@ -463,9 +464,9 @@ Use case ends.
 
 * 2a. An optional particular, class membership, or attendance information is not available.
 
-  * 2a1. TAssist displays "Not provided", "No classes assigned.", or "No attendance recorded." in the relevant section.
+  * 2a1. TAssist indicates which information is unavailable in the relevant section and confirms whose profile is shown.
 
-  Use case resumes at step 3.
+  Use case ends.
 
 #### UC07: Restore student records when reopening the app
 
@@ -506,7 +507,7 @@ Performance checks use a desktop with at least two CPU cores, 8 GB RAM, an SSD, 
 5. **Startup performance:** With the test dataset saved locally, the App shall restore the records and accept a command within 10 seconds of launch in at least 9 of 10 launches on the test desktop.
 6. **Keyboard operability:** All student-management operations shall be completable using the keyboard alone after launch, including operations added in later iterations. Routine record operations shall accept all required input in one command, without requiring separate prompts for each field.
 7. **Learnability:** At least 4 of 5 first-time users who are comfortable with CLI applications shall, with the User Guide available, complete a prepared exercise of adding a student, listing all students, searching students, viewing a student's profile, recording attendance, and deleting a student within 15 minutes without assistance. The exercise shall supply all required student particulars and attendance dates.
-8. **Error tolerance:** Invalid user input shall not crash the App or change existing records. Error feedback shall identify the offending input or missing information and explain how to correct it. Check missing required parameters, unexpected parameters, invalid student details, duplicate matriculation numbers, invalid displayed indices, nonexistent students, invalid dates, and duplicate attendance for the same student and date. An omitted attendance date shall use the current date, as specified in UC04, rather than be treated as a missing required parameter. A failed profile-viewing request shall also preserve the previously displayed profile and student list. Later commands shall meet the same standard for their own parameters.
+8. **Error tolerance:** Invalid user input shall not crash the App or change existing records. Error feedback shall identify the offending input or missing information and explain how to correct it. Check missing required parameters, unexpected parameters, invalid student details, duplicate matriculation numbers, invalid displayed indices, nonexistent students, invalid dates, and duplicate attendance for the same student and date. Later commands shall meet the same standard for their own parameters.
 9. **Persistence reliability:** After the App reports a data-changing operation as successful, normal shutdown and relaunch shall preserve the resulting records, field values, and relationships, including additions, deletions, and recorded attendance. Verify a save-and-relaunch cycle for each supported data-changing operation. A simulated save failure shall be reported visibly and shall not be presented as a successful operation.
 10. **Preservation on restoration failure:** A saved file that cannot be read or validated shall remain unmodified during the failed restoration attempt and subsequent normal shutdown. Verify this by comparing its contents before and after the attempt; the App shall report the failure rather than claim that records were restored.
 11. **Offline availability:** All local student-management operations, including saving and restoring records, shall work with networking disabled and shall not depend on a remote server. Accessing online help or an external email service is outside this requirement.
@@ -520,7 +521,7 @@ Performance checks use a desktop with at least two CPU cores, 8 GB RAM, an SSD, 
 | Student particulars | The identifying and contact details held in a student record. The MVP stores name, matriculation number, and email address. |
 | Matriculation number | The student's unique identifier. In the MVP, it is case-insensitive and consists of `A`, seven digits, and a final letter. It identifies the student for deletion and attendance recording. |
 | Displayed index | A student's temporary position in the currently displayed list or search results. Profile viewing uses this index; it is not a permanent identifier. |
-| Student profile | The view of one student's particulars and available attendance records. Later versions may also show class, assignment, and grade information. |
+| Student profile | The view of one student's particulars, available class memberships, and attendance records. It displays stored memberships but does not assign students to classes. Later versions may also show assignment and grade information. |
 | Module | A university course identified by a module code, such as CS2103T. |
 | Class / class section | A tutorial or lab group within a module. A class identifier is interpreted together with its module code. |
 | Class session | One occurrence of a tutorial or lab. This term is relevant to later class-aware attendance features; the MVP attendance command identifies an attendance record by student and date only. |
