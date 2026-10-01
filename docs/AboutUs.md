@@ -17,7 +17,8 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](https://github.com/adriazz)]
 
-* Role: Scheduling and tracking, Model Expert
+* Role: Developer
+* Responsibilities: Scheduling and tracking + Model
 
 ### Jane Doe
 
