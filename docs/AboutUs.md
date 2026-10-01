@@ -20,15 +20,14 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 * Role: Developer
 * Responsibilities: Scheduling and tracking + Model
 
-### Jane Doe
+### Alexandra Martina Setiawan
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/alexandra-setiawan.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](http://github.com/alexandra-setiawan)]
 
-* Role: Team Lead
-* Responsibilities: UI
+* Role: Developer
+* Responsibilities: Integration + Main
 
 ### Johnny Doe
 
