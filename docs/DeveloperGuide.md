@@ -270,71 +270,296 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
+* is a university Computer Science tutor
+* manages multiple modules and tutorial/lab groups concurrently
+* needs quick access to students' particulars, grades, attendance and assignment progress
 * prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+* is comfortable using CLI apps
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: View and update student particulars, grades, attendance and assignments with single-line commands, faster than multi-click web interfaces and without breaking the tutor's coding workflow.
 
 
 ### User stories
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …                                    | I want to …                 | So that I can…                                                        |
-|----------|--------------------------------------------|------------------------------|------------------------------------------------------------------------|
-| `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person             |                                                                        |
-| `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name        | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
-
-*{More to be added}*
+| Priority | As a …                                   | I want to …                                                  | So that I can…                                                  |
+|----------|------------------------------------------|--------------------------------------------------------------|-----------------------------------------------------------------|
+| `* * *`  | tutor                                    | add a student                                                | keep track of the students in my classes                        |
+| `* * *`  | tutor                                    | delete a student                                             | remove students who are no longer in my classes                 |
+| `* * *`  | tutor                                    | edit a student's details                                     | keep their information up to date without re-adding them        |
+| `* * *`  | tutor                                    | list all students                                            | see everyone under my care                                      |
+| `* * *`  | tutor                                    | search for a student by name                                 | find their information quickly                                  |
+| `* * *`  | tutor                                    | view a student's profile                                     | review their particulars, classes and attendance in one place   |
+| `* * *`  | tutor teaching multiple modules          | assign students to modules and class sections                | organise the classes I teach                                    |
+| `* * *`  | tutor teaching multiple modules          | filter students by class                                     | see all students from one class                                 |
+| `* * *`  | tutor                                    | record a student's attendance for a specific class session   | keep track of whether they attended class                       |
+| `* * *`  | tutor                                    | record a student's assignment marks                          | keep track of their academic performance                        |
+| `* * *`  | tutor                                    | sort my class by grades in ascending or descending order     | identify struggling students quickly                            |
+| `* * *`  | tutor                                    | have my student records restored when I reopen the app       | continue working without entering them again                    |
+| `* *`    | new user                                 | see a list of commands and how to use them                   | start using the app without memorising commands                 |
+| `* *`    | forgetful tutor                          | search for a student by matriculation number                 | find them when I cannot recall their name                       |
+| `* *`    | tutor                                    | update an attendance record                                  | correct mistakes made during attendance taking                  |
+| `* *`    | tutor                                    | view attendance statistics for a class                       | monitor participation trends                                    |
+| `* *`    | tutor                                    | record a student's class participation                       | grade their participation                                       |
+| `* *`    | tutor                                    | undo my last action                                          | reverse mistakes                                                |
+| `* *`    | tutor                                    | have my filters persist across searches                      | avoid retyping the same filters                                 |
+| `*`      | tutor who has finished teaching a class  | delete students in batches                                   | remove a whole class at once                                    |
+| `*`      | tutor teaching a new class               | import students from a file with one command                 | avoid adding them one by one                                    |
+| `*`      | tutor                                    | add notes to a student                                       | remember details about them                                     |
+| `*`      | tutor                                    | colour-code student entries by conditions such as class      | tell my classes apart at a glance                               |
+| `*`      | tutor                                    | see a student's photo                                        | recognise them in class                                         |
+| `*`      | tutor                                    | view a student's grade trend                                 | see their progress over time                                    |
+| `*`      | tutor                                    | record which students are friends                            | ask friends to help students who are struggling                 |
+| `*`      | tutor managing at-risk students          | pin a student entry                                          | find them quickly for special attention                         |
+| `*`      | tutor                                    | open my mail app with a student's email filled in            | email students without copying their addresses                  |
+| `*`      | tutor teaching many modules              | autocomplete course codes                                    | avoid memorising module identifiers                             |
+| `*`      | tutor                                    | view previously executed commands                            | reuse commands without retyping them                            |
+| `*`      | tutor                                    | view my search history                                       | repeat past searches easily                                     |
+| `*`      | tutor                                    | clear my search history                                      | keep only relevant entries                                      |
+| `*`      | experienced user                         | set custom command aliases                                   | type fewer characters                                           |
+| `*`      | experienced user                         | customise the app's appearance                               | match it to my other applications                               |
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+These use cases follow the feature names and purposes in the feature specification. Restoring saved records is also included to cover the corresponding user story. For all use cases, the **System** is TAssist, the **Actor** is a university Computer Science tutor, and **MSS** means Main Success Scenario. Unless stated otherwise, TAssist is running.
 
-**Use case: Delete a person**
+#### UC01: Add a student
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1. Tutor requests to add a student, supplying a name, matriculation number, and email address.
+2. TAssist validates the details, adds the student to TAssist, and confirms the addition.
 
-    Use case ends.
+Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. The request has invalid syntax, a required detail is missing, or a supplied detail has an invalid format.
+
+  * 1a1. TAssist explains the invalid input and does not add a student.
+
+  Use case resumes at step 1.
+
+* 1b. The matriculation number belongs to an existing student.
+
+  * 1b1. TAssist reports the duplicate and does not add another student.
+
+  Use case resumes at step 1.
+
+#### UC02: Delete a student
+
+**MSS**
+
+1. Tutor requests to delete a student using their matriculation number.
+2. TAssist deletes the matching student from TAssist and confirms the deletion.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. The request has invalid syntax or the matriculation number is missing or malformed.
+
+  * 1a1. TAssist explains the expected input without deleting a student.
+
+  Use case resumes at step 1.
+
+* 1b. No student has the supplied matriculation number.
+
+  * 1b1. TAssist reports that the student does not exist and deletes nothing.
+
+  Use case resumes at step 1.
+
+#### UC03: Search students
+
+**MSS**
+
+1. Tutor requests to search for students by name.
+2. TAssist displays the number of matching students and their list entries, including all students with the same matching name.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. The request has invalid syntax or the search name is missing or invalid.
+
+  * 1a1. TAssist explains the error without changing any records.
+
+  Use case resumes at step 1.
+
+* 2a. No students match the name.
+
+  * 2a1. TAssist reports zero results and displays an empty result list.
 
   Use case ends.
 
-* 3a. The given index is invalid.
+#### UC04: Record attendance
 
-    * 3a1. AddressBook shows an error message.
+**MSS**
 
-      Use case resumes at step 2.
+1. Tutor requests to record a student's attendance, supplying their matriculation number and a date.
+2. TAssist records the student as present on that date and confirms the record.
 
-*{More to be added}*
+Use case ends.
+
+**Extensions**
+
+* 1a. Tutor omits the date.
+
+  * 1a1. TAssist uses the current date.
+
+  Use case resumes at step 2.
+
+* 1b. The request has invalid syntax or the matriculation number is missing, malformed, or does not belong to an existing student.
+
+  * 1b1. TAssist explains the error without adding an attendance record.
+
+  Use case resumes at step 1.
+
+* 1c. The date is not a valid calendar date in the required `dd-mm-yyyy` format.
+
+  * 1c1. TAssist explains the required date format without adding an attendance record.
+
+  Use case resumes at step 1.
+
+* 1d. Attendance has already been recorded for that student on that date.
+
+  * 1d1. TAssist reports the existing record without adding a duplicate.
+
+  Use case ends.
+
+#### UC05: List all students
+
+**MSS**
+
+1. Tutor requests to list all students.
+2. TAssist displays each stored student exactly once in the order maintained by TAssist and confirms that all students have been listed.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. Tutor supplies extra or unexpected input with the request.
+
+  * 1a1. TAssist explains the expected input without changing any records.
+
+  Use case resumes at step 1.
+
+* 2a. TAssist has no stored student records.
+
+  * 2a1. TAssist displays an empty list and reports that no student records were found.
+
+  Use case ends.
+
+* 2b. The stored student records cannot be loaded or are corrupted, or the student list cannot be displayed.
+
+  * 2b1. TAssist reports the error.
+
+  Use case ends.
+
+#### UC06: View a student's profile
+
+**Guarantees:** The current student list, its order, any active search or filter, and stored information remain unchanged. If the request fails, the previously displayed profile also remains unchanged.
+
+**MSS**
+
+1. Tutor requests to view a student's profile using the student's index in the currently displayed list.
+2. TAssist displays the selected student's stored information, grouped into student particulars, class membership, and attendance, with attendance ordered from most recent to oldest, and confirms whose profile is shown.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. The index is missing, more than one index is supplied, or the index format is invalid.
+
+  * 1a1. TAssist explains the expected input and keeps the previously displayed profile, student list, and stored information unchanged.
+
+  Use case resumes at step 1.
+
+* 1b. No students are currently displayed.
+
+  * 1b1. TAssist asks the tutor to list students or change the search or filter, leaving the previously displayed profile and stored information unchanged.
+
+  Use case ends.
+
+* 1c. The index exceeds the size of the displayed list.
+
+  * 1c1. TAssist reports the valid index range and keeps the previously displayed profile, student list, and stored information unchanged.
+
+  Use case resumes at step 1.
+
+* 2a. An optional particular, class membership, or attendance information is not available.
+
+  * 2a1. TAssist indicates which information is unavailable in the relevant section and confirms whose profile is shown.
+
+  Use case ends.
+
+#### UC07: Restore student records when reopening the app
+
+**Precondition:** The tutor has added a student or recorded attendance in an earlier session, and the change was saved successfully.
+
+**MSS**
+
+1. Tutor closes TAssist and reopens it.
+2. TAssist restores the saved student and attendance records.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. No saved data file exists.
+
+  * 2a1. TAssist starts with an empty student list.
+
+  Use case ends.
+
+* 2b. The saved data file is unreadable or invalid.
+
+  * 2b1. TAssist reports the restoration error and does not overwrite the file.
+
+  Use case ends.
+
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+These requirements apply to the intended product, including future features where relevant. They specify quality targets and product constraints, not current test results. Compatibility, packaging, storage, and display requirements follow the applicable [CS2103T project constraints](https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-constraints.html). The numerical performance and learnability thresholds below are proposed product acceptance targets, not course-mandated thresholds.
 
-*{More to be added}*
+Performance checks use a desktop with at least two CPU cores, 8 GB RAM, an SSD, and Java 25, with no other resource-intensive applications running. The test dataset contains 1,000 students with 40 attendance records on distinct dates per student. For versions supporting module and class memberships or assignment marks, extend the dataset to distribute the students across 10 modules and 40 classes or include 10 assignment marks per student, as applicable. The test report shall record the actual hardware, OS, runtime versions, and dataset used.
+
+1. **Platform compatibility:** The App shall run on Windows, Linux, and macOS with Java 25 as the only installed Java version. The same release shall support the documented workflows on all three platforms; any bundled native libraries shall support the platform being tested.
+2. **Portability and distribution:** The App shall be distributed as a single JAR of at most 100 MB, with its required libraries bundled; if that is not feasible, the JAR and required files shall be packaged in one ZIP of at most 100 MB. Given Java 25, a tutor shall be able to launch it from a writable folder without an installer or additional software installation.
+3. **Local, editable storage:** Persistent application data shall be held in local, human-editable text files, without a database management system. With the App closed, a valid edit to a documented student field using a text editor shall be reflected on the next launch. This assumes one tutor using one running instance with exclusive access to the data files.
+4. **Capacity and responsiveness:** With the test dataset loaded, at least 95 of 100 executions of each specified operation shall display the result within 2 seconds of submission, after five warm-up executions per operation. These operations are adding a student, deleting a student, searching students, recording attendance, listing all students, and viewing a student's profile (UC01–UC06). The same target shall apply to student editing, module and class assignment, class filtering, assignment mark recording, and grade sorting when supported. Measurements include saving for operations that change data and exclude tutor input time. Restoring records on launch is covered by the startup performance requirement. Bulk file import is outside this latency target.
+5. **Startup performance:** With the test dataset saved locally, the App shall restore the records and accept a command within 10 seconds of launch in at least 9 of 10 launches on the test desktop.
+6. **Keyboard operability:** All student-management operations shall be completable using the keyboard alone after launch, including operations added in later iterations. Routine record operations shall accept all required input in one command, without requiring separate prompts for each field.
+7. **Learnability:** At least 4 of 5 first-time users who are comfortable with CLI applications shall, with the User Guide available, complete a prepared exercise of adding a student, listing all students, searching students, viewing a student's profile, recording attendance, and deleting a student within 15 minutes without assistance. The exercise shall supply all required student particulars and attendance dates.
+8. **Error tolerance:** Invalid user input shall not crash the App or change existing records. Error feedback shall identify the offending input or missing information and explain how to correct it. Check missing required parameters, unexpected parameters, invalid student details, duplicate matriculation numbers, invalid displayed indices, nonexistent students, invalid dates, and duplicate attendance for the same student and date. Later commands shall meet the same standard for their own parameters.
+9. **Persistence reliability:** After the App reports a data-changing operation as successful, normal shutdown and relaunch shall preserve the resulting records, field values, and relationships, including additions, deletions, and recorded attendance. Verify a save-and-relaunch cycle for each supported data-changing operation. A simulated save failure shall be reported visibly and shall not be presented as a successful operation.
+10. **Preservation on restoration failure:** A saved file that cannot be read or validated shall remain unmodified during the failed restoration attempt and subsequent normal shutdown. Verify this by comparing its contents before and after the attempt; the App shall report the failure rather than claim that records were restored.
+11. **Offline availability:** All local student-management operations, including saving and restoring records, shall work with networking disabled and shall not depend on a remote server. Accessing online help or an external email service is outside this requirement.
+12. **Display usability:** At 1920 x 1080 and higher resolutions with 100% or 125% scaling, command input, feedback, and student information shall remain readable without overlapping controls or inaccessible content. At 1280 x 720 and higher resolutions with 150% scaling, all functions shall remain accessible, allowing scrolling or resizing where necessary.
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+| Term | Definition |
+|------|------------|
+| Student record | The stored information for one student, including particulars, module and class memberships, and associated academic records. |
+| Student particulars | The identifying and contact details held in a student record. The MVP stores name, matriculation number, and email address. |
+| Matriculation number | The student's unique identifier. In the MVP, it is case-insensitive and consists of `A`, seven digits, and a final letter. It identifies the student for deletion and attendance recording. |
+| Displayed index | A student's temporary position in the currently displayed list or search results. Profile viewing uses this index; it is not a permanent identifier. |
+| Student profile | The view of one student's particulars, available class memberships, and attendance records. It displays stored memberships but does not assign students to classes. Later versions may also show assignment and grade information. |
+| Module | A university course identified by a module code, such as CS2103T. |
+| Class / class section | A tutorial or lab group within a module. A class identifier is interpreted together with its module code. |
+| Class session | One occurrence of a tutorial or lab. This term is relevant to later class-aware attendance features; the MVP attendance command identifies an attendance record by student and date only. |
+| Attendance record | In the MVP, a record that a student was present on a particular calendar date. The same student cannot have two records for the same date. No record does not mean the student was absent. |
+| Assignment | An assessed piece of work within a module, identified separately from other assignments in that module. |
+| Assignment mark | A student's numeric score on an assignment's marking scale. An unrecorded mark is not a zero mark. |
+| Grade | An academic result used for comparison, such as an assignment mark. Sorting by grades must identify which assessment result is being compared; marks from different assignments are not interchangeable. |
+| Grade trend | The pattern of change in a student's grades over time. |
+| Participation | A recorded measure of a student's contribution during a tutorial or lab, distinct from attendance. |
+| Attendance statistics | Summaries of recorded attendance for a stated student or class over a stated period. These require the applicable attendance data to be defined and are beyond the MVP's present-on-date records. |
+| Filter | A condition used to limit the displayed student list to matching students, such as those in a particular class. Filtering does not delete student records. |
+| Command alias | A tutor-defined alternative name for an existing command. |
 
 --------------------------------------------------------------------------------------------------------------------
 
