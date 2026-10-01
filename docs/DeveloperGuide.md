@@ -270,29 +270,55 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
+* is a university Computer Science tutor
+* manages multiple modules and tutorial/lab groups concurrently
+* needs quick access to students' particulars, grades, attendance and assignment progress
 * prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+* is comfortable using CLI apps
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: View and update student particulars, grades, attendance and assignments with single-line commands, faster than multi-click web interfaces and without breaking the tutor's coding workflow.
 
 
 ### User stories
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …                                    | I want to …                 | So that I can…                                                        |
-|----------|--------------------------------------------|------------------------------|------------------------------------------------------------------------|
-| `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person             |                                                                        |
-| `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name        | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
-
-*{More to be added}*
+| Priority | As a …                                   | I want to …                                                  | So that I can…                                                  |
+|----------|------------------------------------------|--------------------------------------------------------------|-----------------------------------------------------------------|
+| `* * *`  | tutor                                    | add a student                                                | keep track of the students in my classes                        |
+| `* * *`  | tutor                                    | delete a student                                             | remove students who are no longer in my classes                 |
+| `* * *`  | tutor                                    | edit a student's details                                     | keep their information up to date without re-adding them        |
+| `* * *`  | tutor                                    | list all students                                            | see everyone under my care                                      |
+| `* * *`  | tutor                                    | search for a student by name                                 | find their information quickly                                  |
+| `* * *`  | tutor                                    | view a student's profile                                     | review their particulars, classes and attendance in one place   |
+| `* * *`  | tutor teaching multiple modules          | assign students to modules and class sections                | organise the classes I teach                                    |
+| `* * *`  | tutor teaching multiple modules          | filter students by class                                     | see all students from one class                                 |
+| `* * *`  | tutor                                    | record a student's attendance for a specific class session   | keep track of whether they attended class                       |
+| `* * *`  | tutor                                    | record a student's assignment marks                          | keep track of their academic performance                        |
+| `* * *`  | tutor                                    | sort my class by grades in ascending or descending order     | identify struggling students quickly                            |
+| `* * *`  | tutor                                    | have my student records restored when I reopen the app       | continue working without entering them again                    |
+| `* *`    | new user                                 | see a list of commands and how to use them                   | start using the app without memorising commands                 |
+| `* *`    | forgetful tutor                          | search for a student by matriculation number                 | find them when I cannot recall their name                       |
+| `* *`    | tutor                                    | update an attendance record                                  | correct mistakes made during attendance taking                  |
+| `* *`    | tutor                                    | view attendance statistics for a class                       | monitor participation trends                                    |
+| `* *`    | tutor                                    | record a student's class participation                       | grade their participation                                       |
+| `* *`    | tutor                                    | undo my last action                                          | reverse mistakes                                                |
+| `* *`    | tutor                                    | have my filters persist across searches                      | avoid retyping the same filters                                 |
+| `*`      | tutor who has finished teaching a class  | delete students in batches                                   | remove a whole class at once                                    |
+| `*`      | tutor teaching a new class               | import students from a file with one command                 | avoid adding them one by one                                    |
+| `*`      | tutor                                    | add notes to a student                                       | remember details about them                                     |
+| `*`      | tutor                                    | colour-code student entries by conditions such as class      | tell my classes apart at a glance                               |
+| `*`      | tutor                                    | see a student's photo                                        | recognise them in class                                         |
+| `*`      | tutor                                    | view a student's grade trend                                 | see their progress over time                                    |
+| `*`      | tutor                                    | record which students are friends                            | ask friends to help students who are struggling                 |
+| `*`      | tutor managing at-risk students          | pin a student entry                                          | find them quickly for special attention                         |
+| `*`      | tutor                                    | open my mail app with a student's email filled in            | email students without copying their addresses                  |
+| `*`      | tutor teaching many modules              | autocomplete course codes                                    | avoid memorising module identifiers                             |
+| `*`      | tutor                                    | view previously executed commands                            | reuse commands without retyping them                            |
+| `*`      | tutor                                    | view my search history                                       | repeat past searches easily                                     |
+| `*`      | tutor                                    | clear my search history                                      | keep only relevant entries                                      |
+| `*`      | experienced user                         | set custom command aliases                                   | type fewer characters                                           |
+| `*`      | experienced user                         | customise the app's appearance                               | match it to my other applications                               |
 
 ### Use cases
 
