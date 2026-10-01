@@ -47,7 +47,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[github](http://github.com/ed3yuu)]
 
 * Role: Developer
-* Responsibilities: Code Quality, Storage
+* Responsibilities: Code Quality + Storage
 
 ### James Doe
 
