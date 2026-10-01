@@ -59,3 +59,12 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 * Role: Developer
 * Responsibilities: UI
+
+### Jiang Yuzhe
+
+<img src="images/f1r8.png" width="200px">
+
+[[github](http://github.com/f1r8)]
+
+* Role: Team Lead
+* Responsibilities: Testing + Logic
