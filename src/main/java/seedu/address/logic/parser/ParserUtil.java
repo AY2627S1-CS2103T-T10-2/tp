@@ -11,8 +11,8 @@ import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.Name;
-import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -51,18 +51,18 @@ public class ParserUtil {
     }
 
     /**
-     * Parses a {@code String phone} into a {@code Phone}.
-     * Leading and trailing whitespaces will be trimmed.
+     * Parses a {@code String matriculationNumber} into a {@code MatriculationNumber}. Leading and trailing whitespaces
+     * will be trimmed.
      *
-     * @throws ParseException if the given {@code phone} is invalid.
+     * @throws ParseException if the given {@code matriculationNumber} is invalid.
      */
-    public static Phone parsePhone(String phone) throws ParseException {
-        requireNonNull(phone);
-        String trimmedPhone = phone.trim();
-        if (!Phone.isValidPhone(trimmedPhone)) {
-            throw new ParseException(Phone.MESSAGE_CONSTRAINTS);
+    public static MatriculationNumber parseMatriculationNumber(String matriculationNumber) throws ParseException {
+        requireNonNull(matriculationNumber);
+        String trimmedMatriculationNumber = matriculationNumber.trim();
+        if (!MatriculationNumber.isValidMatriculationNumber(trimmedMatriculationNumber)) {
+            throw new ParseException(MatriculationNumber.MESSAGE_CONSTRAINTS);
         }
-        return new Phone(trimmedPhone);
+        return new MatriculationNumber(trimmedMatriculationNumber);
     }
 
     /**
