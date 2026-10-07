@@ -129,7 +129,7 @@ Examples:
 * `find John` returns `john` and `John Doe`
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
-* `find `august` returns `August` and `Augustine`
+* `find august` returns `August` and `Augustine`
 
 ### Deleting a person: `delete`
 

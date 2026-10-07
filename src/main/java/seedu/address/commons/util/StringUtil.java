@@ -17,10 +17,10 @@ public class StringUtil {
      * Returns true if the {@code sentence} contains the {@code word}.
      *   Ignores case, both partial and full word matches are allowed.
      *   <br>examples:<pre>
-     *       containsWordIgnoreCase("ABc def", "abc") == true
-     *       containsWordIgnoreCase("ABc def", "DEF") == true
-     *       containsWordIgnoreCase("ABc def", "AB") == true
-     *       containsWordIgnoreCase("ABc def", "g") == false //g not in sentence
+     *       containsSubwordIgnoreCase("ABc def", "abc") == true
+     *       containsSubwordIgnoreCase("ABc def", "DEF") == true
+     *       containsSubwordIgnoreCase("ABc def", "AB") == true
+     *       containsSubwordIgnoreCase("ABc def", "g") == false //g not in sentence
      *       </pre>
      * @param sentence cannot be null
      * @param subword cannot be null, cannot be empty, must be a substring of a single word
