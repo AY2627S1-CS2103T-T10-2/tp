@@ -53,7 +53,7 @@ public class JsonAdaptedPersonTest {
         String json = """
                 {
                   "name": "Benson",
-                  "phone": "91234567",
+                  "matriculationNumber": "A1234567A",
                   "email": "benson@example.com",
                   "address": "123 Main Street",
                   "tags": []
@@ -65,7 +65,7 @@ public class JsonAdaptedPersonTest {
 
     @Test
     public void toModelType_emptyAttendance_returnsEmptyHistory() throws Exception {
-        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_MATRICULATION_NUMBER, VALID_EMAIL,
                 VALID_ADDRESS, VALID_TAGS, List.of());
         assertEquals(Attendance.empty(), person.toModelType().getAttendance());
     }
@@ -75,7 +75,7 @@ public class JsonAdaptedPersonTest {
         List<List<String>> invalidHistories = List.of(List.of("31-02-2026"), List.of("2026-09-16"),
                 Arrays.asList("16-09-2026", null));
         for (List<String> dates : invalidHistories) {
-            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_MATRICULATION_NUMBER, VALID_EMAIL,
                     VALID_ADDRESS, VALID_TAGS, dates);
             assertThrows(IllegalValueException.class, AttendanceDate.MESSAGE_CONSTRAINTS, person::toModelType);
         }
@@ -83,7 +83,7 @@ public class JsonAdaptedPersonTest {
 
     @Test
     public void toModelType_duplicateAttendance_throwsIllegalValueException() {
-        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_MATRICULATION_NUMBER, VALID_EMAIL,
                 VALID_ADDRESS, VALID_TAGS, List.of("16-09-2026", "16-09-2026"));
         assertThrows(IllegalValueException.class, Attendance.MESSAGE_DUPLICATE_DATE, person::toModelType);
     }

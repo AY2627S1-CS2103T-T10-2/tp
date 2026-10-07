@@ -95,7 +95,7 @@ public class PersonTest {
         Person copy = new PersonBuilder(recordedAlice).build();
         assertEquals(recordedAlice, copy);
         assertEquals(recordedAlice.hashCode(), copy.hashCode());
-        assertThrows(NullPointerException.class, () -> new Person(ALICE.getName(), ALICE.getPhone(),
+        assertThrows(NullPointerException.class, () -> new Person(ALICE.getName(), ALICE.getMatriculationNumber(),
                 ALICE.getEmail(), ALICE.getAddress(), ALICE.getTags(), null));
     }
 

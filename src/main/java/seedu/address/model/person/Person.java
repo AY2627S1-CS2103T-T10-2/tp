@@ -36,7 +36,8 @@ public class Person {
     /**
      * Constructs a person with the given attendance history. Every field must be non-null.
      */
-    public Person(Name name, MatriculationNumber matriculationNumber, Email email, Address address, Set<Tag> tags, Attendance attendance) {
+    public Person(Name name, MatriculationNumber matriculationNumber, Email email, Address address, Set<Tag> tags,
+            Attendance attendance) {
         requireAllNonNull(name, matriculationNumber, email, address, tags, attendance);
         this.name = name;
         this.matriculationNumber = matriculationNumber;
