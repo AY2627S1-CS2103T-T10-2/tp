@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
+import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.Name;
@@ -27,6 +28,7 @@ public class ParserUtilTest {
 
     private static final String VALID_NAME = "Rachel Walker";
     private static final String VALID_MATRICULATION_NUMBER = "A1234567A";
+    private static final String VALID_ATTENDANCE_DATE = "07-10-2026";
     private static final String VALID_ADDRESS = "123 Main Street #0505";
     private static final String VALID_EMAIL = "rachel@example.com";
     private static final String VALID_TAG_1 = "friend";
@@ -75,6 +77,36 @@ public class ParserUtilTest {
         String nameWithWhitespace = WHITESPACE + VALID_NAME + WHITESPACE;
         Name expectedName = new Name(VALID_NAME);
         assertEquals(expectedName, ParserUtil.parseName(nameWithWhitespace));
+    }
+
+    @Test
+    public void parseAttendanceDate_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseAttendanceDate(null));
+    }
+
+    @Test
+    public void parseAttendanceDate_invalidValue_throwsParseException() {
+        assertThrows(ParseException.class, AttendanceDate.MESSAGE_CONSTRAINTS, ()
+                -> ParserUtil.parseAttendanceDate("7-10-2026"));
+        assertThrows(ParseException.class, AttendanceDate.MESSAGE_CONSTRAINTS, ()
+                -> ParserUtil.parseAttendanceDate("32-01-2026"));
+        assertThrows(ParseException.class, AttendanceDate.MESSAGE_CONSTRAINTS, ()
+                -> ParserUtil.parseAttendanceDate("29-02-2026"));
+        assertThrows(ParseException.class, AttendanceDate.MESSAGE_CONSTRAINTS, ()
+                -> ParserUtil.parseAttendanceDate(""));
+    }
+
+    @Test
+    public void parseAttendanceDate_validValueWithoutWhitespace_returnsAttendanceDate() throws Exception {
+        AttendanceDate expectedDate = new AttendanceDate(VALID_ATTENDANCE_DATE);
+        assertEquals(expectedDate, ParserUtil.parseAttendanceDate(VALID_ATTENDANCE_DATE));
+    }
+
+    @Test
+    public void parseAttendanceDate_validValueWithWhitespace_returnsTrimmedAttendanceDate() throws Exception {
+        String dateWithWhitespace = WHITESPACE + VALID_ATTENDANCE_DATE + WHITESPACE;
+        AttendanceDate expectedDate = new AttendanceDate(VALID_ATTENDANCE_DATE);
+        assertEquals(expectedDate, ParserUtil.parseAttendanceDate(dateWithWhitespace));
     }
 
     @Test

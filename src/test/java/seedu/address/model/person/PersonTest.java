@@ -87,11 +87,24 @@ public class PersonTest {
     }
 
     @Test
+    public void attendance_changesDataButNotIdentity() {
+        Person recordedAlice = new PersonBuilder(ALICE).withAttendance("07-10-2026").build();
+        assertEquals(Attendance.empty(), ALICE.getAttendance());
+        assertTrue(ALICE.isSamePerson(recordedAlice));
+        assertFalse(ALICE.equals(recordedAlice));
+        Person copy = new PersonBuilder(recordedAlice).build();
+        assertEquals(recordedAlice, copy);
+        assertEquals(recordedAlice.hashCode(), copy.hashCode());
+        assertThrows(NullPointerException.class, () -> new Person(ALICE.getName(), ALICE.getPhone(),
+                ALICE.getEmail(), ALICE.getAddress(), ALICE.getTags(), null));
+    }
+
+    @Test
     public void toStringMethod() {
-        String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName()
-                + ", matriculationNumber=" + ALICE.getMatriculationNumber()
-                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress()
-                + ", tags=" + ALICE.getTags() + "}";
+        String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", matriculationNumber="
+                + ALICE.getMatriculationNumber()
+                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
+                + ", attendance=" + ALICE.getAttendance() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }

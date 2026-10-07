@@ -23,17 +23,26 @@ public class Person {
 
     // Data fields
     private final Address address;
+    private final Attendance attendance;
     private final Set<Tag> tags = new HashSet<>();
 
     /**
      * Every field must be present and not null.
      */
     public Person(Name name, MatriculationNumber matriculationNumber, Email email, Address address, Set<Tag> tags) {
-        requireAllNonNull(name, matriculationNumber, email, address, tags);
+        this(name, matriculationNumber, email, address, tags, Attendance.empty());
+    }
+
+    /**
+     * Constructs a person with the given attendance history. Every field must be non-null.
+     */
+    public Person(Name name, MatriculationNumber matriculationNumber, Email email, Address address, Set<Tag> tags, Attendance attendance) {
+        requireAllNonNull(name, matriculationNumber, email, address, tags, attendance);
         this.name = name;
         this.matriculationNumber = matriculationNumber;
         this.email = email;
         this.address = address;
+        this.attendance = attendance;
         this.tags.addAll(tags);
     }
 
@@ -51,6 +60,10 @@ public class Person {
 
     public Address getAddress() {
         return address;
+    }
+
+    public Attendance getAttendance() {
+        return attendance;
     }
 
     /**
@@ -93,13 +106,14 @@ public class Person {
                 && matriculationNumber.equals(otherPerson.matriculationNumber)
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
-                && tags.equals(otherPerson.tags);
+                && tags.equals(otherPerson.tags)
+                && attendance.equals(otherPerson.attendance);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, matriculationNumber, email, address, tags);
+        return Objects.hash(name, matriculationNumber, email, address, tags, attendance);
     }
 
     @Override
@@ -110,6 +124,7 @@ public class Person {
                 .add("email", email)
                 .add("address", address)
                 .add("tags", tags)
+                .add("attendance", attendance)
                 .toString();
     }
 
