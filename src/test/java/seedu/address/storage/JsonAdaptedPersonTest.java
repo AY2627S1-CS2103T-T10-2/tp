@@ -6,16 +6,22 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.person.Address;
+import seedu.address.model.person.Attendance;
+import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.testutil.PersonBuilder;
 
 public class JsonAdaptedPersonTest {
     private static final String INVALID_NAME = "R@chel";
@@ -31,6 +37,56 @@ public class JsonAdaptedPersonTest {
     private static final List<JsonAdaptedTag> VALID_TAGS = BENSON.getTags().stream()
             .map(JsonAdaptedTag::new)
             .collect(Collectors.toList());
+
+    @Test
+    public void toModelType_attendanceJsonRoundTrip_preservesHistory() throws Exception {
+        Person original = new PersonBuilder(BENSON).withAttendance("16-09-2026", "07-10-2026").build();
+        String json = JsonUtil.toJsonString(new JsonAdaptedPerson(original));
+        JsonAdaptedPerson restored = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
+        assertEquals(original, restored.toModelType());
+        assertEquals(List.of(new AttendanceDate("07-10-2026"), new AttendanceDate("16-09-2026")),
+                restored.toModelType().getAttendance().getDates());
+    }
+
+    @Test
+    public void toModelType_legacyJsonWithoutAttendance_defaultsToEmpty() throws Exception {
+        String json = """
+                {
+                  "name": "Benson",
+                  "phone": "91234567",
+                  "email": "benson@example.com",
+                  "address": "123 Main Street",
+                  "tags": []
+                }
+                """;
+        JsonAdaptedPerson restored = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
+        assertEquals(Attendance.empty(), restored.toModelType().getAttendance());
+    }
+
+    @Test
+    public void toModelType_emptyAttendance_returnsEmptyHistory() throws Exception {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_ADDRESS, VALID_TAGS, List.of());
+        assertEquals(Attendance.empty(), person.toModelType().getAttendance());
+    }
+
+    @Test
+    public void toModelType_invalidAttendance_throwsIllegalValueException() {
+        List<List<String>> invalidHistories = List.of(List.of("31-02-2026"), List.of("2026-09-16"),
+                Arrays.asList("16-09-2026", null));
+        for (List<String> dates : invalidHistories) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                    VALID_ADDRESS, VALID_TAGS, dates);
+            assertThrows(IllegalValueException.class, AttendanceDate.MESSAGE_CONSTRAINTS, person::toModelType);
+        }
+    }
+
+    @Test
+    public void toModelType_duplicateAttendance_throwsIllegalValueException() {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_ADDRESS, VALID_TAGS, List.of("16-09-2026", "16-09-2026"));
+        assertThrows(IllegalValueException.class, Attendance.MESSAGE_DUPLICATE_DATE, person::toModelType);
+    }
 
     @Test
     public void toModelType_validPersonDetails_returnsPerson() throws Exception {
