@@ -40,7 +40,8 @@ public class EditCommandTest {
         Person original = model.getFilteredPersonList().get(0);
         Person recordedPerson = new PersonBuilder(original).withAttendance("16-09-2026", "07-10-2026").build();
         model.setPerson(original, recordedPerson);
-        Person editedPerson = new PersonBuilder(recordedPerson).withMatriculationNumber(VALID_MATRICULATION_NUMBER_BOB).build();
+        Person editedPerson = new PersonBuilder(recordedPerson).withMatriculationNumber(VALID_MATRICULATION_NUMBER_BOB)
+                .build();
         EditCommand command = new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withMatriculationNumber(VALID_MATRICULATION_NUMBER_BOB).build());
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
