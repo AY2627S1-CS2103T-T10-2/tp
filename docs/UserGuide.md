@@ -59,7 +59,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
   For example, `[t/TAG]... ` may be omitted, or written as `t/friend` or `t/friend t/family`.
 
 * Parameters can be in any order.<br>
-  For example, if the command specifies `n/NAME m/MATRICULAIION_NUMBER`, `m/MATRICULATION_NUMBER n/NAME` is also acceptable.
+  For example, if the command specifies `n/NAME m/MATRICULATION_NUMBER`, `m/MATRICULATION_NUMBER n/NAME` is also acceptable.
 
 * Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
