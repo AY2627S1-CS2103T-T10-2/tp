@@ -45,4 +45,29 @@ public class AddCommandIntegrationTest {
                 AddCommand.MESSAGE_DUPLICATE_PERSON);
     }
 
+    @Test
+    public void execute_sameMatriculationNumberDifferentName_throwsCommandException() {
+        Person personInList = model.getAddressBook().getPersonList().get(0);
+        Person sameMatricDifferentName = new PersonBuilder(personInList)
+                .withName("Totally Different Name")
+                .build();
+        assertCommandFailure(new AddCommand(sameMatricDifferentName), model,
+                AddCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+    @Test
+    public void execute_sameNameDifferentMatriculationNumber_success() {
+        Person personInList = model.getAddressBook().getPersonList().get(0);
+        Person sameNameDifferentMatric = new PersonBuilder(personInList)
+                .withMatriculationNumber("A7654321Z")
+                .build();
+
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.addPerson(sameNameDifferentMatric);
+
+        assertCommandSuccess(new AddCommand(sameNameDifferentMatric), model,
+                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(sameNameDifferentMatric)),
+                expectedModel);
+    }
+
 }

@@ -18,7 +18,7 @@ public class Person {
 
     // Identity fields
     private final Name name;
-    private final Phone phone;
+    private final MatriculationNumber matriculationNumber;
     private final Email email;
 
     // Data fields
@@ -29,17 +29,18 @@ public class Person {
     /**
      * Every field must be present and not null.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        this(name, phone, email, address, tags, Attendance.empty());
+    public Person(Name name, MatriculationNumber matriculationNumber, Email email, Address address, Set<Tag> tags) {
+        this(name, matriculationNumber, email, address, tags, Attendance.empty());
     }
 
     /**
      * Constructs a person with the given attendance history. Every field must be non-null.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, Attendance attendance) {
-        requireAllNonNull(name, phone, email, address, tags, attendance);
+    public Person(Name name, MatriculationNumber matriculationNumber, Email email, Address address, Set<Tag> tags,
+            Attendance attendance) {
+        requireAllNonNull(name, matriculationNumber, email, address, tags, attendance);
         this.name = name;
-        this.phone = phone;
+        this.matriculationNumber = matriculationNumber;
         this.email = email;
         this.address = address;
         this.attendance = attendance;
@@ -50,8 +51,8 @@ public class Person {
         return name;
     }
 
-    public Phone getPhone() {
-        return phone;
+    public MatriculationNumber getMatriculationNumber() {
+        return matriculationNumber;
     }
 
     public Email getEmail() {
@@ -84,7 +85,7 @@ public class Person {
         }
 
         return otherPerson != null
-                && otherPerson.getName().equals(getName());
+                && otherPerson.getMatriculationNumber().equals(getMatriculationNumber());
     }
 
     /**
@@ -103,7 +104,7 @@ public class Person {
         }
 
         return name.equals(otherPerson.name)
-                && phone.equals(otherPerson.phone)
+                && matriculationNumber.equals(otherPerson.matriculationNumber)
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
                 && tags.equals(otherPerson.tags)
@@ -113,14 +114,14 @@ public class Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags, attendance);
+        return Objects.hash(name, matriculationNumber, email, address, tags, attendance);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
                 .add("name", name)
-                .add("phone", phone)
+                .add("matriculationNumber", matriculationNumber)
                 .add("email", email)
                 .add("address", address)
                 .add("tags", tags)
