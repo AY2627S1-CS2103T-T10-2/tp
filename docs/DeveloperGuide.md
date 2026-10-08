@@ -351,22 +351,22 @@ Use case ends.
 
 **MSS**
 
-1. Tutor requests to delete a student using their matriculation number.
-2. TAssist deletes the matching student from TAssist and confirms the deletion.
+1. Tutor requests to delete a student using the student's index in the currently displayed list.
+2. TAssist deletes the selected student from TAssist and confirms the deletion.
 
 Use case ends.
 
 **Extensions**
 
-* 1a. The request has invalid syntax or the matriculation number is missing or malformed.
+* 1a. The request has invalid syntax, the index is missing, or the index is not a positive integer.
 
   * 1a1. TAssist explains the expected input without deleting a student.
 
   Use case resumes at step 1.
 
-* 1b. No student has the supplied matriculation number.
+* 1b. The index exceeds the size of the currently displayed list, including when the list is empty.
 
-  * 1b1. TAssist reports that the student does not exist and deletes nothing.
+  * 1b1. TAssist reports that the displayed student index is invalid and deletes nothing.
 
   Use case resumes at step 1.
 
@@ -509,13 +509,15 @@ Use case ends.
 
 * 2a. No saved data file exists.
 
-  * 2a1. TAssist starts with an empty student list.
+  * 2a1. TAssist starts with sample student records.
 
   Use case ends.
 
-* 2b. The saved data file is unreadable or invalid.
+* 2b. TAssist cannot restore the saved records because the data file cannot be read, contains malformed data, or contains invalid student or attendance records.
 
-  * 2b1. TAssist reports the restoration error and does not overwrite the file.
+  * 2b1. TAssist reports why restoration failed.
+  * 2b2. TAssist leaves the original data file unchanged and prevents command execution.
+  * 2b3. TAssist instructs the tutor to close the app, correct the file, replace it with a valid backup, or delete it to start with sample student records, then reopen the app.
 
   Use case ends.
 
