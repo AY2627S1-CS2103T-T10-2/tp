@@ -509,15 +509,15 @@ Use case ends.
 
 * 2a. No saved data file exists.
 
-  * 2a1. TAssist starts with an empty student list.
+  * 2a1. TAssist starts with sample student records.
 
   Use case ends.
 
 * 2b. TAssist cannot restore the saved records because the data file cannot be read, contains malformed data, or contains invalid student or attendance records.
 
-  * 2b1. TAssist reports why restoration failed and identifies the affected entries, fields, or file lines where available.
+  * 2b1. TAssist reports why restoration failed.
   * 2b2. TAssist leaves the original data file unchanged and prevents command execution.
-  * 2b3. TAssist instructs the tutor to close the app, correct the file or replace it with a valid backup, and reopen the app.
+  * 2b3. TAssist instructs the tutor to close the app, correct the file, replace it with a valid backup, or delete it to start with sample student records, then reopen the app.
 
   Use case ends.
 
