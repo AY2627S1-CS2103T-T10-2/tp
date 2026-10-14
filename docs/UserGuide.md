@@ -162,19 +162,19 @@ Examples:
 * `find Betsy` followed by `delete 1` deletes the 1st student in the results of the `find` command.
 * `delete m/A1234567X` deletes the student whose matriculation number is `A1234567X`.
 
-### Sorting persons by name: `sort`
+### Sorting students by name: `sort`
 
-Sorts the displayed list of persons by name in alphabetical order (A-Z).
+Sorts the displayed list of students by name in alphabetical order (A-Z).
 
 Format: `sort`
 
 * The sorting is case-insensitive; for example, `alice` is placed before `Bob`.
-* The sort only changes how the list is displayed. Your saved data and the original order of persons are not affected.
+* The sort only changes how the list is displayed. Your saved data and the original order of students are not affected.
 * Commands that use an `INDEX`, such as `delete`, `edit` and `view`, use the index number shown in the sorted list.
 * If you use `find` while the list is sorted, the results are also sorted by name.
 
 Examples:
-* `sort` followed by `delete 1` deletes the person who appears first in the sorted list.
+* `sort` followed by `delete 1` deletes the student who appears first in the sorted list.
 
 ### Clearing all entries: `clear`
 
