@@ -1,7 +1,5 @@
 package seedu.address.testutil;
 
-import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_AMY;
-import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_MATRICULATION_NUMBER_AMY;
@@ -24,38 +22,37 @@ import seedu.address.model.person.Person;
 public class TypicalPersons {
 
     public static final Person ALICE = new PersonBuilder().withName("Alice Pauline")
-            .withAddress("123, Jurong West Ave 6, #08-111").withEmail("alice@example.com")
+            .withEmail("alice@example.com")
             .withMatriculationNumber("A1234567A")
             .withTags("friends").build();
     public static final Person BENSON = new PersonBuilder().withName("Benson Meier")
-            .withAddress("311, Clementi Ave 2, #02-25")
             .withEmail("johnd@example.com").withMatriculationNumber("A1234567B")
             .withTags("owesMoney", "friends").build();
     public static final Person CARL = new PersonBuilder().withName("Carl Kurz").withMatriculationNumber("A1234567C")
-            .withEmail("heinz@example.com").withAddress("wall street").build();
+            .withEmail("heinz@example.com").build();
     public static final Person DANIEL =
             new PersonBuilder().withName("Daniel Meier").withMatriculationNumber("A1234567D")
-            .withEmail("cornelia@example.com").withAddress("10th street").withTags("friends").build();
+            .withEmail("cornelia@example.com").withTags("friends").build();
     public static final Person ELLE = new PersonBuilder().withName("Elle Meyer").withMatriculationNumber("A1234567E")
-            .withEmail("werner@example.com").withAddress("michegan ave").build();
+            .withEmail("werner@example.com").build();
     public static final Person FIONA = new PersonBuilder().withName("Fiona Kunz").withMatriculationNumber("A1234567F")
-            .withEmail("lydia@example.com").withAddress("little tokyo").build();
+            .withEmail("lydia@example.com").build();
     public static final Person GEORGE = new PersonBuilder().withName("George Best").withMatriculationNumber("A1234567G")
-            .withEmail("anna@example.com").withAddress("4th street").build();
+            .withEmail("anna@example.com").build();
 
     // Manually added
     public static final Person HOON = new PersonBuilder().withName("Hoon Meier").withMatriculationNumber("A1234567H")
-            .withEmail("stefan@example.com").withAddress("little india").build();
+            .withEmail("stefan@example.com").build();
     public static final Person IDA = new PersonBuilder().withName("Ida Mueller").withMatriculationNumber("A1234567I")
-            .withEmail("hans@example.com").withAddress("chicago ave").build();
+            .withEmail("hans@example.com").build();
 
     // Manually added - Person's details found in {@code CommandTestUtil}
     public static final Person AMY =
             new PersonBuilder().withName(VALID_NAME_AMY).withMatriculationNumber(VALID_MATRICULATION_NUMBER_AMY)
-            .withEmail(VALID_EMAIL_AMY).withAddress(VALID_ADDRESS_AMY).withTags(VALID_TAG_FRIEND).build();
+            .withEmail(VALID_EMAIL_AMY).withTags(VALID_TAG_FRIEND).build();
     public static final Person BOB =
             new PersonBuilder().withName(VALID_NAME_BOB).withMatriculationNumber(VALID_MATRICULATION_NUMBER_BOB)
-            .withEmail(VALID_EMAIL_BOB).withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND, VALID_TAG_FRIEND)
+            .withEmail(VALID_EMAIL_BOB).withTags(VALID_TAG_HUSBAND, VALID_TAG_FRIEND)
             .build();
 
     public static final String KEYWORD_MATCHING_MEIER = "Meier"; // A keyword that matches MEIER

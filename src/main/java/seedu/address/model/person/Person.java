@@ -22,27 +22,25 @@ public class Person {
     private final Email email;
 
     // Data fields
-    private final Address address;
     private final Attendance attendance;
     private final Set<Tag> tags = new HashSet<>();
 
     /**
      * Every field must be present and not null.
      */
-    public Person(Name name, MatriculationNumber matriculationNumber, Email email, Address address, Set<Tag> tags) {
-        this(name, matriculationNumber, email, address, tags, Attendance.empty());
+    public Person(Name name, MatriculationNumber matriculationNumber, Email email, Set<Tag> tags) {
+        this(name, matriculationNumber, email, tags, Attendance.empty());
     }
 
     /**
      * Constructs a person with the given attendance history. Every field must be non-null.
      */
-    public Person(Name name, MatriculationNumber matriculationNumber, Email email, Address address, Set<Tag> tags,
+    public Person(Name name, MatriculationNumber matriculationNumber, Email email, Set<Tag> tags,
             Attendance attendance) {
-        requireAllNonNull(name, matriculationNumber, email, address, tags, attendance);
+        requireAllNonNull(name, matriculationNumber, email, tags, attendance);
         this.name = name;
         this.matriculationNumber = matriculationNumber;
         this.email = email;
-        this.address = address;
         this.attendance = attendance;
         this.tags.addAll(tags);
     }
@@ -57,10 +55,6 @@ public class Person {
 
     public Email getEmail() {
         return email;
-    }
-
-    public Address getAddress() {
-        return address;
     }
 
     public Attendance getAttendance() {
@@ -106,7 +100,6 @@ public class Person {
         return name.equals(otherPerson.name)
                 && matriculationNumber.equals(otherPerson.matriculationNumber)
                 && email.equals(otherPerson.email)
-                && address.equals(otherPerson.address)
                 && tags.equals(otherPerson.tags)
                 && attendance.equals(otherPerson.attendance);
     }
@@ -114,7 +107,7 @@ public class Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, matriculationNumber, email, address, tags, attendance);
+        return Objects.hash(name, matriculationNumber, email, tags, attendance);
     }
 
     @Override
@@ -123,7 +116,6 @@ public class Person {
                 .add("name", name)
                 .add("matriculationNumber", matriculationNumber)
                 .add("email", email)
-                .add("address", address)
                 .add("tags", tags)
                 .add("attendance", attendance)
                 .toString();
