@@ -5,7 +5,6 @@
             "name": "Alice Pauline",
             "matriculationNumber": "A1234567A",
             "email": "alice@example.com",
-            "address": "123, Jurong West Ave 6, #08-111",
             "tags": [
                 "friends"
             ]
@@ -14,7 +13,6 @@
             "name": "Benson Meier",
             "matriculationNumber": "A1234567B",
             "email": "johnd@example.com",
-            "address": "311, Clementi Ave 2, #02-25",
             "tags": [
                 "owesMoney",
                 "friends"
@@ -24,14 +22,12 @@
             "name": "Carl Kurz",
             "matriculationNumber": "A1234567C",
             "email": "heinz@example.com",
-            "address": "wall street",
             "tags": []
         },
         {
             "name": "Daniel Meier",
             "matriculationNumber": "A1234567D",
             "email": "cornelia@example.com",
-            "address": "10th street",
             "tags": [
                 "friends"
             ]
@@ -40,21 +36,18 @@
             "name": "Elle Meyer",
             "matriculationNumber": "A1234567E",
             "email": "werner@example.com",
-            "address": "michegan ave",
             "tags": []
         },
         {
             "name": "Fiona Kunz",
             "matriculationNumber": "A1234567F",
             "email": "lydia@example.com",
-            "address": "little tokyo",
             "tags": []
         },
         {
             "name": "George Best",
             "matriculationNumber": "A1234567G",
             "email": "anna@example.com",
-            "address": "4th street",
             "tags": []
         }
     ]
