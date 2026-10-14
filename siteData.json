@@ -41,7 +41,7 @@
       "src": "DeveloperGuide.md",
       "title": "Developer Guide",
       "headings": {
-        "ab-3-developer-guide": "AB-3 Developer Guide",
+        "tassist-developer-guide": "TAssist Developer Guide",
         "acknowledgements": "Acknowledgements",
         "setting-up-getting-started": "Setting up, getting started",
         "design": "Design",
@@ -63,7 +63,7 @@
         "glossary": "Glossary",
         "appendix-instructions-for-manual-testing": "Appendix: Instructions for manual testing",
         "launch-and-shutdown": "Launch and shutdown",
-        "deleting-a-person": "Deleting a person",
+        "deleting-a-student": "Deleting a student",
         "saving-data": "Saving data"
       },
       "headingKeywords": {}
@@ -108,17 +108,17 @@
       "src": "UserGuide.md",
       "title": "User Guide",
       "headings": {
-        "ab-3-user-guide": "AB-3 User Guide",
+        "tassist-user-guide": "TAssist User Guide",
         "quick-start": "Quick start",
         "features": "Features",
         "viewing-help-help": "Viewing help: help",
-        "adding-a-person-add": "Adding a person: add",
-        "listing-all-persons-list": "Listing all persons: list",
-        "editing-a-person-edit": "Editing a person: edit",
-        "locating-persons-by-name-find": "Locating persons by name: find",
+        "adding-a-student-add": "Adding a student: add",
+        "listing-all-students-list": "Listing all students: list",
+        "editing-a-student-edit": "Editing a student: edit",
+        "locating-students-by-name-find": "Locating students by name: find",
         "viewing-a-student-s-details-view": "Viewing a student's details: view",
-        "deleting-a-person-delete": "Deleting a person: delete",
-        "sorting-persons-by-name-sort": "Sorting persons by name: sort",
+        "deleting-a-student-delete": "Deleting a student: delete",
+        "sorting-students-by-name-sort": "Sorting students by name: sort",
         "clearing-all-entries-clear": "Clearing all entries: clear",
         "exiting-the-program-exit": "Exiting the program: exit",
         "saving-the-data": "Saving the data",
@@ -134,15 +134,7 @@
       "src": "index.md",
       "title": "",
       "headings": {
-        "addressbook-level-3": "AddressBook Level-3"
-      },
-      "headingKeywords": {}
-    },
-    {
-      "src": "team/johndoe.md",
-      "title": "John Doe's Project Portfolio Page",
-      "headings": {
-        "project-addressbook-level-3": "Project: AddressBook Level 3"
+        "tassist": "TAssist"
       },
       "headingKeywords": {}
     }
