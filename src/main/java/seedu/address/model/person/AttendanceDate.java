@@ -29,6 +29,13 @@ public final class AttendanceDate implements Comparable<AttendanceDate> {
     }
 
     /**
+     * Returns the attendance date for the current system date.
+     */
+    public static AttendanceDate today() {
+        return new AttendanceDate(LocalDate.now().format(FORMATTER));
+    }
+
+    /**
      * Returns whether the string represents a calendar date with a year from 0001 to 9999.
      */
     public static boolean isValidAttendanceDate(String value) {
