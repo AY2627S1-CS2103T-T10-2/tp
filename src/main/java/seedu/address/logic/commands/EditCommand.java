@@ -1,7 +1,6 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
@@ -21,7 +20,6 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.Name;
@@ -42,7 +40,6 @@ public class EditCommand extends Command {
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_MATRICULATION_NUMBER + "MATRICULATION_NUMBER] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
-            + "[" + PREFIX_ADDRESS + "ADDRESS] "
             + "[" + PREFIX_TAG + "TAG]...\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_MATRICULATION_NUMBER + "A1234567X "
@@ -99,10 +96,9 @@ public class EditCommand extends Command {
         MatriculationNumber updatedMatriculationNumber =
                 editPersonDescriptor.getMatriculationNumber().orElse(personToEdit.getMatriculationNumber());
         Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail());
-        Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
-        return new Person(updatedName, updatedMatriculationNumber, updatedEmail, updatedAddress, updatedTags,
+        return new Person(updatedName, updatedMatriculationNumber, updatedEmail, updatedTags,
                 personToEdit.getAttendance());
     }
 
@@ -137,7 +133,6 @@ public class EditCommand extends Command {
         private Name name;
         private MatriculationNumber matriculationNumber;
         private Email email;
-        private Address address;
         private Set<Tag> tags;
 
         public EditPersonDescriptor() {}
@@ -150,7 +145,6 @@ public class EditCommand extends Command {
             setName(toCopy.name);
             setMatriculationNumber(toCopy.matriculationNumber);
             setEmail(toCopy.email);
-            setAddress(toCopy.address);
             setTags(toCopy.tags);
         }
 
@@ -158,7 +152,7 @@ public class EditCommand extends Command {
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, matriculationNumber, email, address, tags);
+            return CollectionUtil.isAnyNonNull(name, matriculationNumber, email, tags);
         }
 
         public void setName(Name name) {
@@ -183,14 +177,6 @@ public class EditCommand extends Command {
 
         public Optional<Email> getEmail() {
             return Optional.ofNullable(email);
-        }
-
-        public void setAddress(Address address) {
-            this.address = address;
-        }
-
-        public Optional<Address> getAddress() {
-            return Optional.ofNullable(address);
         }
 
         /**
@@ -224,7 +210,6 @@ public class EditCommand extends Command {
             return Objects.equals(name, otherEditPersonDescriptor.name)
                     && Objects.equals(matriculationNumber, otherEditPersonDescriptor.matriculationNumber)
                     && Objects.equals(email, otherEditPersonDescriptor.email)
-                    && Objects.equals(address, otherEditPersonDescriptor.address)
                     && Objects.equals(tags, otherEditPersonDescriptor.tags);
         }
 
@@ -234,7 +219,6 @@ public class EditCommand extends Command {
                     .add("name", name)
                     .add("matriculationNumber", matriculationNumber)
                     .add("email", email)
-                    .add("address", address)
                     .add("tags", tags)
                     .toString();
         }
