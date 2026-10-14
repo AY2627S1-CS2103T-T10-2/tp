@@ -136,14 +136,19 @@ Examples:
 Deletes the specified person from the address book.
 
 Format: `delete INDEX`
+or
+`delete m/MATRICULATION_NUMBER`
 
-* Deletes the person at the specified `INDEX`.
+* Deletes the person at the specified `INDEX` or with the specified `MATRICULATION_NUMBER`.
 * The index refers to the index number shown in the displayed person list.
 * The index **must be a positive integer** 1, 2, 3, ...
+* The matriculation number must start with `A`, followed by 7 digits, and end with a letter.
+* The matriculation number is case-insensitive.
 
 Examples:
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
 * `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `delete m/A1234567X` deletes the person whose matriculation number is `A1234567X`.
 
 ### Clearing all entries: `clear`
 
