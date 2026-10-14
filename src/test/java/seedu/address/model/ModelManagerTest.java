@@ -72,7 +72,7 @@ public class ModelManagerTest {
     public void sortPersons_sortsDisplayedListByName() {
         modelManager.addPerson(BENSON);
         modelManager.addPerson(ALICE);
-        modelManager.sortPersons();
+        modelManager.sortPersons(Model.COMPARATOR_NAME_ASC);
         assertEquals(List.of(ALICE, BENSON), modelManager.getFilteredPersonList());
     }
 

@@ -20,7 +20,7 @@ public class SortCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.sortPersons();
+        model.sortPersons(Model.COMPARATOR_NAME_ASC);
         return new CommandResult(MESSAGE_SUCCESS);
     }
 }
