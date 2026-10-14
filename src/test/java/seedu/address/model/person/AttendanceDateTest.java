@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 import org.junit.jupiter.api.Test;
 
 public class AttendanceDateTest {
@@ -32,6 +35,12 @@ public class AttendanceDateTest {
             assertTrue(AttendanceDate.isValidAttendanceDate(date));
             assertEquals(date, new AttendanceDate(date).toString());
         }
+    }
+
+    @Test
+    public void today_returnsCurrentDate() {
+        assertEquals(new AttendanceDate(LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-uuuu"))),
+                AttendanceDate.today());
     }
 
     @Test
