@@ -28,18 +28,7 @@ jobs:
           java-version: '25'
           java-package: jdk+fx
 
-      - name: Install virtual display
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb xauth
-
-      - name: Build and check with Gradle on Linux
-        if: runner.os == 'Linux'
-        run: xvfb-run -a ./gradlew check coverage
-
-      - name: Build and check with Gradle on Windows and macOS
-        if: runner.os != 'Linux'
+      - name: Build and check with Gradle
         run: ./gradlew check coverage
 
       - name: Upload coverage reports to Codecov
