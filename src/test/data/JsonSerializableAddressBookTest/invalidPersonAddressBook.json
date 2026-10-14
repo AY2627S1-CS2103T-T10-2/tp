@@ -3,8 +3,7 @@
         {
             "name": "Hans Muster",
             "matriculationNumber": "A1234567A",
-            "email": "invalid@email!3e",
-            "address": "4th street"
+            "email": "invalid@email!3e"
         }
     ]
 }
