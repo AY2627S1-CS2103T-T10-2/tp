@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
+import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -48,17 +49,23 @@ public class AttendanceCommandTest {
     }
 
     @Test
-    public void execute_validIndexWithoutDate_marksToday() {
+    public void execute_validIndexWithoutDate_marksToday() throws CommandException {
         Person student = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        AttendanceDate attendanceDate = AttendanceDate.today();
-        Person markedStudent = new PersonBuilder(student).withAttendance(attendanceDate.toString()).build();
-        AttendanceCommand command = new AttendanceCommand(INDEX_FIRST_PERSON, Optional.empty());
-
-        String expectedMessage = String.format(AttendanceCommand.MESSAGE_SUCCESS, student.getName(), attendanceDate);
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(student, markedStudent);
 
-        assertCommandSuccess(command, model, expectedMessage, expectedModel);
+        AttendanceDate before = AttendanceDate.today();
+        CommandResult result = new AttendanceCommand(INDEX_FIRST_PERSON, Optional.empty()).execute(model);
+        AttendanceDate after = AttendanceDate.today();
+
+        Person markedStudent = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        AttendanceDate recorded = markedStudent.getAttendance().contains(before) ? before : after;
+        assertTrue(markedStudent.getAttendance().contains(recorded),
+                "Expected attendance on " + before + " or " + after);
+
+        expectedModel.setPerson(student, new PersonBuilder(student).withAttendance(recorded.toString()).build());
+        assertEquals(expectedModel, model);
+        assertEquals(String.format(AttendanceCommand.MESSAGE_SUCCESS, student.getName(), recorded),
+                result.getFeedbackToUser());
     }
 
     @Test
