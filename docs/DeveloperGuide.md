@@ -397,28 +397,28 @@ Use case ends.
 
 **MSS**
 
-1. Tutor requests to record a student's attendance, supplying their matriculation number and a date.
+1. Tutor requests to record a student's attendance for a date.
 2. TAssist records the student as present on that date and confirms the record.
 
 Use case ends.
 
 **Extensions**
 
-* 1a. Tutor omits the date.
+* 1a. Tutor does not specify a date.
 
   * 1a1. TAssist uses the current date.
 
   Use case resumes at step 2.
 
-* 1b. The request has invalid syntax or the matriculation number is missing, malformed, or does not belong to an existing student.
+* 1b. The specified student does not exist.
 
-  * 1b1. TAssist explains the error without adding an attendance record.
+  * 1b1. TAssist shows an error message without adding an attendance record.
 
   Use case resumes at step 1.
 
-* 1c. The date is not a valid calendar date in the required `dd-mm-yyyy` format.
+* 1c. The specified date is invalid.
 
-  * 1c1. TAssist explains the required date format without adding an attendance record.
+  * 1c1. TAssist shows an error message without adding an attendance record.
 
   Use case resumes at step 1.
 
