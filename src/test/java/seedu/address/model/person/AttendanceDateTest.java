@@ -39,8 +39,15 @@ public class AttendanceDateTest {
 
     @Test
     public void today_returnsCurrentDate() {
-        assertEquals(new AttendanceDate(LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-uuuu"))),
-                AttendanceDate.today());
+        LocalDate before = LocalDate.now();
+        AttendanceDate today = AttendanceDate.today();
+        LocalDate after = LocalDate.now();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-uuuu");
+        String beforeText = before.format(formatter);
+        String afterText = after.format(formatter);
+        assertTrue(today.equals(new AttendanceDate(beforeText)) || today.equals(new AttendanceDate(afterText)),
+                "Expected attendance date " + beforeText + " or " + afterText);
     }
 
     @Test
