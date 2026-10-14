@@ -131,6 +131,18 @@ Examples:
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 * `find august` returns `August` and `Augustine`
 
+### Viewing a student's details: `view`
+
+Displays the selected student's details, including their matriculation number and recorded attendance dates.
+
+Format: `view INDEX`
+
+* The index refers to the number shown in the displayed student list.
+* Each detail appears on its own line in the result panel.
+* Attendance dates are listed from newest to oldest. If no dates have been recorded, the result shows `None recorded`.
+
+Example: `view 1` displays the first student in the current list.
+
 ### Deleting a person: `delete`
 
 Deletes the specified person from the address book.
