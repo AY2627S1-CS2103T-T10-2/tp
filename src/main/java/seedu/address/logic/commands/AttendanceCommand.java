@@ -17,7 +17,7 @@ public class AttendanceCommand extends Command {
     public static final String COMMAND_WORD = "attendance";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Marks attendance for the person identified by the index number used in the displayed person list.\n"
+            + ": Marks attendance for the student identified by the index number used in the displayed student list.\n"
             + "Parameters: INDEX (must be a positive integer) [d/DATE]\n"
             + "Example: " + COMMAND_WORD + " 1 d/07-10-2026";
 
