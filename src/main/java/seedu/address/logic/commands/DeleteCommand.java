@@ -22,11 +22,11 @@ public class DeleteCommand extends Command {
     public static final String COMMAND_WORD = "delete";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Deletes the person identified by their displayed index or matriculation number.\n"
+            + ": Deletes the student identified by their displayed index or matriculation number.\n"
             + "Parameters: INDEX or m/MATRICULATION_NUMBER\n"
-            + "Examples: " + COMMAND_WORD + " 1, " + COMMAND_WORD + " m/A1234567X";
+            + "Example: " + COMMAND_WORD + " 1, " + COMMAND_WORD + " m/A1234567X";
 
-    public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted person: %1$s";
+    public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted student: %1$s";
 
     public static final String MESSAGE_PERSON_NOT_FOUND =
             "No student with matriculation number %1$s found.";
