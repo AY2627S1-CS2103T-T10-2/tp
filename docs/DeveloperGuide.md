@@ -614,6 +614,19 @@ testers are expected to do more *exploratory* testing.
 
 1. Dealing with missing/corrupted data files
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+   1. Close TAssist and back up `data/addressbook.json` before testing.
+   1. Move the data file out of the `data` folder and reopen TAssist.<br>
+      Expected: Sample student records appear and commands can be executed.
+   1. Close TAssist, restore the backup, and make the JSON invalid (e.g., remove its closing brace).
+      Reopen TAssist.<br>
+      Expected: The result display reports the file path, failure reason, and recovery instructions.
+      The command box is disabled. The data file is unchanged after startup and after closing the app
+      using the window's close button.
+   1. Repeat with valid JSON containing an invalid student email, an invalid attendance date
+      (e.g., `31-02-2026`), or a repeated attendance date.<br>
+      Expected: The same command block and file preservation apply, with the corresponding validation error.
+   1. Close TAssist, correct the file or replace it with the valid backup, and reopen TAssist.<br>
+      Expected: The saved student and attendance records are restored and commands can be executed.
+      Alternatively, delete the file while the app is closed and reopen it to start with sample records.
 
 1. _{ more test cases … }_

@@ -37,6 +37,12 @@ public class MainApp extends Application {
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
     private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "addressbook.json");
+    private static final String DATA_LOADING_ERROR_FORMAT =
+            "TAssist could not restore the saved student and attendance records from:\n%s\n\n"
+            + "Reason: %s\n\n"
+            + "Commands are disabled. The original data file has not been changed.\n"
+            + "Close TAssist using the window's close button. Correct the file, replace it with a valid backup, "
+            + "or delete it to start with sample student records. Then reopen TAssist.";
 
     protected Ui ui;
     protected Logic logic;
@@ -53,23 +59,21 @@ public class MainApp extends Application {
         JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH);
         storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
-        model = initModelManager(storage, userPrefs);
-
-        logic = new LogicManager(model, storage);
+        initModelAndLogic(storage, userPrefs);
 
         ui = new UiManager(logic, storage.getAddressBookFilePath());
     }
 
     /**
-     * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
-     * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
-     * or an empty address book will be used instead if errors occur when reading {@code storage}'s address book.
+     * Initializes the model and logic using saved records, or sample records if the data file is missing.
+     * If restoration fails, initializes an empty model and blocks commands for the rest of this session.
      */
-    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+    protected void initModelAndLogic(Storage storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getAddressBookFilePath());
 
         Optional<ReadOnlyAddressBook> addressBookOptional;
         ReadOnlyAddressBook initialData;
+        Optional<String> startupErrorMessage = Optional.empty();
         try {
             addressBookOptional = storage.readAddressBook();
             if (addressBookOptional.isEmpty()) {
@@ -78,12 +82,15 @@ public class MainApp extends Application {
             }
             initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
         } catch (DataLoadingException e) {
-            logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
-                    + " Will be starting with an empty AddressBook.");
+            String errorMessage = String.format(DATA_LOADING_ERROR_FORMAT,
+                    storage.getAddressBookFilePath().toAbsolutePath(), e.getCause().getMessage());
+            logger.warning(errorMessage);
+            startupErrorMessage = Optional.of(errorMessage);
             initialData = new AddressBook();
         }
 
-        return new ModelManager(initialData, userPrefs);
+        model = new ModelManager(initialData, userPrefs);
+        logic = new LogicManager(model, storage, startupErrorMessage);
     }
 
     /**

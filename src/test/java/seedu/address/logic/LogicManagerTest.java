@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
@@ -12,6 +13,7 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,6 +69,31 @@ public class LogicManagerTest {
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+        assertTrue(logic.getStartupErrorMessage().isEmpty());
+    }
+
+    @Test
+    public void execute_restoreFailed_blocksAllCommandsWithoutChangingModelOrSaving() {
+        String startupError = "Saved records could not be restored. Close TAssist and correct the data file.";
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(temporaryFolder.resolve("data.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) {
+                throw new AssertionError("Commands must not save data after a restore failure.");
+            }
+        };
+        StorageManager storage = new StorageManager(addressBookStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json")));
+        model.addPerson(AMY);
+        logic = new LogicManager(model, storage, Optional.of(startupError));
+
+        String[] commands = {"clear", "delete 1", "edit 1 n/Changed", "list", "find Nobody", "help", "exit",
+            "attendance m/" + AMY.getMatriculationNumber() + " d/07-10-2026",
+            AddCommand.COMMAND_WORD + NAME_DESC_AMY + MATRICULATION_NUMBER_DESC_AMY + EMAIL_DESC_AMY,
+            "invalid command", ""};
+        for (String command : commands) {
+            assertCommandException(command, startupError);
+            assertEquals(model.getAddressBook().getPersonList(), logic.getFilteredPersonList());
+        }
     }
 
     @Test

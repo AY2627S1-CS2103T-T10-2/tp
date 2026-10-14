@@ -1,7 +1,10 @@
 package seedu.address.logic;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -30,19 +33,36 @@ public class LogicManager implements Logic {
     private final Model model;
     private final Storage storage;
     private final AddressBookParser addressBookParser;
+    private final Optional<String> startupErrorMessage;
 
     /**
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
      */
     public LogicManager(Model model, Storage storage) {
+        this(model, storage, Optional.empty());
+    }
+
+    /**
+     * Constructs a {@code LogicManager} that blocks commands if a startup error is present.
+     *
+     * @param model The application model.
+     * @param storage The application storage.
+     * @param startupErrorMessage The restore failure and recovery instructions, or empty if restoration succeeded.
+     */
+    public LogicManager(Model model, Storage storage, Optional<String> startupErrorMessage) {
         this.model = model;
         this.storage = storage;
+        this.startupErrorMessage = requireNonNull(startupErrorMessage);
         addressBookParser = new AddressBookParser();
     }
 
     @Override
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
+
+        if (startupErrorMessage.isPresent()) {
+            throw new CommandException(startupErrorMessage.get());
+        }
 
         CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
@@ -57,6 +77,11 @@ public class LogicManager implements Logic {
         }
 
         return commandResult;
+    }
+
+    @Override
+    public Optional<String> getStartupErrorMessage() {
+        return startupErrorMessage;
     }
 
     @Override
