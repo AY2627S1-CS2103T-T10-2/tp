@@ -131,19 +131,36 @@ Examples:
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 * `find august` returns `August` and `Augustine`
 
+### Viewing a student's details: `view`
+
+Displays the selected student's details, including their matriculation number and recorded attendance dates.
+
+Format: `view INDEX`
+
+* The index refers to the number shown in the displayed student list.
+* Each detail appears on its own line in the result panel.
+* Attendance dates are listed from newest to oldest. If no dates have been recorded, the result shows `None recorded`.
+
+Example: `view 1` displays the first student in the current list.
+
 ### Deleting a student: `delete`
 
 Deletes the specified student from the address book.
 
 Format: `delete INDEX`
+or
+`delete m/MATRICULATION_NUMBER`
 
-* Deletes the student at the specified `INDEX`.
+* Deletes the student at the specified `INDEX` or with the specified `MATRICULATION_NUMBER`.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
+* The matriculation number must start with `A`, followed by 7 digits, and end with a letter.
+* The matriculation number is case-insensitive.
 
 Examples:
 * `list` followed by `delete 2` deletes the 2nd student in the address book.
 * `find Betsy` followed by `delete 1` deletes the 1st student in the results of the `find` command.
+* `delete m/A1234567X` deletes the student whose matriculation number is `A1234567X`.
 
 ### Clearing all entries: `clear`
 

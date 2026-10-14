@@ -52,7 +52,6 @@ public class JsonAdaptedPersonTest {
                   "name": "Benson",
                   "matriculationNumber": "A1234567A",
                   "email": "benson@example.com",
-                  "address": "123 Main Street",
                   "tags": []
                 }
                 """;
