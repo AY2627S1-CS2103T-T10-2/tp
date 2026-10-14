@@ -3,7 +3,6 @@ package seedu.address.testutil;
 import java.util.HashSet;
 import java.util.Set;
 
-import seedu.address.model.person.Address;
 import seedu.address.model.person.Attendance;
 import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.Email;
@@ -21,12 +20,10 @@ public class PersonBuilder {
     public static final String DEFAULT_NAME = "Amy Bee";
     public static final String DEFAULT_MATRICULATION_NUMBER = "A1234567Z";
     public static final String DEFAULT_EMAIL = "amy@gmail.com";
-    public static final String DEFAULT_ADDRESS = "123, Jurong West Ave 6, #08-111";
 
     private Name name;
     private MatriculationNumber matriculationNumber;
     private Email email;
-    private Address address;
     private Set<Tag> tags;
     private Attendance attendance;
 
@@ -37,7 +34,6 @@ public class PersonBuilder {
         name = new Name(DEFAULT_NAME);
         matriculationNumber = new MatriculationNumber(DEFAULT_MATRICULATION_NUMBER);
         email = new Email(DEFAULT_EMAIL);
-        address = new Address(DEFAULT_ADDRESS);
         tags = new HashSet<>();
         attendance = Attendance.empty();
     }
@@ -49,7 +45,6 @@ public class PersonBuilder {
         name = personToCopy.getName();
         matriculationNumber = personToCopy.getMatriculationNumber();
         email = personToCopy.getEmail();
-        address = personToCopy.getAddress();
         tags = new HashSet<>(personToCopy.getTags());
         attendance = personToCopy.getAttendance();
     }
@@ -67,14 +62,6 @@ public class PersonBuilder {
      */
     public PersonBuilder withTags(String ... tags) {
         this.tags = SampleDataUtil.getTagSet(tags);
-        return this;
-    }
-
-    /**
-     * Sets the {@code Address} of the {@code Person} that we are building.
-     */
-    public PersonBuilder withAddress(String address) {
-        this.address = new Address(address);
         return this;
     }
 
@@ -107,7 +94,7 @@ public class PersonBuilder {
     }
 
     public Person build() {
-        return new Person(name, matriculationNumber, email, address, tags, attendance);
+        return new Person(name, matriculationNumber, email, tags, attendance);
     }
 
 }
