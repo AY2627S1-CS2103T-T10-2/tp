@@ -145,6 +145,20 @@ Examples:
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
 * `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
+### Sorting persons by name: `sort`
+
+Sorts the displayed list of persons by name in alphabetical order (A-Z).
+
+Format: `sort`
+
+* The sorting is case-insensitive; for example, `alice` is placed before `Bob`.
+* The sort only changes how the list is displayed. Your saved data and the original order of persons are not affected.
+* Commands that use an `INDEX`, such as `delete`, `edit` and `view`, use the index number shown in the sorted list.
+* If you use `find` while the list is sorted, the results are also sorted by name.
+
+Examples:
+* `sort` followed by `delete 1` deletes the person who appears first in the sorted list.
+
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
@@ -202,4 +216,5 @@ Action     | Format, Examples
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
+**Sort**   | `sort`
 **Help**   | `help`
