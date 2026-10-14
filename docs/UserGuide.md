@@ -145,6 +145,22 @@ Examples:
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
 * `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
+### Marking attendance: `attendance`
+
+Marks the specified student present on the given date.
+
+Format: `attendance INDEX [d/DATE]`
+
+* Marks the student at the specified `INDEX` present on `DATE`.
+* The index refers to the index number shown in the displayed student list.
+* The index **must be a positive integer** 1, 2, 3, ...
+* `DATE` must be in `dd-MM-yyyy` format. If omitted, today's date is used.
+* Marking a date already recorded for that student shows an error and changes nothing.
+
+Examples:
+* `attendance 1 d/07-10-2026` marks the 1st student in the displayed list present on `07-10-2026`.
+* `find Betsy` followed by `attendance 1` marks the 1st student in the results of the `find` command present on today's date.
+
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
@@ -197,6 +213,7 @@ _Details coming soon ..._
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME m/MATRICULATION_NUMBER e/EMAIL a/ADDRESS [t/TAG]... ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Attendance** | `attendance INDEX [d/DATE]`<br> e.g., `attendance 1 d/07-10-2026`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
