@@ -10,6 +10,8 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -17,6 +19,7 @@ import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.Person;
 
 /**
@@ -71,7 +74,6 @@ public class DeleteCommandTest {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
 
         Index outOfBoundIndex = INDEX_SECOND_PERSON;
-        // ensures that outOfBoundIndex is still in bounds of address book list
         assertTrue(outOfBoundIndex.getZeroBased() < model.getAddressBook().getPersonList().size());
 
         DeleteCommand deleteCommand = new DeleteCommand(outOfBoundIndex);
@@ -80,32 +82,70 @@ public class DeleteCommandTest {
     }
 
     @Test
+    public void execute_validMatriculationNumber_success() {
+        Person personToDelete = model.getAddressBook().getPersonList().get(0);
+        MatriculationNumber matriculationNumber = personToDelete.getMatriculationNumber();
+        DeleteCommand deleteCommand = new DeleteCommand(matriculationNumber);
+
+        String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
+                Messages.format(personToDelete));
+
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.deletePerson(personToDelete);
+
+        assertCommandSuccess(deleteCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_nonexistentMatriculationNumber_throwsCommandException() {
+        MatriculationNumber matriculationNumber = new MatriculationNumber("A9999999Z");
+        DeleteCommand deleteCommand = new DeleteCommand(matriculationNumber);
+
+        String expectedMessage = String.format(
+                DeleteCommand.MESSAGE_PERSON_NOT_FOUND, matriculationNumber);
+
+        assertCommandFailure(deleteCommand, model, expectedMessage);
+    }
+
+    @Test
     public void equals() {
         DeleteCommand deleteFirstCommand = new DeleteCommand(INDEX_FIRST_PERSON);
         DeleteCommand deleteSecondCommand = new DeleteCommand(INDEX_SECOND_PERSON);
 
-        // same object -> returns true
         assertTrue(deleteFirstCommand.equals(deleteFirstCommand));
 
-        // same values -> returns true
         DeleteCommand deleteFirstCommandCopy = new DeleteCommand(INDEX_FIRST_PERSON);
         assertTrue(deleteFirstCommand.equals(deleteFirstCommandCopy));
 
-        // different types -> returns false
-        assertFalse(deleteFirstCommand.equals(1));
-
-        // null -> returns false
-        assertFalse(deleteFirstCommand.equals(null));
-
-        // different person -> returns false
         assertFalse(deleteFirstCommand.equals(deleteSecondCommand));
+
+        MatriculationNumber firstMatriculationNumber =
+                new MatriculationNumber("A1234567X");
+        MatriculationNumber secondMatriculationNumber =
+                new MatriculationNumber("A7654321Z");
+
+        DeleteCommand deleteFirstMatricCommand =
+                new DeleteCommand(firstMatriculationNumber);
+        DeleteCommand deleteFirstMatricCommandCopy =
+                new DeleteCommand(firstMatriculationNumber);
+        DeleteCommand deleteSecondMatricCommand =
+                new DeleteCommand(secondMatriculationNumber);
+
+        assertTrue(deleteFirstMatricCommand.equals(deleteFirstMatricCommandCopy));
+        assertFalse(deleteFirstMatricCommand.equals(deleteSecondMatricCommand));
+        assertFalse(deleteFirstCommand.equals(deleteFirstMatricCommand));
+
+        assertFalse(deleteFirstCommand.equals(1));
+        assertFalse(deleteFirstCommand.equals(null));
     }
 
     @Test
     public void toStringMethod() {
         Index targetIndex = Index.fromOneBased(1);
         DeleteCommand deleteCommand = new DeleteCommand(targetIndex);
-        String expected = DeleteCommand.class.getCanonicalName() + "{targetIndex=" + targetIndex + "}";
+        String expected = DeleteCommand.class.getCanonicalName()
+                + "{targetIndex=" + Optional.of(targetIndex)
+                + ", targetMatriculationNumber=" + Optional.empty() + "}";
         assertEquals(expected, deleteCommand.toString());
     }
 
@@ -113,8 +153,7 @@ public class DeleteCommandTest {
      * Updates {@code model}'s filtered list to show no one.
      */
     private void showNoPerson(Model model) {
-        model.updateFilteredPersonList(p -> false);
-
+        model.updateFilteredPersonList(person -> false);
         assertTrue(model.getFilteredPersonList().isEmpty());
     }
 }

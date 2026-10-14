@@ -69,6 +69,14 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void sortPersons_sortsDisplayedListByName() {
+        modelManager.addPerson(BENSON);
+        modelManager.addPerson(ALICE);
+        modelManager.sortPersons(Model.COMPARATOR_NAME_ASC);
+        assertEquals(List.of(ALICE, BENSON), modelManager.getFilteredPersonList());
+    }
+
+    @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
     }
