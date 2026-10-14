@@ -57,7 +57,6 @@ public class ViewCommand extends Command {
                 "Name: " + personToView.getName(),
                 "Matriculation Number: " + personToView.getMatriculationNumber(),
                 "Email: " + personToView.getEmail(),
-                "Address: " + personToView.getAddress(),
                 "Tags: " + (tags.isEmpty() ? "None" : tags),
                 "Attendance: " + attendance);
         return new CommandResult(String.format(MESSAGE_VIEW_PERSON_SUCCESS, details));

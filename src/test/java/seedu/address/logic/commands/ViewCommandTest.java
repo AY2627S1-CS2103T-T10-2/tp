@@ -30,7 +30,6 @@ public class ViewCommandTest {
             + "Name: Alice Pauline\n"
             + "Matriculation Number: A1234567A\n"
             + "Email: alice@example.com\n"
-            + "Address: 123, Jurong West Ave 6, #08-111\n"
             + "Tags: [friends]\n";
 
     private final Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
