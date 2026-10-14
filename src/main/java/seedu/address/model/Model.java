@@ -1,5 +1,6 @@
 package seedu.address.model;
 
+import java.util.Comparator;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
@@ -12,6 +13,10 @@ import seedu.address.model.person.Person;
 public interface Model {
     /** {@code Predicate} that always evaluates to true */
     Predicate<Person> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
+
+    /** {@code Comparator} that compares persons by name */
+    Comparator<Person> COMPARATOR_NAME_ASC = (p1, p2) -> p1.getName().fullName
+            .compareToIgnoreCase(p2.getName().fullName);
 
     /**
      * Returns the user prefs.
@@ -59,6 +64,11 @@ public interface Model {
      * The person identity of {@code editedPerson} must not be the same as another existing person in the address book.
      */
     void setPerson(Person target, Person editedPerson);
+
+    /**
+     * Sorts the displayed list of persons.
+     */
+    void sortPersons(Comparator<Person> comparator);
 
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();
