@@ -24,7 +24,7 @@ public class DeleteCommand extends Command {
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Deletes the student identified by their displayed index or matriculation number.\n"
             + "Parameters: INDEX or m/MATRICULATION_NUMBER\n"
-            + "Example: " + COMMAND_WORD + " 1", " + COMMAND_WORD + " m/A1234567X";
+            + "Example: " + COMMAND_WORD + " 1, " + COMMAND_WORD + " m/A1234567X";
 
     public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted student: %1$s";
 
