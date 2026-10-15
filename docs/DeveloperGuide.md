@@ -438,7 +438,7 @@ Use case ends.
 
   Use case ends.
 
-* 1e. The student index is missing or malformed, or conflicting details are supplied.
+* 1e. The student index is missing or malformed, more than one index is supplied, or the date is supplied more than once.
 
   * 1e1. TAssist explains the invalid input without adding an attendance record.
 
@@ -469,12 +469,6 @@ Without an active name sort, students appear in their existing order, with newly
 
   Use case ends.
 
-* 2b. Saving the records after listing fails.
-
-  * 2b1. TAssist reports the save failure instead of confirming success. The list remains updated to show all students.
-
-  Use case ends.
-
 #### UC06: View a student's profile
 
 **Guarantees:** The current student list, its order, any active search or filter, and student information remain unchanged.
@@ -494,9 +488,15 @@ Use case ends.
 
   Use case resumes at step 1.
 
-* 1b. No students are currently displayed, or the index exceeds the size of the displayed list.
+* 1b. No students are currently displayed.
 
   * 1b1. TAssist reports that the student index is invalid.
+
+  Use case ends.
+
+* 1c. The displayed list is non-empty, but the index exceeds its size.
+
+  * 1c1. TAssist reports that the student index is invalid.
 
   Use case resumes at step 1.
 
@@ -559,7 +559,7 @@ Performance checks use a desktop with at least two CPU cores, 8 GB RAM, an SSD, 
 |------|------------|
 | Student record | The stored information for one student, including particulars, module and class memberships, and associated academic records. |
 | Student particulars | The identifying and contact details held in a student record. The MVP stores name, matriculation number, and email address. |
-| Matriculation number | The student's unique identifier. In the MVP, it is case-insensitive and consists of `A`, seven digits, and a final letter. It identifies the student for deletion and attendance recording. |
+| Matriculation number | The student's unique identifier. In the MVP, it is case-insensitive and consists of `A`, seven digits, and a final letter. It identifies the student for deletion. |
 | Displayed index | A student's temporary position in the currently displayed list or search results. Profile viewing uses this index; it is not a permanent identifier. |
 | Student profile | The view of one student's particulars, available class memberships, and attendance records. It displays stored memberships but does not assign students to classes. Later versions may also show assignment and grade information. |
 | Module | A university course identified by a module code, such as CS2103T. |
