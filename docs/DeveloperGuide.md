@@ -322,14 +322,16 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-These use cases follow the feature names and purposes in the feature specification. Restoring saved records is also included to cover the corresponding user story. For all use cases, the **System** is TAssist, the **Actor** is a university Computer Science tutor, and **MSS** means Main Success Scenario. Unless stated otherwise, TAssist is running.
+These use cases describe the current program's behavior. For all use cases, the **System** is TAssist, the **Actor** is a university Computer Science tutor, and **MSS** means Main Success Scenario. Unless stated otherwise, TAssist is running and startup has completed without a restoration error. Restoration failures are covered by UC07.
+
+**Common extension (UC01–UC06):** If TAssist cannot save the records after processing a request, it reports the save failure instead of confirming success. Any changes already made to student information or the displayed list remain. The main success scenarios assume saving succeeds.
 
 #### UC01: Add a student
 
 **MSS**
 
-1. Tutor requests to add a student, supplying a name, matriculation number, and email address.
-2. TAssist validates the details, adds the student to TAssist, and confirms the addition.
+1. Tutor requests to add a student, supplying a name, matriculation number, and email address, and optionally tags.
+2. TAssist adds the student, displays all students while preserving any active name sort, and confirms the addition.
 
 Use case ends.
 
@@ -351,14 +353,14 @@ Use case ends.
 
 **MSS**
 
-1. Tutor requests to delete a student using the student's index in the currently displayed list.
+1. Tutor requests to delete a student using their displayed index or matriculation number. The matriculation number can identify a student excluded from the current search results.
 2. TAssist deletes the selected student from TAssist and confirms the deletion.
 
 Use case ends.
 
 **Extensions**
 
-* 1a. The request has invalid syntax, the index is missing, or the index is not a positive integer.
+* 1a. The request has invalid syntax, the identifier is missing or malformed, or both an index and a matriculation number are supplied.
 
   * 1a1. TAssist explains the expected input without deleting a student.
 
@@ -370,26 +372,34 @@ Use case ends.
 
   Use case resumes at step 1.
 
+* 1c. No stored student has the supplied matriculation number.
+
+  * 1c1. TAssist reports that no student with that matriculation number was found and deletes nothing.
+
+  Use case resumes at step 1.
+
 #### UC03: Search students
 
 **MSS**
 
-1. Tutor requests to search for students by name.
-2. TAssist displays the number of matching students and their list entries, including all students with the same matching name.
+1. Tutor requests to search for students, supplying one or more name keywords.
+2. TAssist displays the matching students and the number of matches, replacing the previous search results and preserving any active name sort.
 
 Use case ends.
 
+Matching considers all students and ignores case. A student matches if any supplied keyword occurs within a word in their name. Each matching student appears once, including distinct students with the same name. Non-empty keywords are accepted without student-name validation.
+
 **Extensions**
 
-* 1a. The request has invalid syntax or the search name is missing or invalid.
+* 1a. Tutor supplies no search keywords.
 
-  * 1a1. TAssist explains the error without changing any records.
+  * 1a1. TAssist reports an input error and explains the expected input. The displayed list and student records remain unchanged.
 
   Use case resumes at step 1.
 
-* 2a. No students match the name.
+* 2a. No students match any of the keywords.
 
-  * 2a1. TAssist reports zero results and displays an empty result list.
+  * 2a1. TAssist reports zero matches and displays an empty result list.
 
   Use case ends.
 
@@ -397,28 +407,28 @@ Use case ends.
 
 **MSS**
 
-1. Tutor requests to record a student's attendance for a date.
-2. TAssist records the student as present on that date and confirms the record.
+1. Tutor requests to record a student's attendance, supplying the student's index in the currently displayed list and a date.
+2. TAssist records the student as present on that date and confirms the student's name and attendance date.
 
 Use case ends.
 
 **Extensions**
 
-* 1a. Tutor does not specify a date.
+* 1a. Tutor omits the date.
 
-  * 1a1. TAssist uses the current date.
+  * 1a1. TAssist uses the computer's current date.
 
   Use case resumes at step 2.
 
-* 1b. The specified student does not exist.
+* 1b. The index exceeds the size of the currently displayed list, including when the list is empty.
 
-  * 1b1. TAssist shows an error message without adding an attendance record.
+  * 1b1. TAssist reports that the displayed student index is invalid without adding an attendance record.
 
   Use case resumes at step 1.
 
-* 1c. The specified date is invalid.
+* 1c. The supplied date is empty or does not meet the date requirements.
 
-  * 1c1. TAssist shows an error message without adding an attendance record.
+  * 1c1. TAssist explains the date requirements without adding an attendance record.
 
   Use case resumes at step 1.
 
@@ -428,43 +438,51 @@ Use case ends.
 
   Use case ends.
 
+* 1e. The student index is missing or malformed, or conflicting details are supplied.
+
+  * 1e1. TAssist explains the invalid input without adding an attendance record.
+
+  Use case resumes at step 1.
+
 #### UC05: List all students
 
 **MSS**
 
 1. Tutor requests to list all students.
-2. TAssist displays each stored student exactly once in the order maintained by TAssist and confirms that all students have been listed.
+2. TAssist displays every student exactly once, removing any search restriction and preserving any active name sort, and confirms that all students have been listed.
 
 Use case ends.
 
+Without an active name sort, students appear in their existing order, with newly added students at the end.
+
 **Extensions**
 
-* 1a. Tutor supplies extra or unexpected input with the request.
+* 1a. Tutor supplies additional details with the request.
 
-  * 1a1. TAssist explains the expected input without changing any records.
+  * 1a1. TAssist reports an input error and explains the expected input. The displayed list, active search filter, and student records remain unchanged.
 
   Use case resumes at step 1.
 
 * 2a. TAssist has no stored student records.
 
-  * 2a1. TAssist displays an empty list and reports that no student records were found.
+  * 2a1. TAssist displays an empty list and confirms that all students have been listed.
 
   Use case ends.
 
-* 2b. The stored student records cannot be loaded or are corrupted, or the student list cannot be displayed.
+* 2b. Saving the records after listing fails.
 
-  * 2b1. TAssist reports the error.
+  * 2b1. TAssist reports the save failure instead of confirming success. The list remains updated to show all students.
 
   Use case ends.
 
 #### UC06: View a student's profile
 
-**Guarantees:** The current student list, its order, any active search or filter, and stored information remain unchanged. If the request fails, the previously displayed profile also remains unchanged.
+**Guarantees:** The current student list, its order, any active search or filter, and student information remain unchanged.
 
 **MSS**
 
 1. Tutor requests to view a student's profile using the student's index in the currently displayed list.
-2. TAssist displays the selected student's stored information, grouped into student particulars, class membership, and attendance, with attendance ordered from most recent to oldest, and confirms whose profile is shown.
+2. TAssist displays the selected student's name, matriculation number, email, tags, and attendance dates. Tags are sorted by their text, and attendance is ordered from most recent to oldest.
 
 Use case ends.
 
@@ -472,25 +490,19 @@ Use case ends.
 
 * 1a. The index is missing, more than one index is supplied, or the index format is invalid.
 
-  * 1a1. TAssist explains the expected input and keeps the previously displayed profile, student list, and stored information unchanged.
+  * 1a1. TAssist explains the expected input.
 
   Use case resumes at step 1.
 
-* 1b. No students are currently displayed.
+* 1b. No students are currently displayed, or the index exceeds the size of the displayed list.
 
-  * 1b1. TAssist asks the tutor to list students or change the search or filter, leaving the previously displayed profile and stored information unchanged.
-
-  Use case ends.
-
-* 1c. The index exceeds the size of the displayed list.
-
-  * 1c1. TAssist reports the valid index range and keeps the previously displayed profile, student list, and stored information unchanged.
+  * 1b1. TAssist reports that the student index is invalid.
 
   Use case resumes at step 1.
 
-* 2a. An optional particular, class membership, or attendance information is not available.
+* 2a. The student has no tags or no recorded attendance.
 
-  * 2a1. TAssist indicates which information is unavailable in the relevant section and confirms whose profile is shown.
+  * 2a1. TAssist indicates that no tags or attendance have been recorded, as applicable, alongside the student's other details.
 
   Use case ends.
 
