@@ -218,7 +218,9 @@ TAssist data is saved automatically as a JSON file `[JAR file location]/data/add
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, TAssist starts with an empty address book at the next run. The invalid file remains on disk until you run a command (TAssist saves after every command). Still, we recommend backing up the file before editing it.<br>
+If TAssist cannot read or validate the saved student or attendance records, it displays the failure reason and recovery instructions, disables the command box, and blocks all commands. The original data file remains unchanged, including when you close the app.<br>
+Close TAssist using the window's close button. Correct the data file, replace it with a valid backup, or delete it to start with sample student records. Then reopen TAssist. Commands remain blocked until you reopen the app, even if you correct the file while it is running.<br>
+If no data file exists, TAssist starts with sample student records and accepts commands. Back up your data file before editing it.<br>
 Furthermore, certain edits can cause TAssist to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 

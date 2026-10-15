@@ -1,5 +1,7 @@
 package seedu.address.logic;
 
+import java.util.Optional;
+
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.CommandResult;
@@ -19,6 +21,11 @@ public interface Logic {
      * @throws ParseException If an error occurs during parsing.
      */
     CommandResult execute(String commandText) throws CommandException, ParseException;
+
+    /**
+     * Returns the startup error and recovery instructions, if command execution is blocked by a restore failure.
+     */
+    Optional<String> getStartupErrorMessage();
 
     /** Returns an unmodifiable view of the filtered list of persons */
     ObservableList<Person> getFilteredPersonList();
