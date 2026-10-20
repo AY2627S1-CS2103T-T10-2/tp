@@ -63,7 +63,7 @@ public class AttendanceCommand extends Command {
      */
     private static Person createMarkedStudent(Person student, AttendanceDate attendanceDate) {
         return new Person(student.getName(), student.getMatriculationNumber(), student.getEmail(),
-                student.getTags(), student.getAttendance().withDate(attendanceDate));
+                student.getTags(), student.getAttendance().withDate(attendanceDate), student.getClassCodes());
     }
 
     @Override
