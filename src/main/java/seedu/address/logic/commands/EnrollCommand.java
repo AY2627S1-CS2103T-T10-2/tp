@@ -21,7 +21,7 @@ import seedu.address.model.person.Person;
 public class EnrollCommand extends Command {
     public static final String COMMAND_WORD = "enroll";
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Enrolls a student in a class.\n"
-            + "Parameters: INDEX (must be a positive integer)" + PREFIX_CLASS_CODE + "MODULE-CLASS\n"
+            + "Parameters: INDEX (must be a positive integer) " + PREFIX_CLASS_CODE + "MODULE-CLASS\n"
             + "Example: " + COMMAND_WORD + " 1 " + PREFIX_CLASS_CODE + "CS2103-T01";
 
     public static final String MESSAGE_SUCCESS = "Enrolled student %1$s in class %2$s";
