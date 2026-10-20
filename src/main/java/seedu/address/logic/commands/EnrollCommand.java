@@ -1,14 +1,13 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-
-import seedu.address.commons.core.index.Index;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -16,12 +15,11 @@ import seedu.address.model.Model;
 import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.Person;
 
+/**
+ * Enrolls a student in a class.
+ */
 public class EnrollCommand extends Command {
     public static final String COMMAND_WORD = "enroll";
-
-    private final Index index;
-    private final ClassCode classCode;
-
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Enrolls a student in a class.\n"
             + "Parameters: INDEX (must be a positive integer)" + PREFIX_CLASS_CODE + "MODULE-CLASS\n"
             + "Example: " + COMMAND_WORD + " 1 " + PREFIX_CLASS_CODE + "CS2103-T01";
@@ -29,7 +27,13 @@ public class EnrollCommand extends Command {
     public static final String MESSAGE_SUCCESS = "Enrolled student %1$s in class %2$s";
     public static final String MESSAGE_DUPLICATE_DATE =
             "Student is already enrolled in class %1$s.";
-    
+
+    private final Index index;
+    private final ClassCode classCode;
+
+    /**
+     * Creates an EnrollCommand to enroll the specified {@code Person} in the specified {@code ClassCode}
+     */
     public EnrollCommand(Index index, ClassCode classCode) {
         this.index = requireNonNull(index);
         this.classCode = requireNonNull(classCode);
@@ -73,8 +77,8 @@ public class EnrollCommand extends Command {
             return false;
         }
 
-        return index.equals(otherEnrollCommand.index) &&
-                classCode.equals(otherEnrollCommand.classCode);
+        return index.equals(otherEnrollCommand.index)
+                && classCode.equals(otherEnrollCommand.classCode);
     }
 
     @Override
@@ -84,5 +88,5 @@ public class EnrollCommand extends Command {
                 .add("classCode", classCode)
                 .toString();
     }
-    
+
 }
