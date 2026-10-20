@@ -1,6 +1,7 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
+import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.Attendance;
 import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.Email;
@@ -27,6 +29,7 @@ public class JsonAdaptedPersonTest {
     private static final String INVALID_MATRICULATION_NUMBER = "invalid";
     private static final String INVALID_EMAIL = "example.com";
     private static final String INVALID_TAG = "#friend";
+    private static final String INVALID_CLASS_CODE = "CS2103T-";
 
     private static final String VALID_NAME = BENSON.getName().toString();
     private static final String VALID_MATRICULATION_NUMBER = BENSON.getMatriculationNumber().toString();
@@ -144,6 +147,29 @@ public class JsonAdaptedPersonTest {
         JsonAdaptedPerson person =
                 new JsonAdaptedPerson(VALID_NAME, VALID_MATRICULATION_NUMBER, VALID_EMAIL, invalidTags);
         assertThrows(IllegalValueException.class, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_legacyJsonWithoutClassCodes_defaultsToEmpty() throws Exception {
+        String json = """
+                {
+                "name": "Benson",
+                "matriculationNumber": "A1234567A",
+                "email": "benson@example.com",
+                "tags": []
+                }
+                """;
+        JsonAdaptedPerson restored = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
+        assertTrue(restored.toModelType().getClassCodes().isEmpty());
+    }
+
+    @Test
+    public void toModelType_invalidClassCode_throwsIllegalValueException() {
+        List<JsonAdaptedClassCode> invalidClassCodes = new ArrayList<>();
+        invalidClassCodes.add(new JsonAdaptedClassCode(INVALID_CLASS_CODE));
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_MATRICULATION_NUMBER, VALID_EMAIL,
+                VALID_TAGS, List.of(), invalidClassCodes);
+        assertThrows(IllegalValueException.class, ClassCode.MESSAGE_CONSTRAINTS, person::toModelType);
     }
 
 }

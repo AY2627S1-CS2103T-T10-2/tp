@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.Attendance;
 import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.Email;
@@ -30,6 +31,7 @@ class JsonAdaptedPerson {
     private final String email;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
     private final List<String> attendance = new ArrayList<>();
+    private final List<JsonAdaptedClassCode> classCodes = new ArrayList<>();
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
@@ -38,23 +40,29 @@ class JsonAdaptedPerson {
         this(name, phone, email, tags, null);
     }
 
+    public JsonAdaptedPerson(String name, String matriculationNumber, String email,
+            List<JsonAdaptedTag> tags, List<String> attendance) {
+        this(name, matriculationNumber, email, tags, attendance, null);
+    }
+
     /**
-     * Constructs an adapted person, treating a missing attendance history as empty for older files.
+     * Constructs an adapted person, treating missing attendance or class codes as empty for older files.
      */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name,
             @JsonProperty("matriculationNumber") String matriculationNumber,
             @JsonProperty("email") String email,
             @JsonProperty("tags") List<JsonAdaptedTag> tags,
-            @JsonProperty("attendance") List<String> attendance) {
+            @JsonProperty("attendance") List<String> attendance,
+            @JsonProperty("classCodes") List<JsonAdaptedClassCode> classCodes) {
         this.name = name;
         this.matriculationNumber = matriculationNumber;
         this.email = email;
         if (tags != null) {
             this.tags.addAll(tags);
         }
-        if (attendance != null) {
-            this.attendance.addAll(attendance);
+        if (classCodes != null) {
+            this.classCodes.addAll(classCodes);
         }
     }
 
@@ -71,6 +79,10 @@ class JsonAdaptedPerson {
         attendance.addAll(source.getAttendance().getDates().stream()
                 .map(AttendanceDate::toString)
                 .collect(Collectors.toList()));
+        classCodes.addAll(source.getClassCodes().stream()
+                .map(JsonAdaptedClassCode::new)
+                .sorted()
+                .collect(Collectors.toList()));
     }
 
     /**
@@ -80,13 +92,19 @@ class JsonAdaptedPerson {
      */
     public Person toModelType() throws IllegalValueException {
         final List<Tag> personTags = new ArrayList<>();
+        final List<ClassCode> personClassCodes = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
             if (tag == null) {
                 throw new IllegalValueException("Student tags must not be null.");
             }
             personTags.add(tag.toModelType());
         }
-
+        for (JsonAdaptedClassCode classCode : classCodes) {
+            if (classCode == null) {
+                throw new IllegalValueException("Student class codes must not be null.");
+            }
+            personClassCodes.add(classCode.toModelType());
+        }
         if (name == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Name.class.getSimpleName()));
         }
@@ -113,6 +131,7 @@ class JsonAdaptedPerson {
         final Email modelEmail = new Email(email);
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
+        final Set<ClassCode> modelClassCodes = new HashSet<>(personClassCodes);
         final List<AttendanceDate> modelDates = new ArrayList<>();
         final Set<AttendanceDate> uniqueDates = new HashSet<>();
         for (String date : attendance) {
@@ -126,7 +145,7 @@ class JsonAdaptedPerson {
             modelDates.add(modelDate);
         }
         final Attendance modelAttendance = new Attendance(modelDates);
-        return new Person(modelName, modelMatriculationNumber, modelEmail, modelTags, modelAttendance);
+        return new Person(modelName, modelMatriculationNumber, modelEmail, modelTags, modelAttendance, modelClassCodes);
     }
 
 }
