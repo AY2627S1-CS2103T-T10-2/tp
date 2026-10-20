@@ -81,7 +81,6 @@ class JsonAdaptedPerson {
                 .collect(Collectors.toList()));
         classCodes.addAll(source.getClassCodes().stream()
                 .map(JsonAdaptedClassCode::new)
-                .sorted()
                 .collect(Collectors.toList()));
     }
 
