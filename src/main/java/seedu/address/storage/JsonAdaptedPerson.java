@@ -58,6 +58,9 @@ class JsonAdaptedPerson {
         this.name = name;
         this.matriculationNumber = matriculationNumber;
         this.email = email;
+        if (attendance != null) {
+            this.attendance.addAll(attendance);
+        }
         if (tags != null) {
             this.tags.addAll(tags);
         }
