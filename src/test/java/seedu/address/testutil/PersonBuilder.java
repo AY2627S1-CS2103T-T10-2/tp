@@ -50,6 +50,7 @@ public class PersonBuilder {
         email = personToCopy.getEmail();
         tags = new HashSet<>(personToCopy.getTags());
         attendance = personToCopy.getAttendance();
+        classCodes = new HashSet<>(personToCopy.getClassCodes());
     }
 
     /**
@@ -96,8 +97,16 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Sets the class codes of the {@code Person} that we are building.
+     */
+    public PersonBuilder withClassCodes(String... classCodes) {
+        this.classCodes = SampleDataUtil.getClassCodeSet(classCodes);
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, matriculationNumber, email, tags, attendance);
+        return new Person(name, matriculationNumber, email, tags, attendance, classCodes);
     }
 
 }

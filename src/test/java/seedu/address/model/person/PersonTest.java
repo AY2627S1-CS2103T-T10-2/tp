@@ -3,6 +3,8 @@ package seedu.address.model.person;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_CLASS_CODE_CS2103T_T10;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_CLASS_CODE_CS3230_T01;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_MATRICULATION_NUMBER_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
@@ -11,8 +13,12 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.classcode.ClassCode;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonTest {
@@ -95,6 +101,76 @@ public class PersonTest {
     }
 
     @Test
+    public void constructor_withoutClassCodes_defaultsToEmpty() {
+        Person person = new Person(ALICE.getName(), ALICE.getMatriculationNumber(), ALICE.getEmail(),
+                ALICE.getTags());
+        assertTrue(person.getClassCodes().isEmpty());
+
+        Person withAttendance = new Person(ALICE.getName(), ALICE.getMatriculationNumber(), ALICE.getEmail(),
+                ALICE.getTags(), ALICE.getAttendance());
+        assertTrue(withAttendance.getClassCodes().isEmpty());
+    }
+
+    @Test
+    public void constructor_classCodesSet_isCopiedDefensively() {
+        Set<ClassCode> classCodes = new HashSet<>();
+        classCodes.add(new ClassCode(VALID_CLASS_CODE_CS2103T_T10));
+        Person person = new Person(ALICE.getName(), ALICE.getMatriculationNumber(), ALICE.getEmail(),
+                ALICE.getTags(), ALICE.getAttendance(), classCodes);
+
+        classCodes.add(new ClassCode(VALID_CLASS_CODE_CS3230_T01));
+
+        assertEquals(Set.of(new ClassCode(VALID_CLASS_CODE_CS2103T_T10)), person.getClassCodes());
+    }
+
+    @Test
+    public void constructor_nullClassCodes_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new Person(ALICE.getName(), ALICE.getMatriculationNumber(),
+                ALICE.getEmail(), ALICE.getTags(), ALICE.getAttendance(), null));
+    }
+
+    @Test
+    public void getClassCodes_modifyingReturnedSet_throwsUnsupportedOperationException() {
+        Person person = new PersonBuilder().withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
+        assertThrows(UnsupportedOperationException.class, () -> person.getClassCodes()
+                .add(new ClassCode(VALID_CLASS_CODE_CS3230_T01)));
+    }
+
+    @Test
+    public void equals_differentClassCodes_returnsFalse() {
+        Person withClass = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
+        Person withOtherClass = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS3230_T01).build();
+
+        // class codes differ only -> returns false
+        assertFalse(ALICE.equals(withClass));
+        assertFalse(withClass.equals(withOtherClass));
+
+        // same class codes, regardless of case -> returns true
+        assertTrue(withClass.equals(new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build()));
+    }
+
+    @Test
+    public void classCodes_changeDataButNotIdentity() {
+        Person enrolledAlice = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
+        assertTrue(ALICE.isSamePerson(enrolledAlice));
+        assertFalse(ALICE.equals(enrolledAlice));
+    }
+
+    @Test
+    public void builder_copyConstructor_keepsClassCodes() {
+        Person enrolledAlice = new PersonBuilder(ALICE)
+                .withClassCodes(VALID_CLASS_CODE_CS2103T_T10, VALID_CLASS_CODE_CS3230_T01).build();
+        assertEquals(enrolledAlice, new PersonBuilder(enrolledAlice).build());
+    }
+
+    @Test
+    public void hashCode_sameClassCodes_sameHashCode() {
+        Person first = new PersonBuilder(ALICE)
+                .withClassCodes(VALID_CLASS_CODE_CS2103T_T10, VALID_CLASS_CODE_CS3230_T01).build();
+        Person second = new PersonBuilder(ALICE)
+                .withClassCodes(VALID_CLASS_CODE_CS3230_T01, VALID_CLASS_CODE_CS2103T_T10).build();
+        assertEquals(first.hashCode(), second.hashCode());
+    }
 
     @Test
     public void toStringMethod() {
