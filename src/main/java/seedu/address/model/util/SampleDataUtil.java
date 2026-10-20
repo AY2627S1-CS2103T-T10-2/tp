@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.Email;
@@ -52,6 +53,15 @@ public class SampleDataUtil {
     public static Set<Tag> getTagSet(String... strings) {
         return Arrays.stream(strings)
                 .map(Tag::new)
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Returns a class code set containing the list of strings given.
+     */
+    public static Set<ClassCode> getClassCodeSet(String... strings) {
+        return Arrays.stream(strings)
+                .map(ClassCode::new)
                 .collect(Collectors.toSet());
     }
 

@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -24,6 +25,7 @@ public class Person {
     // Data fields
     private final Attendance attendance;
     private final Set<Tag> tags = new HashSet<>();
+    private final Set<ClassCode> classCodes = new HashSet<>();
 
     /**
      * Every field must be present and not null.
@@ -37,12 +39,21 @@ public class Person {
      */
     public Person(Name name, MatriculationNumber matriculationNumber, Email email, Set<Tag> tags,
             Attendance attendance) {
-        requireAllNonNull(name, matriculationNumber, email, tags, attendance);
+        this(name, matriculationNumber, email, tags, attendance, new HashSet<>());
+    }
+
+    /**
+     * Constructs a person with the given attendance history and enrolled classes. Every field must be non-null.
+     */
+    public Person(Name name, MatriculationNumber matriculationNumber, Email email, Set<Tag> tags,
+            Attendance attendance, Set<ClassCode> classCodes) {
+        requireAllNonNull(name, matriculationNumber, email, tags, attendance, classCodes);
         this.name = name;
         this.matriculationNumber = matriculationNumber;
         this.email = email;
         this.attendance = attendance;
         this.tags.addAll(tags);
+        this.classCodes.addAll(classCodes);
     }
 
     public Name getName() {
@@ -67,6 +78,14 @@ public class Person {
      */
     public Set<Tag> getTags() {
         return Collections.unmodifiableSet(tags);
+    }
+
+    /**
+     * Returns an immutable class code set, which throws {@code UnsupportedOperationException} if modification is
+     * attempted.
+     */
+    public Set<ClassCode> getClassCodes() {
+        return Collections.unmodifiableSet(classCodes);
     }
 
     /**
@@ -101,13 +120,14 @@ public class Person {
                 && matriculationNumber.equals(otherPerson.matriculationNumber)
                 && email.equals(otherPerson.email)
                 && tags.equals(otherPerson.tags)
-                && attendance.equals(otherPerson.attendance);
+                && attendance.equals(otherPerson.attendance)
+                && classCodes.equals(otherPerson.classCodes);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, matriculationNumber, email, tags, attendance);
+        return Objects.hash(name, matriculationNumber, email, tags, attendance, classCodes);
     }
 
     @Override
@@ -118,6 +138,7 @@ public class Person {
                 .add("email", email)
                 .add("tags", tags)
                 .add("attendance", attendance)
+                .add("classCodes", classCodes)
                 .toString();
     }
 
