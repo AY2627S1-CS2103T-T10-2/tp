@@ -25,6 +25,7 @@ import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.StudentIdentifier;
+import seedu.address.logic.commands.UnmarkAttendanceCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.MatriculationNumber;
@@ -54,6 +55,16 @@ public class AddressBookParserTest {
         assertEquals(new AttendanceCommand(new StudentIdentifier(new MatriculationNumber("A1234567X")),
                 Optional.empty()),
                 parser.parseCommand("attendance m/A1234567X"));
+    }
+
+    @Test
+    public void parseCommand_unmarkAttendance() throws Exception {
+        assertEquals(new UnmarkAttendanceCommand(new StudentIdentifier(INDEX_FIRST_PERSON), Optional.empty()),
+                parser.parseCommand("attendance unmark 1"));
+        assertEquals(new UnmarkAttendanceCommand(new StudentIdentifier(new MatriculationNumber("A1234567X")),
+                Optional.of(new AttendanceDate("07-10-2026"))),
+                parser.parseCommand("attendance unmark m/A1234567X d/07-10-2026"));
+        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("Attendance unmark 1"));
     }
 
     @Test
