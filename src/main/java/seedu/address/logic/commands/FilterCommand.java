@@ -4,7 +4,6 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
 
 import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.person.PersonContainsClassCodePredicate;
 
@@ -26,7 +25,11 @@ public class FilterCommand extends Command {
 
     private final PersonContainsClassCodePredicate predicate;
 
+    /**
+     * Creates a FilterCommand to filter Person List with the specified {@code ClassCodes}
+     */
     public FilterCommand(PersonContainsClassCodePredicate predicate) {
+        requireNonNull(predicate);
         this.predicate = predicate;
     }
 
@@ -34,8 +37,10 @@ public class FilterCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         model.updateFilteredPersonList(predicate);
+        int personListSize = model.getFilteredPersonList().size();
         return new CommandResult(
-                String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, model.getFilteredPersonList().size()));
+                personListSize == 0 ? String.format(MESSAGE_NO_SUCH_CLASS)
+                        : String.format(MESSAGE_SUCCESS, personListSize));
     }
 
     @Override

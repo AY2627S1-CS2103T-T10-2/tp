@@ -7,7 +7,7 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.classcode.ClassCode;
 
 /**
- * Tests that a {@code Person}'s {@code ClassCodes} matches any of the ClassCodes given.
+ * Tests that a {@code Person}'s {@code ClassCodes} matches any of the {@code ClassCodes} given.
  */
 public class PersonContainsClassCodePredicate implements Predicate<Person> {
     private final List<ClassCode> classCodes;
