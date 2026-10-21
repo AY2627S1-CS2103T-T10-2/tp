@@ -201,6 +201,28 @@ Examples:
 * `find Betsy` followed by `attendance 1` marks the 1st student in the results of the `find` command present on today's date.
 * `attendance m/A1234567X d/07-10-2026` marks the student whose matriculation number is `A1234567X` present on `07-10-2026`.
 
+### Unmarking attendance: `attendance unmark`
+
+Removes the specified student's attendance record for the given date.
+
+Format: `attendance unmark INDEX [d/DATE]`
+or
+`attendance unmark m/MATRICULATION_NUMBER [d/DATE]`
+
+* Removes the attendance record for the student at the specified `INDEX` or with the specified `MATRICULATION_NUMBER` on `DATE`.
+* Specify the student by either `INDEX` or `MATRICULATION_NUMBER`, not both.
+* The index refers to the index number shown in the displayed student list.
+* The index **must be a positive integer** 1, 2, 3, ...
+* The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
+* The matriculation number can identify a student who is not in the displayed list, for example after `find`.
+* `DATE` must be in `dd-MM-yyyy` format. If omitted, today's date is used.
+* `unmark` is not case-sensitive.
+* Unmarking a date with no attendance recorded for that student shows an error and changes nothing.
+
+Examples:
+* `attendance unmark 1 d/07-10-2026` removes the attendance record for `07-10-2026` for the 1st student in the displayed list.
+* `attendance unmark m/A1234567X` removes the attendance record for today's date for the student whose matriculation number is `A1234567X`.
+
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
@@ -255,7 +277,8 @@ _Details coming soon ..._
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME m/MATRICULATION_NUMBER e/EMAIL [t/TAG]... ` <br> e.g., `add n/James Ho m/A1234567A e/jamesho@example.com t/friend t/colleague`
-**Attendance** | `attendance INDEX [d/DATE]` or `attendance m/MATRICULATION_NUMBER [d/DATE]`<br> e.g., `attendance 1 d/07-10-2026`, `attendance m/A1234567X`
+**Mark attendance** | `attendance INDEX [d/DATE]` or `attendance m/MATRICULATION_NUMBER [d/DATE]`<br> e.g., `attendance 1 d/07-10-2026`, `attendance m/A1234567X`
+**Unmark attendance** | `attendance unmark INDEX [d/DATE]` or `attendance unmark m/MATRICULATION_NUMBER [d/DATE]`<br> e.g., `attendance unmark 1 d/07-10-2026`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
