@@ -1,13 +1,16 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
+import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.Email;
@@ -21,6 +24,34 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_MISSING_STUDENT_IDENTIFIER = "Specify the student by either INDEX or "
+            + PREFIX_MATRICULATION_NUMBER + "MATRICULATION_NUMBER.\n%1$s";
+    public static final String MESSAGE_MULTIPLE_STUDENT_IDENTIFIERS = "Specify the student by either INDEX or "
+            + PREFIX_MATRICULATION_NUMBER + "MATRICULATION_NUMBER, not both.\n%1$s";
+
+    /**
+     * Parses the student identifier in {@code argMultimap}: either an index in the preamble or a
+     * matriculation number after m/, but not both.
+     * {@code messageUsage} is the calling command's usage, appended to the missing/both errors.
+     *
+     * @throws ParseException if m/ is repeated, both or neither identifier is given, or the given one is invalid.
+     */
+    public static StudentIdentifier parseStudentIdentifier(ArgumentMultimap argMultimap, String messageUsage)
+            throws ParseException {
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_MATRICULATION_NUMBER);
+        String preamble = argMultimap.getPreamble();
+        Optional<String> matriculationNumber = argMultimap.getValue(PREFIX_MATRICULATION_NUMBER);
+        if (!preamble.isEmpty() && matriculationNumber.isPresent()) {
+            throw new ParseException(String.format(MESSAGE_MULTIPLE_STUDENT_IDENTIFIERS, messageUsage));
+        }
+        if (matriculationNumber.isPresent()) {
+            return new StudentIdentifier(parseMatriculationNumber(matriculationNumber.get()));
+        }
+        if (preamble.isEmpty()) {
+            throw new ParseException(String.format(MESSAGE_MISSING_STUDENT_IDENTIFIER, messageUsage));
+        }
+        return new StudentIdentifier(parseIndex(preamble));
+    }
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
