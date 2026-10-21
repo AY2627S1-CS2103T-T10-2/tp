@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_DATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
 
 import java.util.Collection;
@@ -94,6 +95,22 @@ public class ParserUtil {
             throw new ParseException(AttendanceDate.MESSAGE_CONSTRAINTS);
         }
         return new AttendanceDate(trimmedDate);
+    }
+
+    /**
+     * Parses the optional attendance date after d/ in {@code argMultimap}.
+     * Returns an empty {@code Optional} if d/ is absent, so the command can apply its default date.
+     *
+     * @throws ParseException if the given date is invalid.
+     */
+    public static Optional<AttendanceDate> parseOptionalAttendanceDate(ArgumentMultimap argMultimap)
+            throws ParseException {
+        requireNonNull(argMultimap);
+        Optional<String> date = argMultimap.getValue(PREFIX_DATE);
+        if (date.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(parseAttendanceDate(date.get()));
     }
 
     /**

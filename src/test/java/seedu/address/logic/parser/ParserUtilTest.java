@@ -2,12 +2,14 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_DATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -174,6 +176,41 @@ public class ParserUtilTest {
         String dateWithWhitespace = WHITESPACE + VALID_ATTENDANCE_DATE + WHITESPACE;
         AttendanceDate expectedDate = new AttendanceDate(VALID_ATTENDANCE_DATE);
         assertEquals(expectedDate, ParserUtil.parseAttendanceDate(dateWithWhitespace));
+    }
+
+    @Test
+    public void parseOptionalAttendanceDate_nullMultimap_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseOptionalAttendanceDate(null));
+    }
+
+    @Test
+    public void parseOptionalAttendanceDate_absentDate_returnsEmptyOptional() throws Exception {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" 1", PREFIX_DATE);
+        assertEquals(Optional.empty(), ParserUtil.parseOptionalAttendanceDate(arguments));
+    }
+
+    @Test
+    public void parseOptionalAttendanceDate_validDate_returnsAttendanceDate() throws Exception {
+        for (String date : List.of("01-01-0001", "31-12-9999", "29-02-2028", VALID_ATTENDANCE_DATE)) {
+            ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" 1 d/" + date, PREFIX_DATE);
+            assertEquals(Optional.of(new AttendanceDate(date)), ParserUtil.parseOptionalAttendanceDate(arguments));
+        }
+    }
+
+    @Test
+    public void parseOptionalAttendanceDate_validDateWithWhitespace_returnsTrimmedAttendanceDate() throws Exception {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" 1 d/ " + VALID_ATTENDANCE_DATE + " ", PREFIX_DATE);
+        assertEquals(Optional.of(new AttendanceDate(VALID_ATTENDANCE_DATE)),
+                ParserUtil.parseOptionalAttendanceDate(arguments));
+    }
+
+    @Test
+    public void parseOptionalAttendanceDate_invalidDate_throwsParseException() {
+        for (String date : List.of("00-01-0000", "", "7-10-2026", "32-01-2026", "29-02-2026")) {
+            ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" d/" + date, PREFIX_DATE);
+            assertThrows(ParseException.class, AttendanceDate.MESSAGE_CONSTRAINTS, ()
+                    -> ParserUtil.parseOptionalAttendanceDate(arguments));
+        }
     }
 
     @Test

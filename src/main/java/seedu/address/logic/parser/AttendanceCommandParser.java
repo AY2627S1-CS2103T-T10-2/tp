@@ -28,10 +28,7 @@ public class AttendanceCommandParser implements Parser<AttendanceCommand> {
         StudentIdentifier targetStudent =
                 ParserUtil.parseStudentIdentifier(argMultimap, AttendanceCommand.MESSAGE_USAGE);
 
-        Optional<AttendanceDate> date = Optional.empty();
-        if (argMultimap.getValue(PREFIX_DATE).isPresent()) {
-            date = Optional.of(ParserUtil.parseAttendanceDate(argMultimap.getValue(PREFIX_DATE).get()));
-        }
+        Optional<AttendanceDate> date = ParserUtil.parseOptionalAttendanceDate(argMultimap);
 
         return new AttendanceCommand(targetStudent, date);
     }
