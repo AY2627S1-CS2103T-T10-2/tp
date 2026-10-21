@@ -2,19 +2,18 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.List;
 import java.util.Optional;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.Person;
 
 /**
- * Marks the student at the displayed index present on the given date, or today if no date is given.
+ * Marks the student identified by displayed index or matriculation number present on the given date,
+ * or today if no date is given.
  */
 public class AttendanceCommand extends Command {
 
@@ -29,26 +28,28 @@ public class AttendanceCommand extends Command {
     public static final String MESSAGE_DUPLICATE_DATE =
             "Attendance for %1$s on %2$s has already been recorded.";
 
-    private final Index targetIndex;
+    private final StudentIdentifier targetStudent;
     private final Optional<AttendanceDate> date;
 
     /**
      * Constructs an attendance request for the displayed person index and optional date.
      */
     public AttendanceCommand(Index targetIndex, Optional<AttendanceDate> date) {
-        this.targetIndex = requireNonNull(targetIndex);
+        this(new StudentIdentifier(targetIndex), date);
+    }
+
+    /**
+     * Constructs an attendance request for the identified student and optional date.
+     */
+    public AttendanceCommand(StudentIdentifier targetStudent, Optional<AttendanceDate> date) {
+        this.targetStudent = requireNonNull(targetStudent);
         this.date = requireNonNull(date);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Person> lastShownList = model.getFilteredPersonList();
-        if (targetIndex.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-        }
-
-        Person student = lastShownList.get(targetIndex.getZeroBased());
+        Person student = targetStudent.resolve(model);
         AttendanceDate attendanceDate = date.orElseGet(AttendanceDate::today);
         if (student.getAttendance().contains(attendanceDate)) {
             throw new CommandException(String.format(MESSAGE_DUPLICATE_DATE, student.getName(), attendanceDate));
@@ -76,14 +77,14 @@ public class AttendanceCommand extends Command {
             return false;
         }
 
-        return targetIndex.equals(otherAttendanceCommand.targetIndex)
+        return targetStudent.equals(otherAttendanceCommand.targetStudent)
                 && date.equals(otherAttendanceCommand.date);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("targetIndex", targetIndex)
+                .add("targetStudent", targetStudent)
                 .add("date", date)
                 .toString();
     }
