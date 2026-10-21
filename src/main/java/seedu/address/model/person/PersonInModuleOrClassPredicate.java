@@ -5,7 +5,9 @@ import static java.util.Objects.requireNonNull;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.classcode.ModuleCode;
 
@@ -20,9 +22,14 @@ public class PersonInModuleOrClassPredicate implements Predicate<Person> {
      * Constructs a PersonInModuleOrClassPredicate object.
      * @param classCodes Set of {@link ClassCode}(s) to check the Person against.
      */
-    public PersonInModuleOrClassPredicate(Set<ClassCode> classCodes, Set<ModuleCode> moduleCodes) {
+    public PersonInModuleOrClassPredicate(Set<ClassCode> classCodes, Set<ModuleCode> moduleCodes)
+            throws ParseException {
         requireNonNull(classCodes);
         requireNonNull(moduleCodes);
+        if (classCodes.isEmpty() && moduleCodes.isEmpty()) {
+            throw new ParseException("Both classCodes and moduleCodes cannot be empty at the same time.");
+        }
+
         this.classCodes = Set.copyOf(classCodes);
         this.moduleCodes = Set.copyOf(moduleCodes);
     }

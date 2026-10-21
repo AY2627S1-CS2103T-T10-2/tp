@@ -11,7 +11,9 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.FilterCommand;
+import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.classcode.ClassCode;
+import seedu.address.model.classcode.ModuleCode;
 import seedu.address.model.person.PersonInModuleOrClassPredicate;
 
 public class FilterCommandParserTest {
@@ -24,11 +26,11 @@ public class FilterCommandParserTest {
     }
 
     @Test
-    public void parse_validArgs_returnsFilterCommand() {
+    public void parse_validArgs_returnsFilterCommand() throws ParseException {
         // no leading and trailing whitespaces
         FilterCommand expectedFilterCommand =
                 new FilterCommand(new PersonInModuleOrClassPredicate(Set.of(
-                        new ClassCode(VALID_CLASS_CODE_CS2103T_T10), new ClassCode(VALID_CLASS_CODE_CS3230_T01))));
+                        new ClassCode(VALID_CLASS_CODE_CS2103T_T10), new ClassCode(VALID_CLASS_CODE_CS3230_T01)), Set.of()));
         assertParseSuccess(parser, VALID_CLASS_CODE_CS2103T_T10 + " " + VALID_CLASS_CODE_CS3230_T01,
                 expectedFilterCommand);
 

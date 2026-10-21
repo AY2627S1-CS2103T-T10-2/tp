@@ -30,6 +30,7 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.classcode.ClassCode;
+import seedu.address.model.classcode.ModuleCode;
 import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
@@ -117,10 +118,12 @@ public class AddressBookParserTest {
     public void parseCommand_filter() throws Exception {
         Set<ClassCode> classCodes = Set.of(new ClassCode(VALID_CLASS_CODE_CS3230_T01),
                 new ClassCode(VALID_CLASS_CODE_CS2103T_T10));
+        Set<ModuleCode> moduleCodes = Set.of(new ModuleCode("CS2103T"),
+                new ModuleCode("CS3230"));
         FilterCommand command = (FilterCommand) parser.parseCommand(
                 FilterCommand.COMMAND_WORD + " " + String.join(" ", VALID_CLASS_CODE_CS3230_T01,
-                        VALID_CLASS_CODE_CS2103T_T10));
-        assertEquals(new FilterCommand(new PersonInModuleOrClassPredicate(classCodes)), command);
+                        VALID_CLASS_CODE_CS2103T_T10, "CS2103T", "CS3230"));
+        assertEquals(new FilterCommand(new PersonInModuleOrClassPredicate(classCodes, moduleCodes)), command);
     }
 
     @Test
