@@ -2,9 +2,11 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.SortCommand.SortDirection.ASC;
 import static seedu.address.logic.commands.SortCommand.SortDirection.DESC;
+import static seedu.address.logic.commands.SortCommand.SortField.ATTENDANCE;
 import static seedu.address.logic.commands.SortCommand.SortField.EMAIL;
 import static seedu.address.logic.commands.SortCommand.SortField.MATRIC;
 import static seedu.address.logic.commands.SortCommand.SortField.NAME;
@@ -115,6 +117,54 @@ public class SortCommandTest {
         new SortCommand(NAME, DESC).execute(model);
 
         assertEquals(List.of(ZOE, CHARLIE, otherBob, BOB, ALICE_LOWERCASE), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_attendanceSort_ordersByRecordedDateCount() throws Exception {
+        Person attendedAlice = new PersonBuilder(ALICE_LOWERCASE).withAttendance("01-10-2026").build();
+        Person attendedCharlie = new PersonBuilder(CHARLIE).withAttendance("01-10-2026", "02-10-2026").build();
+        model.setPerson(ALICE_LOWERCASE, attendedAlice);
+        model.setPerson(CHARLIE, attendedCharlie);
+
+        new SortCommand(ATTENDANCE, ASC).execute(model);
+        assertEquals(List.of(BOB, ZOE, attendedAlice, attendedCharlie), model.getFilteredPersonList());
+
+        new SortCommand(ATTENDANCE, DESC).execute(model);
+        assertEquals(List.of(attendedCharlie, attendedAlice, BOB, ZOE), model.getFilteredPersonList());
+        assertEquals("Attendance dates: 0", model.sortDisplayProperty().getValue().detailFor(BOB).orElseThrow());
+        assertEquals("Attendance dates: 2",
+                model.sortDisplayProperty().getValue().detailFor(attendedCharlie).orElseThrow());
+    }
+
+    @Test
+    public void execute_attendanceSortThenList_clearsExtraDetail() throws Exception {
+        new SortCommand(ATTENDANCE, DESC).execute(model);
+        assertTrue(model.sortDisplayProperty().getValue().detailFor(BOB).isPresent());
+
+        new ListCommand().execute(model);
+
+        assertTrue(model.sortDisplayProperty().getValue().detailFor(BOB).isEmpty());
+    }
+
+    @Test
+    public void execute_attendanceSortThenEmailSort_clearsExtraDetail() throws Exception {
+        new SortCommand(ATTENDANCE, DESC).execute(model);
+
+        new SortCommand(EMAIL, ASC).execute(model);
+
+        assertTrue(model.sortDisplayProperty().getValue().detailFor(BOB).isEmpty());
+    }
+
+    @Test
+    public void execute_attendanceUpdatedAfterSort_updatesOrder() throws Exception {
+        new SortCommand(ATTENDANCE, DESC).execute(model);
+        Person attendedBob = new PersonBuilder(BOB).withAttendance("01-10-2026").build();
+
+        model.setPerson(BOB, attendedBob);
+
+        assertEquals(attendedBob, model.getFilteredPersonList().getFirst());
+        assertEquals("Attendance dates: 1",
+                model.sortDisplayProperty().getValue().detailFor(attendedBob).orElseThrow());
     }
 
     @Test

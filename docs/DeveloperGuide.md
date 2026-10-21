@@ -126,7 +126,8 @@ The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
-* displays the filtered students through a sorted view. Name order is the default; `add`, `find`, and `list` restore it after a sort. `SortCommand` selects a comparator for name, matriculation number, or email, and may reverse its primary comparison. Equal values use name and matriculation number as tie-breakers. Sorting changes only the view, not the stored student order.
+* displays the filtered students through a sorted view. Name order is the default; `add`, `find`, and `list` restore it after a sort. `SortCommand` selects a comparator for name, matriculation number, email, or recorded attendance count, and may reverse its primary comparison. Equal values use name and matriculation number as tie-breakers. Sorting changes only the view, not the stored student order.
+* exposes the active sort's optional card detail through an observable `SortDisplay`. The UI refreshes student cards when this changes. Attendance sorting shows each student's recorded date count; returning to a sort on an already visible field removes that extra line.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -544,12 +545,12 @@ Use case ends.
 
 **MSS**
 
-1. Tutor requests to sort the currently displayed students by name, matriculation number, or email address, optionally choosing ascending or descending order.
+1. Tutor requests to sort the currently displayed students by name, matriculation number, email address, or recorded attendance count, optionally choosing ascending or descending order.
 2. TAssist reorders the displayed students and confirms the selected field and direction.
 
 Use case ends.
 
-The default is name ascending, including when the tutor enters `sort` without arguments. Name and email comparisons ignore case. Equal values are ordered by name, then matriculation number. The displayed indices follow the new order, while the stored student order remains unchanged. A later `add`, `find`, or `list` restores name-ascending order.
+The default is name ascending, including when the tutor enters `sort` without arguments. Name and email comparisons ignore case. An empty attendance history counts as zero, not as an absence. When sorting by attendance, each student card shows the count used for comparison. Equal values are ordered by name, then matriculation number. The displayed indices follow the new order, while the stored student order remains unchanged. A later `add`, `find`, or `list` restores name-ascending order and removes the extra count from each card.
 
 **Extensions**
 
@@ -661,6 +662,17 @@ testers are expected to do more *exploratory* testing.
 
    1. Run `list`.<br>
       Expected: Students return to alphabetical name order.
+
+1. Sorting by recorded attendance count
+
+   1. In a fresh data folder with the original sample students, run `sort attendance desc`.<br>
+      Expected: Every student card shows `Attendance dates: 0`, and students remain in name order.
+
+   1. Run `attendance m/A6789012U d/07-10-2026`.<br>
+      Expected: Roy Balakrishnan moves to the first position and shows `Attendance dates: 1`.
+
+   1. Run `list`.<br>
+      Expected: Students return to name order and the attendance count line disappears.
 
 ### Deleting a student
 

@@ -3,6 +3,7 @@ package seedu.address.model;
 import java.util.Comparator;
 import java.util.function.Predicate;
 
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Person;
@@ -70,6 +71,12 @@ public interface Model {
      * Sorts the displayed list of persons.
      */
     void sortPersons(Comparator<Person> comparator);
+
+    /** Sorts the displayed persons and selects an extra detail to show on each card. */
+    void sortPersons(Comparator<Person> comparator, SortDisplay sortDisplay);
+
+    /** Returns the display detail selected by the active sort. */
+    ObservableValue<SortDisplay> sortDisplayProperty();
 
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();

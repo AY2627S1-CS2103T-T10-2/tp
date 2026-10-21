@@ -7,6 +7,8 @@ import java.util.Comparator;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
@@ -24,6 +26,7 @@ public class ModelManager implements Model {
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
     private final SortedList<Person> sortedPersons;
+    private final ReadOnlyObjectWrapper<SortDisplay> sortDisplay = new ReadOnlyObjectWrapper<>(SortDisplay.NONE);
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -101,7 +104,18 @@ public class ModelManager implements Model {
 
     @Override
     public void sortPersons(Comparator<Person> comparator) {
+        sortPersons(comparator, SortDisplay.NONE);
+    }
+
+    @Override
+    public void sortPersons(Comparator<Person> comparator, SortDisplay sortDisplay) {
+        this.sortDisplay.set(requireNonNull(sortDisplay));
         sortedPersons.setComparator(comparator);
+    }
+
+    @Override
+    public ObservableValue<SortDisplay> sortDisplayProperty() {
+        return sortDisplay.getReadOnlyProperty();
     }
 
     //=========== Filtered Person List Accessors =============================================================

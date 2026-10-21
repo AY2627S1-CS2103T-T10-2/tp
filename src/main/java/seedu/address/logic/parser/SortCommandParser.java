@@ -28,6 +28,7 @@ public class SortCommandParser implements Parser<SortCommand> {
             case "name" -> SortField.NAME;
             case "matric" -> SortField.MATRIC;
             case "email" -> SortField.EMAIL;
+            case "attendance" -> SortField.ATTENDANCE;
             default -> throw invalidFormat();
         };
         SortDirection direction = SortDirection.ASC;

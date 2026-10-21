@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.Objects;
 
 import seedu.address.model.Model;
+import seedu.address.model.SortDisplay;
 import seedu.address.model.person.Person;
 
 /**
@@ -15,8 +16,8 @@ public class SortCommand extends Command {
 
     public static final String COMMAND_WORD = "sort";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Sorts the displayed students by name, matriculation number, or email.\n"
-            + "Format: sort or sort FIELD [asc|desc], where FIELD is name, matric, or email.\n"
+            + ": Sorts the displayed students by name, matriculation number, email, or attendance count.\n"
+            + "Format: sort or sort FIELD [asc|desc], where FIELD is name, matric, email, or attendance.\n"
             + "Examples: " + COMMAND_WORD + "; " + COMMAND_WORD + " matric desc";
     public static final String MESSAGE_SUCCESS = "Sorted displayed students by %1$s in %2$s order.";
 
@@ -24,7 +25,8 @@ public class SortCommand extends Command {
     public enum SortField {
         NAME("name"),
         MATRIC("matriculation number"),
-        EMAIL("email address");
+        EMAIL("email address"),
+        ATTENDANCE("attendance count");
 
         private final String displayName;
 
@@ -67,11 +69,13 @@ public class SortCommand extends Command {
             case NAME -> Comparator.comparing(person -> person.getName().fullName, String.CASE_INSENSITIVE_ORDER);
             case MATRIC -> Comparator.comparing(person -> person.getMatriculationNumber().value);
             case EMAIL -> Comparator.comparing(person -> person.getEmail().value, String.CASE_INSENSITIVE_ORDER);
+            case ATTENDANCE -> Comparator.comparingInt(person -> person.getAttendance().getDates().size());
         };
         if (direction == SortDirection.DESC) {
             comparator = comparator.reversed();
         }
-        model.sortPersons(comparator.thenComparing(Model.COMPARATOR_NAME_ASC));
+        SortDisplay sortDisplay = field == SortField.ATTENDANCE ? SortDisplay.ATTENDANCE : SortDisplay.NONE;
+        model.sortPersons(comparator.thenComparing(Model.COMPARATOR_NAME_ASC), sortDisplay);
         return new CommandResult(String.format(MESSAGE_SUCCESS, field.displayName, direction.displayName));
     }
 
