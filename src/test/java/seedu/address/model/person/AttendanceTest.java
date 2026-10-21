@@ -35,6 +35,7 @@ public class AttendanceTest {
         assertThrows(NullPointerException.class, () -> new Attendance(null));
         assertThrows(NullPointerException.class, () -> new Attendance(Arrays.asList(earlier, null)));
         assertThrows(NullPointerException.class, () -> Attendance.empty().withDate(null));
+        assertThrows(NullPointerException.class, () -> Attendance.empty().withoutDate(null));
         assertThrows(NullPointerException.class, () -> Attendance.empty().contains(null));
     }
 
@@ -54,6 +55,36 @@ public class AttendanceTest {
         assertThrows(IllegalArgumentException.class, Attendance.MESSAGE_DUPLICATE_DATE, () ->
                 attendance.withDate(new AttendanceDate("31-12-2025")));
         assertEquals(List.of(earlier), attendance.getDates());
+    }
+
+    @Test
+    public void withoutDate_recordedDate_returnsUpdatedHistoryWithoutChangingOriginal() {
+        Attendance original = new Attendance(List.of(later, earlier));
+        Attendance updated = original.withoutDate(earlier);
+        assertEquals(List.of(later), updated.getDates());
+        assertEquals(List.of(later, earlier), original.getDates());
+    }
+
+    @Test
+    public void withoutDate_onlyDate_returnsEmptyHistory() {
+        Attendance attendance = new Attendance(List.of(earlier));
+        Attendance updated = attendance.withoutDate(earlier);
+        assertTrue(updated.getDates().isEmpty());
+        assertEquals(Attendance.empty(), updated);
+    }
+
+    @Test
+    public void withoutDate_unrecordedDate_throwsIllegalArgumentException() {
+        Attendance attendance = new Attendance(List.of(earlier));
+        assertThrows(IllegalArgumentException.class, "Attendance for this date has not been recorded.", () ->
+                attendance.withoutDate(later));
+        assertEquals(List.of(earlier), attendance.getDates());
+    }
+
+    @Test
+    public void withoutDate_emptyHistory_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, "Attendance for this date has not been recorded.", () ->
+                Attendance.empty().withoutDate(earlier));
     }
 
     @Test

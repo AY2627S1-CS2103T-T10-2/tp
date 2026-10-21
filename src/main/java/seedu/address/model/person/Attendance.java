@@ -15,6 +15,7 @@ import java.util.TreeSet;
  */
 public final class Attendance {
     public static final String MESSAGE_DUPLICATE_DATE = "Attendance for this date has already been recorded.";
+    public static final String MESSAGE_DATE_NOT_RECORDED = "Attendance for this date has not been recorded.";
 
     private final NavigableSet<AttendanceDate> dates;
 
@@ -53,6 +54,17 @@ public final class Attendance {
         checkArgument(!contains(date), MESSAGE_DUPLICATE_DATE);
         NavigableSet<AttendanceDate> updatedDates = new TreeSet<>(dates);
         updatedDates.add(date);
+        return new Attendance(updatedDates);
+    }
+
+    /**
+     * Returns a new history with the date removed, rejecting a date that is not recorded.
+     */
+    public Attendance withoutDate(AttendanceDate date) {
+        requireNonNull(date);
+        checkArgument(contains(date), MESSAGE_DATE_NOT_RECORDED);
+        NavigableSet<AttendanceDate> updatedDates = new TreeSet<>(dates);
+        updatedDates.remove(date);
         return new Attendance(updatedDates);
     }
 
