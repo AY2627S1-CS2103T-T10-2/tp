@@ -116,23 +116,40 @@ Examples:
 *  `edit 1 m/A1234567A e/johndoe@example.com` Edits the matriculation number and email address of the 1st student to be `A1234567A` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd student to be `Betsy Crower` and clears all existing tags.
 
-### Locating students by name: `find`
+### Locating students by name or matriculation number: `find`
 
-Finds students whose names contain any of the given keywords.
+Finds students by name keywords or a full matriculation number.
 
-Format: `find KEYWORD [MORE_KEYWORDS]`
+**Search by name**
 
-* The search is case-insensitive; for example, `hans` matches `Hans`.
-* Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
-* Both partial and full words match; for example, `Han` matches `Hans`.
-* Students matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+Format: `find KEYWORD [MORE_KEYWORDS]...`
+
+* Name matching is case-insensitive.
+* Keyword order does not matter.
+* Both partial and full words match.
+* Students matching at least one keyword are returned.
+* This form searches names only.
 
 Examples:
-* `find John` returns `john` and `John Doe`
-* `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
-* `find august` returns `August` and `Augustine`
+
+* `find John` returns students whose names contain `John`.
+* `find alex david` returns students whose names contain `alex` or `david`.
+* `find august` matches names such as `August` and `Augustine`.
+
+**Search by matriculation number**
+
+Format: `find m/MATRICULATION_NUMBER`
+
+* Enter one complete matriculation number: `A`, followed by 7 digits, and a final letter.
+* Matriculation number matching is exact and case-insensitive.
+* The search includes students hidden by the current filter.
+* A valid matriculation number with no matching student produces zero results.
+* Do not combine name keywords with a matriculation number or repeat the `m/` prefix.
+
+Examples:
+
+* `find m/A1234567X` finds the student with matriculation number `A1234567X`, if present.
+* `find m/a1234567x` performs the same search.
 
 ### Viewing a student's details: `view`
 
