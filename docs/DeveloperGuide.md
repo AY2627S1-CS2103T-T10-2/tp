@@ -555,10 +555,10 @@ Compatibility, packaging and storage requirements follow the [CS2103T project co
 9. **Persistence:** Changes from a successful command should remain after closing and reopening the app.
 10. **Save failure:** A failed save should be reported instead of shown as a success.
 11. **Corrupted data:** If the data file cannot be read or contains invalid data, the app should report the problem and leave the file unchanged.
-12. **Offline use:** All features except opening the online User Guide should work without an internet connection.
+12. **Offline use:** All features should work without an internet connection; only reading the online User Guide needs one.
 13. **Display:** Should display without overlapping or hidden content at 1920 x 1080 and above with 100% or 125% scaling, and keep all functions usable at 1280 x 720 and above with 150% scaling.
 14. **Single user:** Should be for a single user, without the data file being shared between users.
-15. **File access:** Should read and write files only inside the folder containing the JAR file.
+15. **File access:** Should read and write files only inside the folder it is launched from.
 
 ### Glossary
 
