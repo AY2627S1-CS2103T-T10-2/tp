@@ -18,6 +18,8 @@ Class JsonAddressBookStorage
 Class JsonSerializableAddressBook
 Class JsonAdaptedPerson
 Class JsonAdaptedTag
+Class JsonAdaptedAssignment
+Class JsonAdaptedStudentAssignment
 }
 
 }
@@ -31,6 +33,8 @@ StorageManager -down-> "1" JsonAddressBookStorage
 
 JsonAddressBookStorage ..> JsonSerializableAddressBook
 JsonSerializableAddressBook --> "*" JsonAdaptedPerson
+JsonSerializableAddressBook --> "*" JsonAdaptedAssignment
+JsonSerializableAddressBook --> "*" JsonAdaptedStudentAssignment
 JsonAdaptedPerson --> "*" JsonAdaptedTag
 
 @enduml

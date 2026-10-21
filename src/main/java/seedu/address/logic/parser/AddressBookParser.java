@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.AssignmentCommand;
 import seedu.address.logic.commands.AttendanceCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.Command;
@@ -19,6 +20,9 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.MarkCommand;
+import seedu.address.logic.commands.MarksCommand;
+import seedu.address.logic.commands.RemoveAssignmentCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -57,6 +61,10 @@ public class AddressBookParser {
 
         return switch (commandWord) {
             case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
+            case AssignmentCommand.COMMAND_WORD -> new AssignmentCommandParser().parse(arguments);
+            case MarkCommand.COMMAND_WORD -> new MarkCommandParser().parse(arguments);
+            case MarksCommand.COMMAND_WORD -> new MarksCommandParser().parse(arguments);
+            case RemoveAssignmentCommand.COMMAND_WORD -> new RemoveAssignmentCommandParser().parse(arguments);
             case EnrollCommand.COMMAND_WORD -> new EnrollCommandParser().parse(arguments);
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);

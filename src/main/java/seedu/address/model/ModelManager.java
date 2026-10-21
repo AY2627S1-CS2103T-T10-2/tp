@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -14,6 +15,10 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.gradebook.Assignment;
+import seedu.address.model.gradebook.AssignmentId;
+import seedu.address.model.gradebook.Mark;
+import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.Person;
 
 /**
@@ -100,6 +105,36 @@ public class ModelManager implements Model {
         requireAllNonNull(target, editedPerson);
 
         addressBook.setPerson(target, editedPerson);
+    }
+
+    @Override
+    public void addAssignment(Assignment assignment) {
+        addressBook.addAssignment(assignment);
+    }
+
+    @Override
+    public void addAssignmentForStudent(Assignment assignment, MatriculationNumber student) {
+        addressBook.addAssignmentForStudent(assignment, student);
+    }
+
+    @Override
+    public void assignStudent(MatriculationNumber student, AssignmentId assignmentId) {
+        addressBook.assignStudent(student, assignmentId);
+    }
+
+    @Override
+    public Optional<Mark> recordMark(MatriculationNumber student, AssignmentId assignmentId, Mark mark) {
+        return addressBook.recordMark(student, assignmentId, mark);
+    }
+
+    @Override
+    public void unassignStudent(MatriculationNumber student, AssignmentId assignmentId) {
+        addressBook.unassignStudent(student, assignmentId);
+    }
+
+    @Override
+    public void removeAssignment(AssignmentId assignmentId) {
+        addressBook.removeAssignment(assignmentId);
     }
 
     @Override
