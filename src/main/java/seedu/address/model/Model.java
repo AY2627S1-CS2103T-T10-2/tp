@@ -14,9 +14,10 @@ public interface Model {
     /** {@code Predicate} that always evaluates to true */
     Predicate<Person> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
 
-    /** {@code Comparator} that compares persons by name */
-    Comparator<Person> COMPARATOR_NAME_ASC = (p1, p2) -> p1.getName().fullName
-            .compareToIgnoreCase(p2.getName().fullName);
+    /** {@code Comparator} that compares persons by name, then matriculation number. */
+    Comparator<Person> COMPARATOR_NAME_ASC = Comparator
+            .comparing((Person person) -> person.getName().fullName, String.CASE_INSENSITIVE_ORDER)
+            .thenComparing(person -> person.getMatriculationNumber().value);
 
     /**
      * Returns the user prefs.

@@ -169,19 +169,25 @@ Examples:
 * `find Betsy` followed by `delete 1` deletes the 1st student in the results of the `find` command.
 * `delete m/A1234567X` deletes the student whose matriculation number is `A1234567X`.
 
-### Sorting students by name: `sort`
+### Sorting displayed students: `sort`
 
-Sorts the displayed list of students by name in alphabetical order (A-Z).
+Sorts only the students currently shown, by name, matriculation number, or email address.
 
-Format: `sort`
+Format: `sort` or `sort FIELD [asc|desc]`
 
-* The sorting is case-insensitive; for example, `alice` is placed before `Bob`.
+* `FIELD` is `name`, `matric`, or `email`. The direction defaults to `asc`.
+* `sort` is shorthand for `sort name asc`.
+* Name and email comparisons are case-insensitive; for example, `alice` comes before `Bob`.
+* Students with equal values are ordered by name, then matriculation number.
 * The sort only changes how the list is displayed. Your saved data and the original order of students are not affected.
 * Commands that use an `INDEX`, such as `delete`, `edit` and `view`, use the index number shown in the sorted list.
-* The displayed list uses name order by default. A later `find` or `list` resets to that order.
+* The displayed list uses name order by default. A later `add`, `find`, or `list` resets to that order.
 
 Examples:
-* `sort` followed by `delete 1` deletes the student who appears first in the sorted list.
+* `sort name desc` displays students in reverse alphabetical name order.
+* `sort matric` displays the current students by matriculation number, from lowest to highest.
+* `find Tan` followed by `sort email desc` sorts only the matching students by email address.
+* `sort email asc` followed by `delete 1` deletes the student shown first after sorting.
 
 ### Marking attendance: `attendance`
 
@@ -265,5 +271,5 @@ Action     | Format, Examples
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
-**Sort**   | `sort`
+**Sort**   | `sort` or `sort FIELD [asc|desc]`<br> e.g., `sort matric desc`
 **Help**   | `help`

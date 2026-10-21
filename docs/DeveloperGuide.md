@@ -126,7 +126,7 @@ The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
-* displays the filtered students through a sorted view. Name order is the default; `find` and `list` restore it after a sort. Sorting changes only the view, not the stored student order.
+* displays the filtered students through a sorted view. Name order is the default; `add`, `find`, and `list` restore it after a sort. `SortCommand` selects a comparator for name, matriculation number, or email, and may reverse its primary comparison. Equal values use name and matriculation number as tie-breakers. Sorting changes only the view, not the stored student order.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -540,6 +540,31 @@ Use case ends.
 
   Use case ends.
 
+#### UC08: Sort displayed students
+
+**MSS**
+
+1. Tutor requests to sort the currently displayed students by name, matriculation number, or email address, optionally choosing ascending or descending order.
+2. TAssist reorders the displayed students and confirms the selected field and direction.
+
+Use case ends.
+
+The default is name ascending, including when the tutor enters `sort` without arguments. Name and email comparisons ignore case. Equal values are ordered by name, then matriculation number. The displayed indices follow the new order, while the stored student order remains unchanged. A later `add`, `find`, or `list` restores name-ascending order.
+
+**Extensions**
+
+* 1a. The field or direction is unknown, or extra arguments are supplied.
+
+  * 1a1. TAssist explains the expected syntax. The displayed list and its order remain unchanged.
+
+  Use case resumes at step 1.
+
+* 2a. No students are currently displayed.
+
+  * 2a1. TAssist confirms the sort; the displayed list remains empty.
+
+  Use case ends.
+
 
 ### Non-Functional Requirements
 
@@ -625,6 +650,17 @@ testers are expected to do more *exploratory* testing.
 
    1. Run `list`.<br>
       Expected: All students are displayed again in name order, including Aaron.
+
+1. Sorting by another displayed attribute
+
+   1. In a fresh data folder with the original sample students, run `sort matric desc`.<br>
+      Expected: Students appear in descending matriculation number order. Roy Balakrishnan appears first.
+
+   1. Run `sort email asc`.<br>
+      Expected: Students appear in ascending email order. Alex Yeoh appears first, followed by Roy Balakrishnan.
+
+   1. Run `list`.<br>
+      Expected: Students return to alphabetical name order.
 
 ### Deleting a student
 
