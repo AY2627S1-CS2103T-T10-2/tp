@@ -44,9 +44,10 @@ public class SortCommandTest {
     }
 
     @Test
-    public void execute_unsortedList_sortsByNameIgnoringCase() {
+    public void execute_reverseNameOrder_sortsByNameIgnoringCase() {
         // ModelManager#equals does not look at the order of the displayed list,
         // so the order is checked explicitly instead of through assertCommandSuccess's model comparison.
+        model.sortPersons(Model.COMPARATOR_NAME_ASC.reversed());
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         assertCommandSuccess(new SortCommand(), model, SortCommand.MESSAGE_SUCCESS, expectedModel);
 

@@ -126,6 +126,7 @@ The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+* displays the filtered students through a sorted view. Name order is the default; `find` and `list` restore it after a sort. Sorting changes only the view, not the stored student order.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -331,7 +332,7 @@ These use cases describe the current program's behavior. For all use cases, the 
 **MSS**
 
 1. Tutor requests to add a student, supplying a name, matriculation number, and email address, and optionally tags.
-2. TAssist adds the student, displays all students while preserving any active name sort, and confirms the addition.
+2. TAssist adds the student, displays all students in name order, and confirms the addition.
 
 Use case ends.
 
@@ -383,7 +384,7 @@ Use case ends.
 **MSS**
 
 1. Tutor requests to search for students, supplying one or more name keywords.
-2. TAssist displays the matching students and the number of matches, replacing the previous search results and preserving any active name sort.
+2. TAssist displays the matching students in name order and the number of matches, replacing the previous search results and clearing the active sort.
 
 Use case ends.
 
@@ -455,11 +456,11 @@ Use case ends.
 **MSS**
 
 1. Tutor requests to list all students.
-2. TAssist displays every student exactly once, removing any search restriction and preserving any active name sort, and confirms that all students have been listed.
+2. TAssist displays every student exactly once in name order, removing any search restriction and clearing the active sort, and confirms that all students have been listed.
 
 Use case ends.
 
-Without an active name sort, students appear in their existing order, with newly added students at the end.
+The default display order ignores case when comparing names. It does not change the order of students in saved data.
 
 **Extensions**
 
@@ -610,6 +611,20 @@ testers are expected to do more *exploratory* testing.
        Expected: The most recent window size and location are retained.
 
 1. _{ more test cases … }_
+
+### Sorting the displayed students
+
+1. Checking the default order and search reset
+
+   1. With the sample students loaded, add a student whose name comes before the sample names using
+      `add n/Aaron Tan m/A1111111A e/aaron@example.com`.<br>
+      Expected: Aaron appears first in the displayed list, regardless of when the student was added.
+
+   1. Run `find Yeoh`, followed by `sort`.<br>
+      Expected: Only matching students are displayed, in name order.
+
+   1. Run `list`.<br>
+      Expected: All students are displayed again in name order, including Aaron.
 
 ### Deleting a student
 

@@ -98,6 +98,8 @@ Examples:
 
 Shows a list of all students in the address book.
 
+Students appear in alphabetical name order. `list` clears any active search and sort.
+
 Format: `list`
 
 ### Editing a student: `edit`
@@ -119,6 +121,8 @@ Examples:
 ### Locating students by name: `find`
 
 Finds students whose names contain any of the given keywords.
+
+The results appear in alphabetical name order. A new `find` clears the previous sort.
 
 Format: `find KEYWORD [MORE_KEYWORDS]`
 
@@ -174,7 +178,7 @@ Format: `sort`
 * The sorting is case-insensitive; for example, `alice` is placed before `Bob`.
 * The sort only changes how the list is displayed. Your saved data and the original order of students are not affected.
 * Commands that use an `INDEX`, such as `delete`, `edit` and `view`, use the index number shown in the sorted list.
-* If you use `find` while the list is sorted, the results are also sorted by name.
+* The displayed list uses name order by default. A later `find` or `list` resets to that order.
 
 Examples:
 * `sort` followed by `delete 1` deletes the student who appears first in the sorted list.

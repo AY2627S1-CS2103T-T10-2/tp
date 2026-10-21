@@ -74,6 +74,14 @@ public class FindCommandTest {
     }
 
     @Test
+    public void execute_activeSort_resetsToNameOrder() throws Exception {
+        model.sortPersons(Model.COMPARATOR_NAME_ASC.reversed());
+        new FindCommand(preparePredicate("Kurz Elle Kunz")).execute(model);
+
+        assertEquals(List.of(CARL, ELLE, FIONA), model.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_partialKeywords_multiplePersonsFound() {
         String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 3);
         // "urz" -> back of "Kurz" (CARL), "Ell" -> front of "Elle" (ELLE), "ion" -> middle of "Fiona" (FIONA)

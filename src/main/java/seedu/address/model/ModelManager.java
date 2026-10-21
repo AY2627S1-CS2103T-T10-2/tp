@@ -37,6 +37,7 @@ public class ModelManager implements Model {
         this.userPrefs = new UserPrefs(userPrefs);
         this.filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
         this.sortedPersons = new SortedList<>(this.filteredPersons);
+        this.sortedPersons.setComparator(COMPARATOR_NAME_ASC);
     }
 
     public ModelManager() {

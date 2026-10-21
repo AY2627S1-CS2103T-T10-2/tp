@@ -69,11 +69,11 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void sortPersons_sortsDisplayedListByName() {
+    public void constructor_andAddPerson_displayStudentsByName() {
         modelManager.addPerson(BENSON);
         modelManager.addPerson(ALICE);
-        modelManager.sortPersons(Model.COMPARATOR_NAME_ASC);
         assertEquals(List.of(ALICE, BENSON), modelManager.getFilteredPersonList());
+        assertEquals(List.of(BENSON, ALICE), modelManager.getAddressBook().getPersonList());
     }
 
     @Test
