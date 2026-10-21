@@ -29,6 +29,7 @@ import seedu.address.logic.commands.MarkCommand;
 import seedu.address.logic.commands.MarksCommand;
 import seedu.address.logic.commands.RemoveAssignmentCommand;
 import seedu.address.logic.commands.SortCommand;
+import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.gradebook.Assignment;
 import seedu.address.model.gradebook.AssignmentId;
@@ -90,6 +91,9 @@ public class AddressBookParserTest {
                 parser.parseCommand("attendance 1"));
         assertEquals(new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(new AttendanceDate("07-10-2026"))),
                 parser.parseCommand("attendance 1 d/07-10-2026"));
+        assertEquals(new AttendanceCommand(new StudentIdentifier(new MatriculationNumber("A1234567X")),
+                Optional.empty()),
+                parser.parseCommand("attendance m/A1234567X"));
     }
 
     @Test

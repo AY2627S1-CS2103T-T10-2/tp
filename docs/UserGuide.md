@@ -257,16 +257,22 @@ Examples:
 Marks the specified student present on the given date.
 
 Format: `attendance INDEX [d/DATE]`
+or
+`attendance m/MATRICULATION_NUMBER [d/DATE]`
 
-* Marks the student at the specified `INDEX` present on `DATE`.
+* Marks the student at the specified `INDEX` or with the specified `MATRICULATION_NUMBER` present on `DATE`.
+* Specify the student by either `INDEX` or `MATRICULATION_NUMBER`, not both.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
+* The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
+* The matriculation number can identify a student who is not in the displayed list, for example after `find`.
 * `DATE` must be in `dd-MM-yyyy` format. If omitted, today's date is used.
 * Marking a date already recorded for that student shows an error and changes nothing.
 
 Examples:
 * `attendance 1 d/07-10-2026` marks the 1st student in the displayed list present on `07-10-2026`.
 * `find Betsy` followed by `attendance 1` marks the 1st student in the results of the `find` command present on today's date.
+* `attendance m/A1234567X d/07-10-2026` marks the student whose matriculation number is `A1234567X` present on `07-10-2026`.
 
 ### Clearing all entries: `clear`
 
@@ -326,7 +332,7 @@ Action     | Format, Examples
 **Mark** | `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`<br> e.g., `mark m/A1234567A id/CS2103T:A1 mark/17.5`
 **Marks** | `marks id/MODULE:CODE`<br> e.g., `marks id/CS2103T:A1`
 **Remove assignment** | `removeassignment id/MODULE:CODE [m/MATRICULATION_NUMBER]`<br> e.g., `removeassignment id/CS2103T:A1 m/A1234567A`
-**Attendance** | `attendance INDEX [d/DATE]`<br> e.g., `attendance 1 d/07-10-2026`
+**Attendance** | `attendance INDEX [d/DATE]` or `attendance m/MATRICULATION_NUMBER [d/DATE]`<br> e.g., `attendance 1 d/07-10-2026`, `attendance m/A1234567X`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`

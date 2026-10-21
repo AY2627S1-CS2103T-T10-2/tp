@@ -1,12 +1,13 @@
 package seedu.address.logic.parser;
 
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.model.person.MatriculationNumber;
 
@@ -40,25 +41,25 @@ public class DeleteCommandParserTest {
 
     @Test
     public void parse_invalidArgs_throwsParseException() {
-        assertParseFailure(parser, "a",
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
+        assertParseFailure(parser, "a", ParserUtil.MESSAGE_INVALID_INDEX);
     }
 
     @Test
     public void parse_invalidMatriculationNumber_throwsParseException() {
-        assertParseFailure(parser, " m/invalid",
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
+        assertParseFailure(parser, " m/invalid", MatriculationNumber.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " m/A123", MatriculationNumber.MESSAGE_CONSTRAINTS);
     }
 
     @Test
     public void parse_indexAndMatriculationNumber_throwsParseException() {
         assertParseFailure(parser, "1 m/A1234567X",
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
+                String.format(ParserUtil.MESSAGE_MULTIPLE_STUDENT_IDENTIFIERS,
+                        DeleteCommand.MESSAGE_USAGE));
     }
 
     @Test
     public void parse_duplicateMatriculationPrefix_throwsParseException() {
         assertParseFailure(parser, " m/A1234567X m/A7654321Z",
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_MATRICULATION_NUMBER));
     }
 }

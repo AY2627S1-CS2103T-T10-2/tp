@@ -2,9 +2,6 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.List;
-import java.util.Optional;
-
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -28,11 +25,7 @@ public class DeleteCommand extends Command {
 
     public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted student: %1$s";
 
-    public static final String MESSAGE_PERSON_NOT_FOUND =
-            "No student with matriculation number %1$s found.";
-
-    private final Optional<Index> targetIndex;
-    private final Optional<MatriculationNumber> targetMatriculationNumber;
+    private final StudentIdentifier targetStudent;
 
     /**
      * Creates a DeleteCommand that deletes a person using their displayed index.
@@ -40,8 +33,7 @@ public class DeleteCommand extends Command {
      * @param targetIndex Index of the person to delete
      */
     public DeleteCommand(Index targetIndex) {
-        this.targetIndex = Optional.of(requireNonNull(targetIndex));
-        this.targetMatriculationNumber = Optional.empty();
+        this(new StudentIdentifier(targetIndex));
     }
 
     /**
@@ -50,34 +42,23 @@ public class DeleteCommand extends Command {
      * @param targetMatriculationNumber Matriculation number of the person to delete
      */
     public DeleteCommand(MatriculationNumber targetMatriculationNumber) {
-        this.targetIndex = Optional.empty();
-        this.targetMatriculationNumber = Optional.of(requireNonNull(targetMatriculationNumber));
+        this(new StudentIdentifier(targetMatriculationNumber));
+    }
+
+    /**
+     * Creates a DeleteCommand that deletes the identified student.
+     *
+     * @param targetStudent Identifier of the student to delete
+     */
+    public DeleteCommand(StudentIdentifier targetStudent) {
+        this.targetStudent = requireNonNull(targetStudent);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        Person personToDelete;
-
-        if (targetIndex.isPresent()) {
-            Index index = targetIndex.get();
-            List<Person> lastShownList = model.getFilteredPersonList();
-
-            if (index.getZeroBased() >= lastShownList.size()) {
-                throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-            }
-
-            personToDelete = lastShownList.get(index.getZeroBased());
-        } else {
-            MatriculationNumber matriculationNumber = targetMatriculationNumber.orElseThrow();
-
-            personToDelete = model.getAddressBook().getPersonList().stream()
-                    .filter(person -> person.getMatriculationNumber().equals(matriculationNumber))
-                    .findFirst()
-                    .orElseThrow(() -> new CommandException(
-                            String.format(MESSAGE_PERSON_NOT_FOUND, matriculationNumber)));
-        }
+        Person personToDelete = targetStudent.resolve(model);
 
         model.deletePerson(personToDelete);
         return new CommandResult(String.format(
@@ -95,15 +76,13 @@ public class DeleteCommand extends Command {
             return false;
         }
 
-        return targetIndex.equals(otherDeleteCommand.targetIndex)
-                && targetMatriculationNumber.equals(otherDeleteCommand.targetMatriculationNumber);
+        return targetStudent.equals(otherDeleteCommand.targetStudent);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("targetIndex", targetIndex)
-                .add("targetMatriculationNumber", targetMatriculationNumber)
+                .add("targetStudent", targetStudent)
                 .toString();
     }
 }
