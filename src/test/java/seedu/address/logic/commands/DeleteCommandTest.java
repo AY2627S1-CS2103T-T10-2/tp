@@ -10,8 +10,6 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
-import java.util.Optional;
-
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -102,7 +100,7 @@ public class DeleteCommandTest {
         DeleteCommand deleteCommand = new DeleteCommand(matriculationNumber);
 
         String expectedMessage = String.format(
-                DeleteCommand.MESSAGE_PERSON_NOT_FOUND, matriculationNumber);
+                Messages.MESSAGE_STUDENT_NOT_FOUND, matriculationNumber);
 
         assertCommandFailure(deleteCommand, model, expectedMessage);
     }
@@ -144,8 +142,7 @@ public class DeleteCommandTest {
         Index targetIndex = Index.fromOneBased(1);
         DeleteCommand deleteCommand = new DeleteCommand(targetIndex);
         String expected = DeleteCommand.class.getCanonicalName()
-                + "{targetIndex=" + Optional.of(targetIndex)
-                + ", targetMatriculationNumber=" + Optional.empty() + "}";
+                + "{targetStudent=" + new StudentIdentifier(targetIndex) + "}";
         assertEquals(expected, deleteCommand.toString());
     }
 
