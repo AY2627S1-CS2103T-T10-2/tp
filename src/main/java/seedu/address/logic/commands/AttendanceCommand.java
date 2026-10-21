@@ -20,9 +20,9 @@ public class AttendanceCommand extends Command {
     public static final String COMMAND_WORD = "attendance";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Marks attendance for the student identified by the index number used in the displayed student list.\n"
-            + "Parameters: INDEX (must be a positive integer) [d/DATE]\n"
-            + "Example: " + COMMAND_WORD + " 1 d/07-10-2026";
+            + ": Marks attendance for the student identified by their displayed index or matriculation number.\n"
+            + "Parameters: INDEX or m/MATRICULATION_NUMBER [d/DATE]\n"
+            + "Example: " + COMMAND_WORD + " 1 d/07-10-2026, " + COMMAND_WORD + " m/A1234567X";
 
     public static final String MESSAGE_SUCCESS = "Marked attendance for %1$s on %2$s";
     public static final String MESSAGE_DUPLICATE_DATE =
