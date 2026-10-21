@@ -147,6 +147,7 @@ The `Model` component,
 
 The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
+* saves assignment definitions and student assignment marks with the address book data, so they are restored together with their students.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
@@ -162,7 +163,7 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Assignment mark domain model (in development)
 
-The `seedu.address.model.gradebook` package defines the data model for assignment marks. `AddressBook` owns a `Gradebook`, and `Model` exposes operations for assigning work and recording marks. Commands and JSON storage do not yet use these operations, so assignment marks cannot be entered or restored through the App in this version.
+The `seedu.address.model.gradebook` package defines the data model for assignment marks. `AddressBook` owns a `Gradebook`, and `Model` exposes operations for assigning work and recording marks. JSON storage saves and restores this data. Commands do not yet expose these operations, so assignment marks cannot be entered through the App in this version.
 
 <puml src="diagrams/GradebookDomainDiagram.puml" alt="Assignment mark domain model" />
 
@@ -171,6 +172,8 @@ The `seedu.address.model.gradebook` package defines the data model for assignmen
 The `Gradebook` separately maps each student's matriculation number and assignment ID to an optional `Mark`. Assigning work creates an unmarked entry. A recorded zero is represented by a `Mark` with value `0`, so it remains distinct from an unmarked entry. `Mark` uses `BigDecimal` to preserve fractional marks without floating-point rounding; the `Gradebook` checks that a recorded value does not exceed the assignment maximum. `Assignment` does not contain a student's mark because the same assignment can have different marks for different students.
 
 `AddressBook` coordinates student and gradebook changes. Creating an assignment for a student adds its definition and the student's unmarked entry as one operation. Editing a student's matriculation number moves their assignment entries and marks; editing other details leaves them in place. Deleting a student removes their entries but keeps shared assignment definitions. Replacing the student list removes entries for students no longer present, while resetting or clearing the whole address book replaces the gradebook too. A failed student replacement leaves the original gradebook unchanged. `ReadOnlyAddressBook#getGradebook()` returns an independent snapshot so callers cannot mutate the stored gradebook through a read-only view.
+
+JSON storage keeps shared definitions in `assignments` and each student's link to a definition in `studentAssignments`. An assignment stores its ID, name, and decimal maximum mark. A student assignment stores a matriculation number, assignment ID, and decimal `mark`; a `null` mark means the assignment is unmarked, while `"0"` means a recorded zero. Decimal values are written as strings to preserve exact fractional marks. On restoration, students are loaded first, followed by definitions and student assignments. The storage adapter rejects invalid or duplicate definitions, unknown students or assignments, duplicate student links, and marks outside the allowed range. Files created before these two JSON arrays existed load with an empty gradebook. A failed restoration leaves the saved file unchanged.
 
 ### \[Proposed\] Undo/redo feature
 
