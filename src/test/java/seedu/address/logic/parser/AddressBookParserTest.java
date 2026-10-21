@@ -33,7 +33,7 @@ import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
-import seedu.address.model.person.PersonContainsClassCodePredicate;
+import seedu.address.model.person.PersonInModuleOrClassPredicate;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PersonUtil;
@@ -120,7 +120,7 @@ public class AddressBookParserTest {
         FilterCommand command = (FilterCommand) parser.parseCommand(
                 FilterCommand.COMMAND_WORD + " " + String.join(" ", VALID_CLASS_CODE_CS3230_T01,
                         VALID_CLASS_CODE_CS2103T_T10));
-        assertEquals(new FilterCommand(new PersonContainsClassCodePredicate(classCodes)), command);
+        assertEquals(new FilterCommand(new PersonInModuleOrClassPredicate(classCodes)), command);
     }
 
     @Test

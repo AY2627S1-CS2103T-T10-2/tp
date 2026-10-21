@@ -11,16 +11,16 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.model.classcode.ClassCode;
-import seedu.address.model.person.PersonContainsClassCodePredicate;
+import seedu.address.model.person.PersonInModuleOrClassPredicate;
 
 class FilterCommandTest {
 
     @Test
     void equals() {
-        PersonContainsClassCodePredicate firstPredicate =
-                new PersonContainsClassCodePredicate(Set.of(new ClassCode(VALID_CLASS_CODE_CS2103T_T10)));
-        PersonContainsClassCodePredicate secondPredicate =
-                new PersonContainsClassCodePredicate(Set.of(new ClassCode(VALID_CLASS_CODE_CS3230_T01)));
+        PersonInModuleOrClassPredicate firstPredicate =
+                new PersonInModuleOrClassPredicate(Set.of(new ClassCode(VALID_CLASS_CODE_CS2103T_T10)));
+        PersonInModuleOrClassPredicate secondPredicate =
+                new PersonInModuleOrClassPredicate(Set.of(new ClassCode(VALID_CLASS_CODE_CS3230_T01)));
 
         FilterCommand firstFilterCommand = new FilterCommand(firstPredicate);
         FilterCommand secondFilterCommand = new FilterCommand(secondPredicate);
@@ -42,7 +42,7 @@ class FilterCommandTest {
 
     @Test
     public void toStringMethod() {
-        PersonContainsClassCodePredicate predicate = new PersonContainsClassCodePredicate(Set.of(
+        PersonInModuleOrClassPredicate predicate = new PersonInModuleOrClassPredicate(Set.of(
                 new ClassCode(VALID_CLASS_CODE_CS2103T_T10)));
         FilterCommand filterCommand = new FilterCommand(predicate);
         String expected = FilterCommand.class.getCanonicalName() + "{predicate=" + predicate + "}";

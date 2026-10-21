@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.model.classcode.ClassCode;
-import seedu.address.model.person.PersonContainsClassCodePredicate;
+import seedu.address.model.person.PersonInModuleOrClassPredicate;
 
 public class FilterCommandParserTest {
 
@@ -27,7 +27,7 @@ public class FilterCommandParserTest {
     public void parse_validArgs_returnsFilterCommand() {
         // no leading and trailing whitespaces
         FilterCommand expectedFilterCommand =
-                new FilterCommand(new PersonContainsClassCodePredicate(Set.of(
+                new FilterCommand(new PersonInModuleOrClassPredicate(Set.of(
                         new ClassCode(VALID_CLASS_CODE_CS2103T_T10), new ClassCode(VALID_CLASS_CODE_CS3230_T01))));
         assertParseSuccess(parser, VALID_CLASS_CODE_CS2103T_T10 + " " + VALID_CLASS_CODE_CS3230_T01,
                 expectedFilterCommand);

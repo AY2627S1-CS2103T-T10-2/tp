@@ -5,30 +5,31 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.Model;
-import seedu.address.model.person.PersonContainsClassCodePredicate;
+import seedu.address.model.person.PersonInModuleOrClassPredicate;
 
 /**
- * Filters all persons in the address book according to class.
+ * Filters all persons in the address book according to class and/or module.
  */
 public class FilterCommand extends Command {
     public static final String COMMAND_WORD = "filter";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Filters all students whose classes consists of "
-            + "the specified class code (case-insensitive) and displays them as a list with index numbers.\n"
-            + "Parameters: "
-            + PREFIX_CLASS_CODE + "CLASS_CODE \n"
+            + "the specified class code or module code, and displays them as a list with index numbers. "
+            + "The keywords are case insensitive.\n"
+            + "Parameters: KEYWORD [MORE_KEYWORDS]...\n"
             + "Example: "
-            + COMMAND_WORD + " CS2103T-T10";
+            + COMMAND_WORD + " CS2103T-T10" + "CS3230";
 
-    public static final String MESSAGE_SUCCESS = "Filtered all students by class code: %1$s";
+
+    public static final String MESSAGE_SUCCESS = "Filtered all students by class code: %1$d student(s) listed.";
     public static final String MESSAGE_NO_SUCH_CLASS = "This class code does not exist in the address book.";
 
-    private final PersonContainsClassCodePredicate predicate;
+    private final PersonInModuleOrClassPredicate predicate;
 
     /**
-     * Creates a FilterCommand to filter Person List with the specified {@code ClassCodes}
+     * Creates a FilterCommand to filter Person List with the specified {@code ClassCodes} or {@code ModuleCodes}
      */
-    public FilterCommand(PersonContainsClassCodePredicate predicate) {
+    public FilterCommand(PersonInModuleOrClassPredicate predicate) {
         requireNonNull(predicate);
         this.predicate = predicate;
     }

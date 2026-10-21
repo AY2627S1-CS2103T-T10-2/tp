@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_FILTER_KEYWORD;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -8,7 +9,8 @@ import java.util.Set;
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.classcode.ClassCode;
-import seedu.address.model.person.PersonContainsClassCodePredicate;
+import seedu.address.model.classcode.ModuleCode;
+import seedu.address.model.person.PersonInModuleOrClassPredicate;
 
 /**
  * Parses input arguments and creates a new FilterCommand object
@@ -20,6 +22,7 @@ public class FilterCommandParser implements Parser<FilterCommand> {
      * and returns a FilterCommand object for execution.
      * @throws ParseException if the user input does not conform to the expected format
      */
+    @Override
     public FilterCommand parse(String args) throws ParseException {
         String trimmedArgs = args.trim();
         if (trimmedArgs.isEmpty()) {
@@ -27,17 +30,20 @@ public class FilterCommandParser implements Parser<FilterCommand> {
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE));
         }
 
-        String[] classKeywords = trimmedArgs.split("\\s+");
+        String[] keywords = trimmedArgs.split("\\s+");
         Set<ClassCode> classCodes = new HashSet<>();
+        Set<ModuleCode> moduleCodes = new HashSet<>();
 
-        for (String classKeyword : classKeywords) {
-            if (!ClassCode.isValidClassCode(classKeyword)) {
-                throw new ParseException(
-                        String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassCode.MESSAGE_CONSTRAINTS));
+        for (String keyword : keywords) {
+            if (ModuleCode.isValidModuleCode(keyword)) {
+                moduleCodes.add(new ModuleCode(keyword));
+            } else if (ClassCode.isValidClassCode(keyword)) {
+                classCodes.add(new ClassCode(keyword));
+            } else {
+                throw new ParseException(MESSAGE_INVALID_FILTER_KEYWORD);
             }
-            classCodes.add(new ClassCode(classKeyword));
         }
 
-        return new FilterCommand(new PersonContainsClassCodePredicate(classCodes));
+        return new FilterCommand(new PersonInModuleOrClassPredicate(classCodes));
     }
 }
