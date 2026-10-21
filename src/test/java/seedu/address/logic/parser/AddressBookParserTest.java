@@ -7,6 +7,7 @@ import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.AssignmentCommand;
 import seedu.address.logic.commands.AttendanceCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteCommand;
@@ -25,7 +27,10 @@ import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.gradebook.Assignment;
+import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.person.AttendanceDate;
+import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
@@ -41,6 +46,17 @@ public class AddressBookParserTest {
         Person person = new PersonBuilder().build();
         AddCommand command = (AddCommand) parser.parseCommand(PersonUtil.getAddCommand(person));
         assertEquals(new AddCommand(person), command);
+    }
+
+    @Test
+    public void parseCommand_assignment() throws Exception {
+        MatriculationNumber student = new MatriculationNumber("A1234567X");
+        AssignmentId id = new AssignmentId("CS2103T:A1");
+        Assignment assignment = new Assignment(id, "Assignment One", new BigDecimal("20"));
+        assertEquals(new AssignmentCommand(student, assignment), parser.parseCommand(
+                "assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20"));
+        assertEquals(new AssignmentCommand(student, id), parser.parseCommand(
+                "assignment m/A1234567X id/CS2103T:A1"));
     }
 
     @Test

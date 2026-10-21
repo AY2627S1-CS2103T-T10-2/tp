@@ -146,6 +146,26 @@ Format: `view INDEX`
 
 Example: `view 1` displays the first student in the current list.
 
+### Assigning work to a student: `assignment`
+
+Creates an assignment definition and assigns it to one student, or assigns an existing definition to another student. The student is identified by matriculation number, even if they are absent from the current search results.
+
+Format for new work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK`
+
+Format for existing work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`
+
+* `id/` identifies an assignment within a module, such as `CS2103T:A1`. IDs ignore letter case.
+* `n/` gives the assignment a name. Names must not be blank and must be unique within a module, ignoring letter case and repeated spaces.
+* `max/` is a positive numeric maximum mark; decimals are allowed.
+* The assignment begins without a recorded mark. A mark of zero, when later recorded, is different from an unmarked assignment.
+* To assign the same work to another student, use its existing ID without `n/` or `max/`. Repeating the assignment for the same student reports an error and changes nothing.
+* An existing ID or name cannot be used to create a second definition in the same module. A student and assignment ID must already exist when using the shorter form.
+* Editing a student's matriculation number keeps their assignment links. Deleting that student removes their links but leaves the shared definition available for other students.
+
+Examples:
+* `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20`
+* `assignment m/A2345678Y id/CS2103T:A1`
+
 ### Deleting a student: `delete`
 
 Deletes the specified student from the address book.
@@ -218,7 +238,7 @@ TAssist data is saved automatically as a JSON file `[JAR file location]/data/add
 <box type="warning" seamless>
 
 **Caution:**
-If TAssist cannot read or validate the saved student or attendance records, it displays the failure reason and recovery instructions, disables the command box, and blocks all commands. The original data file remains unchanged, including when you close the app.<br>
+If TAssist cannot read or validate the saved student, attendance, or assignment records, it displays the failure reason and recovery instructions, disables the command box, and blocks all commands. The original data file remains unchanged, including when you close the app.<br>
 Close TAssist using the window's close button. Correct the data file, replace it with a valid backup, or delete it to start with sample student records. Then reopen TAssist. Commands remain blocked until you reopen the app, even if you correct the file while it is running.<br>
 If no data file exists, TAssist starts with sample student records and accepts commands. Back up your data file before editing it.<br>
 Furthermore, certain edits can cause TAssist to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
@@ -249,6 +269,7 @@ _Details coming soon ..._
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME m/MATRICULATION_NUMBER e/EMAIL [t/TAG]... ` <br> e.g., `add n/James Ho m/A1234567A e/jamesho@example.com t/friend t/colleague`
+**Assignment** | `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`<br> e.g., `assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20`
 **Attendance** | `attendance INDEX [d/DATE]`<br> e.g., `attendance 1 d/07-10-2026`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`

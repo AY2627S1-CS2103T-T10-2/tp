@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.AssignmentCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -28,6 +29,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
@@ -73,6 +75,22 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_assignmentCommand_savesAssignmentAndStudentLink() throws Exception {
+        model.addPerson(AMY);
+        String command = "assignment m/" + AMY.getMatriculationNumber()
+                + " id/CS2103T:A1 n/Assignment One max/20.5";
+        AssignmentId id = new AssignmentId("CS2103T:A1");
+
+        assertEquals(String.format(AssignmentCommand.MESSAGE_SUCCESS, id, AMY.getMatriculationNumber()),
+                logic.execute(command).getFeedbackToUser());
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        ReadOnlyAddressBook restored = storage.readAddressBook().orElseThrow();
+        assertEquals(model.getAddressBook(), restored);
+        assertEquals(Optional.empty(), restored.getGradebook()
+                .getMarksForStudent(AMY.getMatriculationNumber()).get(id));
+    }
+
+    @Test
     public void execute_restoreFailed_blocksAllCommandsWithoutChangingModelOrSaving() {
         String startupError = "Saved records could not be restored. Close TAssist and correct the data file.";
         JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(temporaryFolder.resolve("data.json")) {
@@ -88,6 +106,7 @@ public class LogicManagerTest {
 
         String[] commands = {"clear", "delete 1", "edit 1 n/Changed", "list", "find Nobody", "help", "exit",
             "attendance m/" + AMY.getMatriculationNumber() + " d/07-10-2026",
+            "assignment m/" + AMY.getMatriculationNumber() + " id/CS2103T:A1 n/Assignment One max/20",
             AddCommand.COMMAND_WORD + NAME_DESC_AMY + MATRICULATION_NUMBER_DESC_AMY + EMAIL_DESC_AMY,
             "invalid command", ""};
         for (String command : commands) {

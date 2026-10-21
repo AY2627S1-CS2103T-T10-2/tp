@@ -163,7 +163,7 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Assignment mark domain model (in development)
 
-The `seedu.address.model.gradebook` package defines the data model for assignment marks. `AddressBook` owns a `Gradebook`, and `Model` exposes operations for assigning work and recording marks. JSON storage saves and restores this data. Commands do not yet expose these operations, so assignment marks cannot be entered through the App in this version.
+The `seedu.address.model.gradebook` package defines the data model for assignment marks. `AddressBook` owns a `Gradebook`, and `Model` exposes operations for assigning work and recording marks. JSON storage saves and restores this data. The `assignment` command creates and attaches assignments; commands for recording and displaying marks are not yet available.
 
 <puml src="diagrams/GradebookDomainDiagram.puml" alt="Assignment mark domain model" />
 
@@ -174,6 +174,8 @@ The `Gradebook` separately maps each student's matriculation number and assignme
 `AddressBook` coordinates student and gradebook changes. Creating an assignment for a student adds its definition and the student's unmarked entry as one operation. Editing a student's matriculation number moves their assignment entries and marks; editing other details leaves them in place. Deleting a student removes their entries but keeps shared assignment definitions. Replacing the student list removes entries for students no longer present, while resetting or clearing the whole address book replaces the gradebook too. A failed student replacement leaves the original gradebook unchanged. `ReadOnlyAddressBook#getGradebook()` returns an independent snapshot so callers cannot mutate the stored gradebook through a read-only view.
 
 JSON storage keeps shared definitions in `assignments` and each student's link to a definition in `studentAssignments`. An assignment stores its ID, name, and decimal maximum mark. A student assignment stores a matriculation number, assignment ID, and decimal `mark`; a `null` mark means the assignment is unmarked, while `"0"` means a recorded zero. Decimal values are written as strings to preserve exact fractional marks. On restoration, students are loaded first, followed by definitions and student assignments. The storage adapter rejects invalid or duplicate definitions, unknown students or assignments, duplicate student links, and marks outside the allowed range. Files created before these two JSON arrays existed load with an empty gradebook. A failed restoration leaves the saved file unchanged.
+
+`AssignmentCommandParser` accepts a student's matriculation number and assignment ID, plus a name and maximum mark together when defining new work. `AssignmentCommand` resolves the student against all stored students, independently of the displayed list. For new work, it calls `Model#addAssignmentForStudent`, which validates and publishes the definition and student link as one change. For existing work, it calls `Model#assignStudent` using the stored definition. The gradebook rejects a duplicate ID or name in the module and prevents assigning the same work twice to one student. Neither command form records a mark.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -549,6 +551,35 @@ Use case ends.
 
   Use case ends.
 
+#### UC08: Assign work to a student
+
+**MSS**
+
+1. Tutor supplies a stored student's matriculation number, a new assignment ID, its name, and its maximum mark.
+2. TAssist creates the shared assignment definition, attaches it to that student without a recorded mark, and confirms the assignment.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. Tutor supplies only a student's matriculation number and an existing assignment ID.
+
+  * 1a1. TAssist attaches that definition to the student without changing its name or maximum mark.
+
+  Use case resumes at step 2.
+
+* 1b. The student does not exist, the new assignment ID or name already exists in its module, or the existing assignment is already attached to the student.
+
+  * 1b1. TAssist reports the problem and changes no records.
+
+  Use case ends.
+
+* 1c. Input is malformed, the maximum mark is not positive, or the shorter form names an unknown assignment ID.
+
+  * 1c1. TAssist explains the problem and changes no records.
+
+  Use case ends.
+
 
 ### Non-Functional Requirements
 
@@ -637,6 +668,17 @@ testers are expected to do more *exploratory* testing.
       Expected: Similar to previous.
 
 1. _{ more test cases … }_
+
+### Assigning work to a student
+
+1. Add two students with different matriculation numbers, then assign the same work to each.
+   1. Test case: `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20`<br>
+      Expected: TAssist confirms the assignment was attached to the first student without a mark.
+   1. Test case: `assignment m/A2345678Y id/CS2103T:A1`<br>
+      Expected: TAssist confirms the same definition was attached to the second student without a mark.
+   1. Repeat either command for the same student, or create `CS2103T:A2` with the name `Assignment One`.<br>
+      Expected: TAssist reports the duplicate and preserves the existing assignments.
+   1. Close and reopen TAssist. Repeating the second command should still report the duplicate, confirming that the student link was restored. Later increments will add a `marks` command for direct inspection.
 
 ### Saving data
 
