@@ -100,7 +100,7 @@ public class DeleteCommandTest {
         DeleteCommand deleteCommand = new DeleteCommand(matriculationNumber);
 
         String expectedMessage = String.format(
-                DeleteCommand.MESSAGE_PERSON_NOT_FOUND, matriculationNumber);
+                Messages.MESSAGE_STUDENT_NOT_FOUND, matriculationNumber);
 
         assertCommandFailure(deleteCommand, model, expectedMessage);
     }

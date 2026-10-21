@@ -1,6 +1,5 @@
 package seedu.address.logic.parser;
 
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
 
 import seedu.address.logic.commands.DeleteCommand;
@@ -19,17 +18,12 @@ public class DeleteCommandParser implements Parser<DeleteCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public DeleteCommand parse(String args) throws ParseException {
-        try {
-            ArgumentMultimap argMultimap =
-                    ArgumentTokenizer.tokenize(args, PREFIX_MATRICULATION_NUMBER);
+        ArgumentMultimap argMultimap =
+                ArgumentTokenizer.tokenize(args, PREFIX_MATRICULATION_NUMBER);
 
-            StudentIdentifier targetStudent =
-                    ParserUtil.parseStudentIdentifier(argMultimap, DeleteCommand.MESSAGE_USAGE);
+        StudentIdentifier targetStudent =
+                ParserUtil.parseStudentIdentifier(argMultimap, DeleteCommand.MESSAGE_USAGE);
 
-            return new DeleteCommand(targetStudent);
-        } catch (ParseException pe) {
-            throw new ParseException(
-                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE), pe);
-        }
+        return new DeleteCommand(targetStudent);
     }
 }

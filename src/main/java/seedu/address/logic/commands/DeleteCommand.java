@@ -25,9 +25,6 @@ public class DeleteCommand extends Command {
 
     public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted student: %1$s";
 
-    public static final String MESSAGE_PERSON_NOT_FOUND =
-            Messages.MESSAGE_STUDENT_NOT_FOUND;
-
     private final StudentIdentifier targetStudent;
 
     /**
