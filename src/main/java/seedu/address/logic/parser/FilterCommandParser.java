@@ -2,8 +2,8 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -28,7 +28,7 @@ public class FilterCommandParser implements Parser<FilterCommand> {
         }
 
         String[] classKeywords = trimmedArgs.split("\\s+");
-        List<ClassCode> classCodes = new ArrayList<>();
+        Set<ClassCode> classCodes = new HashSet<>();
 
         for (String classKeyword : classKeywords) {
             if (!ClassCode.isValidClassCode(classKeyword)) {

@@ -1,6 +1,8 @@
 package seedu.address.model.person;
 
-import java.util.List;
+import static java.util.Objects.requireNonNull;
+
+import java.util.Set;
 import java.util.function.Predicate;
 
 import seedu.address.commons.util.ToStringBuilder;
@@ -10,9 +12,14 @@ import seedu.address.model.classcode.ClassCode;
  * Tests that a {@code Person}'s {@code ClassCodes} matches any of the {@code ClassCodes} given.
  */
 public class PersonContainsClassCodePredicate implements Predicate<Person> {
-    private final List<ClassCode> classCodes;
+    private final Set<ClassCode> classCodes;
 
-    public PersonContainsClassCodePredicate(List<ClassCode> classCodes) {
+    /**
+     * Constructs a PersonContainsClassCodePredicate object.
+     * @param classCodes Set of {@link ClassCode}(s) to check the Person against.
+     */
+    public PersonContainsClassCodePredicate(Set<ClassCode> classCodes) {
+        requireNonNull(classCodes);
         this.classCodes = classCodes;
     }
 
