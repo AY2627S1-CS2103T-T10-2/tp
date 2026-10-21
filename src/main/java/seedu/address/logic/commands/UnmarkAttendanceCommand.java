@@ -18,12 +18,12 @@ public class UnmarkAttendanceCommand extends Command {
 
     public static final String SUBCOMMAND_WORD = "unmark";
 
-    public static final String MESSAGE_USAGE = AttendanceCommand.COMMAND_WORD + " " + SUBCOMMAND_WORD
+    public static final String MESSAGE_USAGE = MarkAttendanceCommand.COMMAND_WORD + " " + SUBCOMMAND_WORD
             + ": Removes the attendance record for the student identified by their displayed index"
             + " or matriculation number.\n"
             + "Parameters: INDEX or m/MATRICULATION_NUMBER [d/DATE]\n"
-            + "Example: " + AttendanceCommand.COMMAND_WORD + " " + SUBCOMMAND_WORD + " 1 d/07-10-2026, "
-            + AttendanceCommand.COMMAND_WORD + " " + SUBCOMMAND_WORD + " m/A1234567X";
+            + "Example: " + MarkAttendanceCommand.COMMAND_WORD + " " + SUBCOMMAND_WORD + " 1 d/07-10-2026, "
+            + MarkAttendanceCommand.COMMAND_WORD + " " + SUBCOMMAND_WORD + " m/A1234567X";
 
     public static final String MESSAGE_SUCCESS = "Unmarked attendance for %1$s on %2$s";
     public static final String MESSAGE_DATE_NOT_RECORDED = "No attendance recorded for %1$s on %2$s.";
@@ -48,7 +48,7 @@ public class UnmarkAttendanceCommand extends Command {
             throw new CommandException(String.format(MESSAGE_DATE_NOT_RECORDED, student.getName(), attendanceDate));
         }
 
-        model.setPerson(student, AttendanceCommand.createStudentWithAttendance(student,
+        model.setPerson(student, MarkAttendanceCommand.createStudentWithAttendance(student,
                 student.getAttendance().withoutDate(attendanceDate)));
         return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), attendanceDate));
     }

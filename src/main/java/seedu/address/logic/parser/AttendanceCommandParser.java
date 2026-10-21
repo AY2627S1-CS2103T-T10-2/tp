@@ -9,15 +9,15 @@ import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import seedu.address.logic.commands.AttendanceCommand;
 import seedu.address.logic.commands.Command;
+import seedu.address.logic.commands.MarkAttendanceCommand;
 import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.commands.UnmarkAttendanceCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.AttendanceDate;
 
 /**
- * Parses attendance arguments into an {@code AttendanceCommand} or {@code UnmarkAttendanceCommand}.
+ * Parses attendance arguments into a {@code MarkAttendanceCommand} or {@code UnmarkAttendanceCommand}.
  */
 public class AttendanceCommandParser implements Parser<Command> {
 
@@ -38,7 +38,7 @@ public class AttendanceCommandParser implements Parser<Command> {
                     UnmarkAttendanceCommand::new);
         }
 
-        return parseAttendanceArguments(args, AttendanceCommand.MESSAGE_USAGE, AttendanceCommand::new);
+        return parseAttendanceArguments(args, MarkAttendanceCommand.MESSAGE_USAGE, MarkAttendanceCommand::new);
     }
 
     /**

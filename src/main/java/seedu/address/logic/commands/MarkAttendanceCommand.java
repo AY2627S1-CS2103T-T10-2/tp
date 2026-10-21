@@ -16,7 +16,7 @@ import seedu.address.model.person.Person;
  * Marks the student identified by displayed index or matriculation number present on the given date,
  * or today if no date is given.
  */
-public class AttendanceCommand extends Command {
+public class MarkAttendanceCommand extends Command {
 
     public static final String COMMAND_WORD = "attendance";
 
@@ -35,14 +35,14 @@ public class AttendanceCommand extends Command {
     /**
      * Constructs an attendance request for the displayed person index and optional date.
      */
-    public AttendanceCommand(Index targetIndex, Optional<AttendanceDate> date) {
+    public MarkAttendanceCommand(Index targetIndex, Optional<AttendanceDate> date) {
         this(new StudentIdentifier(targetIndex), date);
     }
 
     /**
      * Constructs an attendance request for the identified student and optional date.
      */
-    public AttendanceCommand(StudentIdentifier targetStudent, Optional<AttendanceDate> date) {
+    public MarkAttendanceCommand(StudentIdentifier targetStudent, Optional<AttendanceDate> date) {
         this.targetStudent = requireNonNull(targetStudent);
         this.date = requireNonNull(date);
     }
@@ -75,12 +75,12 @@ public class AttendanceCommand extends Command {
             return true;
         }
 
-        if (!(other instanceof AttendanceCommand otherAttendanceCommand)) {
+        if (!(other instanceof MarkAttendanceCommand otherMarkAttendanceCommand)) {
             return false;
         }
 
-        return targetStudent.equals(otherAttendanceCommand.targetStudent)
-                && date.equals(otherAttendanceCommand.date);
+        return targetStudent.equals(otherMarkAttendanceCommand.targetStudent)
+                && date.equals(otherMarkAttendanceCommand.date);
     }
 
     @Override

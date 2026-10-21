@@ -199,7 +199,7 @@ public class UnmarkAttendanceCommandTest {
                 Optional.of(ATTENDANCE_DATE))));
         assertFalse(command.equals(new UnmarkAttendanceCommand(firstStudent, Optional.of(OTHER_DATE))));
         assertFalse(command.equals(new UnmarkAttendanceCommand(firstStudent, Optional.empty())));
-        assertFalse(command.equals(new AttendanceCommand(firstStudent, Optional.of(ATTENDANCE_DATE))));
+        assertFalse(command.equals(new MarkAttendanceCommand(firstStudent, Optional.of(ATTENDANCE_DATE))));
 
         StudentIdentifier matricStudent = new StudentIdentifier(new MatriculationNumber("A1234567A"));
         UnmarkAttendanceCommand matricCommand = new UnmarkAttendanceCommand(matricStudent,

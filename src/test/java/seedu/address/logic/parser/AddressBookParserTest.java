@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddCommand;
-import seedu.address.logic.commands.AttendanceCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
@@ -23,6 +22,7 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.MarkAttendanceCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.commands.UnmarkAttendanceCommand;
@@ -48,11 +48,11 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_attendance() throws Exception {
-        assertEquals(new AttendanceCommand(INDEX_FIRST_PERSON, Optional.empty()),
+        assertEquals(new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.empty()),
                 parser.parseCommand("attendance 1"));
-        assertEquals(new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(new AttendanceDate("07-10-2026"))),
+        assertEquals(new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.of(new AttendanceDate("07-10-2026"))),
                 parser.parseCommand("attendance 1 d/07-10-2026"));
-        assertEquals(new AttendanceCommand(new StudentIdentifier(new MatriculationNumber("A1234567X")),
+        assertEquals(new MarkAttendanceCommand(new StudentIdentifier(new MatriculationNumber("A1234567X")),
                 Optional.empty()),
                 parser.parseCommand("attendance m/A1234567X"));
     }

@@ -11,7 +11,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
-import seedu.address.logic.commands.AttendanceCommand;
+import seedu.address.logic.commands.MarkAttendanceCommand;
 import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.commands.UnmarkAttendanceCommand;
 import seedu.address.model.person.AttendanceDate;
@@ -23,9 +23,9 @@ import seedu.address.model.person.MatriculationNumber;
 public class AttendanceCommandParserTest {
 
     private static final String MESSAGE_MISSING_IDENTIFIER =
-            String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER, AttendanceCommand.MESSAGE_USAGE);
+            String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER, MarkAttendanceCommand.MESSAGE_USAGE);
     private static final String MESSAGE_MULTIPLE_IDENTIFIERS =
-            String.format(ParserUtil.MESSAGE_MULTIPLE_STUDENT_IDENTIFIERS, AttendanceCommand.MESSAGE_USAGE);
+            String.format(ParserUtil.MESSAGE_MULTIPLE_STUDENT_IDENTIFIERS, MarkAttendanceCommand.MESSAGE_USAGE);
     private static final String MESSAGE_UNMARK_MISSING_IDENTIFIER =
             String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER, UnmarkAttendanceCommand.MESSAGE_USAGE);
     private static final String MESSAGE_UNMARK_MULTIPLE_IDENTIFIERS =
@@ -91,22 +91,22 @@ public class AttendanceCommandParserTest {
     }
 
     @Test
-    public void parse_validArgs_returnsAttendanceCommand() {
-        assertParseSuccess(parser, "1", new AttendanceCommand(INDEX_FIRST_PERSON, Optional.empty()));
+    public void parse_validArgs_returnsMarkAttendanceCommand() {
+        assertParseSuccess(parser, "1", new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.empty()));
         assertParseSuccess(parser, "1 d/07-10-2026",
-                new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(VALID_DATE)));
+                new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.of(VALID_DATE)));
         assertParseSuccess(parser, " 1   d/07-10-2026 ",
-                new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(VALID_DATE)));
+                new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.of(VALID_DATE)));
     }
 
     @Test
-    public void parse_validMatriculationNumber_returnsAttendanceCommand() {
+    public void parse_validMatriculationNumber_returnsMarkAttendanceCommand() {
         assertParseSuccess(parser, " m/A1234567X",
-                new AttendanceCommand(VALID_MATRICULATION_IDENTIFIER, Optional.empty()));
+                new MarkAttendanceCommand(VALID_MATRICULATION_IDENTIFIER, Optional.empty()));
         assertParseSuccess(parser, " m/a1234567x d/07-10-2026",
-                new AttendanceCommand(VALID_MATRICULATION_IDENTIFIER, Optional.of(VALID_DATE)));
+                new MarkAttendanceCommand(VALID_MATRICULATION_IDENTIFIER, Optional.of(VALID_DATE)));
         assertParseSuccess(parser, " d/07-10-2026 m/A1234567X",
-                new AttendanceCommand(VALID_MATRICULATION_IDENTIFIER, Optional.of(VALID_DATE)));
+                new MarkAttendanceCommand(VALID_MATRICULATION_IDENTIFIER, Optional.of(VALID_DATE)));
     }
 
     @Test
