@@ -25,6 +25,7 @@ import seedu.address.logic.commands.AssignmentCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.MarkCommand;
+import seedu.address.logic.commands.MarksCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
@@ -113,6 +114,10 @@ public class LogicManagerTest {
         assertEquals(model.getAddressBook(), restored);
         assertEquals(Optional.of(new Mark(new BigDecimal("17.5"))), restored.getGradebook()
                 .getMarksForStudent(AMY.getMatriculationNumber()).get(new AssignmentId("CS2103T:A1")));
+        String expectedMarks = "Assignment: CS2103T:A1 - Assignment One (out of 20)\n"
+                + "Student marks:\n" + student + " - " + AMY.getName() + ": 17.5/20";
+        assertEquals(expectedMarks, new MarksCommand(new AssignmentId("CS2103T:A1"))
+                .execute(new ModelManager(restored, new UserPrefs())).getFeedbackToUser());
     }
 
     @Test
@@ -133,6 +138,7 @@ public class LogicManagerTest {
             "attendance m/" + AMY.getMatriculationNumber() + " d/07-10-2026",
             "assignment m/" + AMY.getMatriculationNumber() + " id/CS2103T:A1 n/Assignment One max/20",
             "mark m/" + AMY.getMatriculationNumber() + " id/CS2103T:A1 mark/10",
+            "marks id/CS2103T:A1",
             AddCommand.COMMAND_WORD + NAME_DESC_AMY + MATRICULATION_NUMBER_DESC_AMY + EMAIL_DESC_AMY,
             "invalid command", ""};
         for (String command : commands) {

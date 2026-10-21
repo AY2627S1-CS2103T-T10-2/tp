@@ -181,6 +181,25 @@ Examples:
 * `mark m/A1234567X id/CS2103T:A1 mark/17.5`
 * `mark m/A1234567X id/CS2103T:A1 mark/0`
 
+### Viewing an assignment's marks: `marks`
+
+Shows one assignment's name, maximum mark, and every student to whom it is assigned.
+
+Format: `marks id/MODULE:CODE`
+
+* Students are listed by matriculation number, including those hidden by the current search or filter. The displayed student list does not change.
+* Each row shows the matriculation number, current student name, and either `MARK/MAX_MARK` or `Unmarked`. A recorded `0` appears as `0/MAX_MARK`.
+* If no students have been assigned the work, the result shows `None assigned.`. An unknown assignment ID gives an error.
+
+Example: `marks id/CS2103T:A1` may show:
+
+```text
+Assignment: CS2103T:A1 - Assignment One (out of 20)
+Student marks:
+A1234567X - John Doe: 17.5/20
+A2345678Y - Jane Tan: Unmarked
+```
+
 ### Deleting a student: `delete`
 
 Deletes the specified student from the address book.
@@ -286,6 +305,7 @@ Action     | Format, Examples
 **Add**    | `add n/NAME m/MATRICULATION_NUMBER e/EMAIL [t/TAG]... ` <br> e.g., `add n/James Ho m/A1234567A e/jamesho@example.com t/friend t/colleague`
 **Assignment** | `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`<br> e.g., `assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20`
 **Mark** | `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`<br> e.g., `mark m/A1234567A id/CS2103T:A1 mark/17.5`
+**Marks** | `marks id/MODULE:CODE`<br> e.g., `marks id/CS2103T:A1`
 **Attendance** | `attendance INDEX [d/DATE]`<br> e.g., `attendance 1 d/07-10-2026`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`

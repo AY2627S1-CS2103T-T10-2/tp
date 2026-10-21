@@ -26,6 +26,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.MarkCommand;
+import seedu.address.logic.commands.MarksCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.gradebook.Assignment;
@@ -66,6 +67,12 @@ public class AddressBookParserTest {
         assertEquals(new MarkCommand(new MatriculationNumber("A1234567X"), new AssignmentId("CS2103T:A1"),
                 new Mark(new BigDecimal("17.5"))), parser.parseCommand(
                 "mark m/A1234567X id/CS2103T:A1 mark/17.5"));
+    }
+
+    @Test
+    public void parseCommand_marks() throws Exception {
+        assertEquals(new MarksCommand(new AssignmentId("CS2103T:A1")),
+                parser.parseCommand("marks id/CS2103T:A1"));
     }
 
     @Test

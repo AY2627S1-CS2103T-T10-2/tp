@@ -163,7 +163,7 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Assignment mark domain model (in development)
 
-The `seedu.address.model.gradebook` package defines the data model for assignment marks. `AddressBook` owns a `Gradebook`, and `Model` exposes operations for assigning work and recording marks. JSON storage saves and restores this data. The `assignment` command creates and attaches assignments, and `mark` records or updates a student's score. A command for displaying the full gradebook is not yet available.
+The `seedu.address.model.gradebook` package defines the data model for assignment marks. `AddressBook` owns a `Gradebook`, and `Model` exposes operations for assigning work and recording marks. JSON storage saves and restores this data. The `assignment` command creates and attaches assignments, `mark` records or updates a student's score, and `marks` displays the students and results for one assignment.
 
 <puml src="diagrams/GradebookDomainDiagram.puml" alt="Assignment mark domain model" />
 
@@ -178,6 +178,8 @@ JSON storage keeps shared definitions in `assignments` and each student's link t
 `AssignmentCommandParser` accepts a student's matriculation number and assignment ID, plus a name and maximum mark together when defining new work. `AssignmentCommand` resolves the student against all stored students, independently of the displayed list. For new work, it calls `Model#addAssignmentForStudent`, which validates and publishes the definition and student link as one change. For existing work, it calls `Model#assignStudent` using the stored definition. The gradebook rejects a duplicate ID or name in the module and prevents assigning the same work twice to one student. Neither command form records a mark.
 
 `MarkCommandParser` accepts a matriculation number, an assignment ID, and a nonnegative decimal score. `MarkCommand` checks that the student, shared definition, and student's assignment link exist before calling `Model#recordMark`. The gradebook rejects scores above the shared maximum. `recordMark` returns the previous optional value, allowing the command to distinguish the first recorded mark from an update; a previous zero is present and therefore produces the updated response. The command changes only that student's score. `edit` remains for student particulars, and `view` remains focused on profile details.
+
+`MarksCommandParser` accepts one assignment ID. `MarksCommand` obtains a read-only gradebook snapshot and joins that assignment's student marks to current student names by matriculation number. It sorts rows by matriculation number, independently of the filtered and sorted student list, and formats each score against the shared maximum. A missing `Mark` is printed as `Unmarked`, while a recorded zero is printed as `0/MAX_MARK`. An assignment with no students prints `None assigned.`. This command does not change the model or the displayed student list.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -344,7 +346,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 These use cases describe the current program's behavior. For all use cases, the **System** is TAssist, the **Actor** is a university Computer Science tutor, and **MSS** means Main Success Scenario. Unless stated otherwise, TAssist is running and startup has completed without a restoration error. Restoration failures are covered by UC07.
 
-**Common extension (UC01–UC06, UC08–UC09):** If TAssist cannot save the records after processing a request, it reports the save failure instead of confirming success. Any changes already made to student information, assignment marks, or the displayed list remain. The main success scenarios assume saving succeeds.
+**Common extension (UC01–UC06, UC08–UC10):** If TAssist cannot save the records after processing a request, it reports the save failure instead of confirming success. Any changes already made to student information, assignment marks, or the displayed list remain. The main success scenarios assume saving succeeds.
 
 #### UC01: Add a student
 
@@ -611,6 +613,29 @@ Use case ends.
 
   Use case ends.
 
+#### UC10: View an assignment's marks
+
+**MSS**
+
+1. Tutor supplies an existing assignment ID.
+2. TAssist shows its name and maximum mark, followed by each assigned student's current name, matriculation number, and score or `Unmarked` status, ordered by matriculation number.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. The assignment ID is malformed or does not exist.
+
+  * 1a1. TAssist explains the problem without changing records or the displayed student list.
+
+  Use case ends.
+
+* 2a. No students are assigned to the work.
+
+  * 2a1. TAssist shows `None assigned.` below the assignment details.
+
+  Use case ends.
+
 ### Non-Functional Requirements
 
 These requirements apply to the intended product, including future features where relevant. They specify quality targets and product constraints, not current test results. Compatibility, packaging, storage, and display requirements follow the applicable [CS2103T project constraints](https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-constraints.html). The numerical performance and learnability thresholds below are proposed product acceptance targets, not course-mandated thresholds.
@@ -708,7 +733,8 @@ testers are expected to do more *exploratory* testing.
       Expected: TAssist confirms the same definition was attached to the second student without a mark.
    1. Repeat either command for the same student, or create `CS2103T:A2` with the name `Assignment One`.<br>
       Expected: TAssist reports the duplicate and preserves the existing assignments.
-   1. Close and reopen TAssist. Repeating the second command should still report the duplicate, confirming that the student link was restored. Later increments will add a `marks` command for direct inspection.
+   1. Close and reopen TAssist. Enter `marks id/CS2103T:A1`.<br>
+      Expected: Both assigned students appear as `Unmarked`, confirming their links were restored.
 
 ### Recording an assignment mark
 
@@ -718,6 +744,13 @@ testers are expected to do more *exploratory* testing.
    Expected: TAssist confirms the score was updated to `17.5/20`.
 1. Enter the same command with `mark/21`.<br>
    Expected: TAssist rejects the score because it exceeds the maximum. The previous score remains stored after reopening the app.
+
+### Viewing assignment marks
+
+1. After recording marks for `CS2103T:A1`, enter `marks id/CS2103T:A1`.<br>
+   Expected: TAssist shows the assignment name and maximum, then every assigned student in matriculation number order. Recorded scores appear as `MARK/MAX_MARK`; students without a score appear as `Unmarked`.
+1. Run `find` so some assigned students are hidden, then enter `marks id/CS2103T:A1` again.<br>
+   Expected: The marks result still contains all assigned students, and the current student list remains filtered.
 
 ### Saving data
 
