@@ -125,6 +125,7 @@ How the parsing works:
 The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+* stores shared assignment definitions and student marks in a `Gradebook` owned by `AddressBook`. Gradebook mutations are exposed through the `Model` API, while reads use a snapshot.
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -161,7 +162,7 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Assignment mark domain model (in development)
 
-The `seedu.address.model.gradebook` package defines the data model for assignment marks. These classes are not yet connected to `AddressBook`, commands, or storage, so assignment marks cannot be entered through the App in this version.
+The `seedu.address.model.gradebook` package defines the data model for assignment marks. `AddressBook` owns a `Gradebook`, and `Model` exposes operations for assigning work and recording marks. Commands and JSON storage do not yet use these operations, so assignment marks cannot be entered or restored through the App in this version.
 
 <puml src="diagrams/GradebookDomainDiagram.puml" alt="Assignment mark domain model" />
 
@@ -169,7 +170,7 @@ The `seedu.address.model.gradebook` package defines the data model for assignmen
 
 The `Gradebook` separately maps each student's matriculation number and assignment ID to an optional `Mark`. Assigning work creates an unmarked entry. A recorded zero is represented by a `Mark` with value `0`, so it remains distinct from an unmarked entry. `Mark` uses `BigDecimal` to preserve fractional marks without floating-point rounding; the `Gradebook` checks that a recorded value does not exceed the assignment maximum. `Assignment` does not contain a student's mark because the same assignment can have different marks for different students.
 
-The `Gradebook` also supports removing one student's assignment, removing an assignment and all its results, removing a student, and moving a student's results to a new matriculation number. A later increment will integrate those operations with student editing and deletion in `AddressBook` so that the data cannot become inconsistent.
+`AddressBook` coordinates student and gradebook changes. Creating an assignment for a student adds its definition and the student's unmarked entry as one operation. Editing a student's matriculation number moves their assignment entries and marks; editing other details leaves them in place. Deleting a student removes their entries but keeps shared assignment definitions. Replacing the student list removes entries for students no longer present, while resetting or clearing the whole address book replaces the gradebook too. A failed student replacement leaves the original gradebook unchanged. `ReadOnlyAddressBook#getGradebook()` returns an independent snapshot so callers cannot mutate the stored gradebook through a read-only view.
 
 ### \[Proposed\] Undo/redo feature
 

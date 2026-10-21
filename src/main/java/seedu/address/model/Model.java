@@ -1,10 +1,15 @@
 package seedu.address.model;
 
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.gradebook.Assignment;
+import seedu.address.model.gradebook.AssignmentId;
+import seedu.address.model.gradebook.Mark;
+import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.Person;
 
 /**
@@ -64,6 +69,36 @@ public interface Model {
      * The person identity of {@code editedPerson} must not be the same as another existing person in the address book.
      */
     void setPerson(Person target, Person editedPerson);
+
+    /**
+     * Adds a shared assignment definition.
+     */
+    void addAssignment(Assignment assignment);
+
+    /**
+     * Adds a new assignment and assigns it to an existing student as one change.
+     */
+    void addAssignmentForStudent(Assignment assignment, MatriculationNumber student);
+
+    /**
+     * Assigns existing work to a student.
+     */
+    void assignStudent(MatriculationNumber student, AssignmentId assignmentId);
+
+    /**
+     * Records or replaces a student's mark and returns the previous mark, if any.
+     */
+    Optional<Mark> recordMark(MatriculationNumber student, AssignmentId assignmentId, Mark mark);
+
+    /**
+     * Removes one student's assignment and its mark.
+     */
+    void unassignStudent(MatriculationNumber student, AssignmentId assignmentId);
+
+    /**
+     * Removes an assignment definition and all of its student marks.
+     */
+    void removeAssignment(AssignmentId assignmentId);
 
     /**
      * Sorts the displayed list of persons.

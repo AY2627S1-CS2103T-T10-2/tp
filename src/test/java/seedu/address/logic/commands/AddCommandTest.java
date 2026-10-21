@@ -10,6 +10,7 @@ import static seedu.address.testutil.TypicalPersons.ALICE;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,10 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
+import seedu.address.model.gradebook.Assignment;
+import seedu.address.model.gradebook.AssignmentId;
+import seedu.address.model.gradebook.Mark;
+import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
@@ -130,6 +135,36 @@ public class AddCommandTest {
 
         @Override
         public void setPerson(Person target, Person editedPerson) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void addAssignment(Assignment assignment) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void addAssignmentForStudent(Assignment assignment, MatriculationNumber student) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void assignStudent(MatriculationNumber student, AssignmentId assignmentId) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Optional<Mark> recordMark(MatriculationNumber student, AssignmentId assignmentId, Mark mark) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void unassignStudent(MatriculationNumber student, AssignmentId assignmentId) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void removeAssignment(AssignmentId assignmentId) {
             throw new AssertionError("This method should not be called.");
         }
 

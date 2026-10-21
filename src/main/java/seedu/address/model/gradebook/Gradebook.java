@@ -11,13 +11,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.person.MatriculationNumber;
 
 /**
  * Holds shared assignment definitions and the marks of students assigned to them.
  * A student assignment with no mark is distinct from a recorded zero.
  */
-public final class Gradebook {
+public final class Gradebook implements ReadOnlyGradebook {
     public static final String MESSAGE_DUPLICATE_ID = "An assignment with this ID already exists.";
     public static final String MESSAGE_DUPLICATE_NAME = "An assignment with this name already exists in the module.";
     public static final String MESSAGE_UNKNOWN_ASSIGNMENT = "This assignment does not exist.";
@@ -38,10 +39,15 @@ public final class Gradebook {
     /**
      * Creates an independent copy of a gradebook.
      */
-    public Gradebook(Gradebook source) {
+    public Gradebook(ReadOnlyGradebook source) {
         requireNonNull(source);
-        assignments.putAll(source.assignments);
-        source.studentMarks.forEach((student, marks) -> studentMarks.put(student, new LinkedHashMap<>(marks)));
+        for (Assignment assignment : source.getAssignments()) {
+            addAssignment(assignment);
+            source.getStudentMarks(assignment.getId()).forEach((student, mark) -> {
+                assignStudent(student, assignment.getId());
+                mark.ifPresent(value -> recordMark(student, assignment.getId(), value));
+            });
+        }
     }
 
     /**
@@ -182,5 +188,13 @@ public final class Gradebook {
     @Override
     public int hashCode() {
         return Objects.hash(assignments, studentMarks);
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .add("assignments", assignments)
+                .add("studentMarks", studentMarks)
+                .toString();
     }
 }
