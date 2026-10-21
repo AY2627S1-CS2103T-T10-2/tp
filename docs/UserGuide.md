@@ -136,13 +136,16 @@ Examples:
 
 ### Viewing a student's details: `view`
 
-Displays the selected student's details, including their matriculation number and recorded attendance dates.
+Opens a separate student details window showing particulars, enrolled classes and modules, and recorded attendance dates.
 
 Format: `view INDEX`
 
 * The index refers to the number shown in the displayed student list.
-* Each detail appears on its own line in the result panel.
-* Attendance dates are listed from newest to oldest. If no dates have been recorded, the result shows `None recorded`.
+* Details are organised into Particulars, Classes and modules, and Attendance sections.
+* Classes are listed by module code and class group. Students without classes show `No classes enrolled`.
+* Running `view` again updates the same window to the selected student. Press `Esc` to close the window.
+* Attendance dates are listed from newest to oldest. If no dates have been recorded, the Attendance section shows `None recorded`.
+* Attendance is currently recorded for the student overall. Attendance by class or module and marks are planned for future updates.
 
 Example: `view 1` displays the first student in the current list.
 
