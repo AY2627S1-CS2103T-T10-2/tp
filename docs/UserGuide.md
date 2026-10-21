@@ -272,4 +272,5 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **Sort**   | `sort`
+**Filter** | `filter KEYWORD [KEYWORD]`<br> e.g., `find CS2103T-T10 CS3230`
 **Help**   | `help`
