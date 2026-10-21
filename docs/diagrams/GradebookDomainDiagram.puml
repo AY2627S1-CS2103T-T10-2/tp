@@ -5,6 +5,8 @@ class Gradebook {
     +addAssignment(assignment)
     +assignStudent(student, assignmentId)
     +recordMark(student, assignmentId, mark)
+    +unassignStudent(student, assignmentId)
+    +removeAssignment(assignmentId)
 }
 
 class Assignment {

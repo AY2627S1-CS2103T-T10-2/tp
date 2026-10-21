@@ -27,6 +27,7 @@ import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.MarkCommand;
 import seedu.address.logic.commands.MarksCommand;
+import seedu.address.logic.commands.RemoveAssignmentCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.gradebook.Assignment;
@@ -73,6 +74,14 @@ public class AddressBookParserTest {
     public void parseCommand_marks() throws Exception {
         assertEquals(new MarksCommand(new AssignmentId("CS2103T:A1")),
                 parser.parseCommand("marks id/CS2103T:A1"));
+    }
+
+    @Test
+    public void parseCommand_removeAssignment() throws Exception {
+        AssignmentId id = new AssignmentId("CS2103T:A1");
+        assertEquals(new RemoveAssignmentCommand(id), parser.parseCommand("removeassignment id/CS2103T:A1"));
+        assertEquals(new RemoveAssignmentCommand(id, new MatriculationNumber("A1234567X")),
+                parser.parseCommand("removeassignment id/CS2103T:A1 m/A1234567X"));
     }
 
     @Test

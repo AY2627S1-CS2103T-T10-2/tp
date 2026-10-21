@@ -26,6 +26,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.MarkCommand;
 import seedu.address.logic.commands.MarksCommand;
+import seedu.address.logic.commands.RemoveAssignmentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
@@ -121,6 +122,43 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_removeAssignmentCommand_savesBothRemovalScopes() throws Exception {
+        model.addPerson(AMY);
+        Person anotherStudent = new PersonBuilder(AMY).withName("Another Student")
+                .withMatriculationNumber("A2345678Y").build();
+        model.addPerson(anotherStudent);
+        String amyNumber = AMY.getMatriculationNumber().toString();
+        String anotherNumber = anotherStudent.getMatriculationNumber().toString();
+        AssignmentId id = new AssignmentId("CS2103T:A1");
+        logic.execute("assignment m/" + amyNumber + " id/CS2103T:A1 n/Assignment One max/20");
+        logic.execute("assignment m/" + anotherNumber + " id/CS2103T:A1");
+        logic.execute("mark m/" + anotherNumber + " id/CS2103T:A1 mark/17.5");
+
+        assertEquals(String.format(RemoveAssignmentCommand.MESSAGE_UNASSIGNED_STUDENT, id,
+                        AMY.getMatriculationNumber()),
+                logic.execute("removeassignment id/CS2103T:A1 m/" + amyNumber).getFeedbackToUser());
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        ReadOnlyAddressBook restored = storage.readAddressBook().orElseThrow();
+        assertEquals(model.getAddressBook(), restored);
+        assertEquals(2, restored.getPersonList().size());
+        assertTrue(restored.getGradebook().getMarksForStudent(AMY.getMatriculationNumber()).isEmpty());
+        assertEquals(Optional.of(new Mark(new BigDecimal("17.5"))),
+                restored.getGradebook().getMarksForStudent(anotherStudent.getMatriculationNumber()).get(id));
+        assertEquals("Assignment: CS2103T:A1 - Assignment One (out of 20)\nStudent marks:\n"
+                        + anotherNumber + " - " + anotherStudent.getName() + ": 17.5/20",
+                logic.execute("marks id/CS2103T:A1").getFeedbackToUser());
+
+        assertEquals(String.format(RemoveAssignmentCommand.MESSAGE_REMOVED_ASSIGNMENT, id),
+                logic.execute("removeassignment id/CS2103T:A1").getFeedbackToUser());
+        restored = storage.readAddressBook().orElseThrow();
+        assertEquals(model.getAddressBook(), restored);
+        assertEquals(2, restored.getPersonList().size());
+        assertTrue(restored.getGradebook().getAssignments().isEmpty());
+        assertTrue(restored.getGradebook().getMarksForStudent(anotherStudent.getMatriculationNumber()).isEmpty());
+        assertCommandException("marks id/CS2103T:A1", Gradebook.MESSAGE_UNKNOWN_ASSIGNMENT);
+    }
+
+    @Test
     public void execute_restoreFailed_blocksAllCommandsWithoutChangingModelOrSaving() {
         String startupError = "Saved records could not be restored. Close TAssist and correct the data file.";
         JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(temporaryFolder.resolve("data.json")) {
@@ -139,6 +177,7 @@ public class LogicManagerTest {
             "assignment m/" + AMY.getMatriculationNumber() + " id/CS2103T:A1 n/Assignment One max/20",
             "mark m/" + AMY.getMatriculationNumber() + " id/CS2103T:A1 mark/10",
             "marks id/CS2103T:A1",
+            "removeassignment id/CS2103T:A1",
             AddCommand.COMMAND_WORD + NAME_DESC_AMY + MATRICULATION_NUMBER_DESC_AMY + EMAIL_DESC_AMY,
             "invalid command", ""};
         for (String command : commands) {

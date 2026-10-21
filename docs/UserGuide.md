@@ -200,6 +200,23 @@ A1234567X - John Doe: 17.5/20
 A2345678Y - Jane Tan: Unmarked
 ```
 
+### Removing an assignment: `removeassignment`
+
+Removes an assignment from one student, or removes the shared assignment and all students' marks for it.
+
+Format for one student: `removeassignment id/MODULE:CODE m/MATRICULATION_NUMBER`
+
+Format for all students: `removeassignment id/MODULE:CODE`
+
+* With `m/`, only that student's assignment link and recorded mark are removed. The shared assignment stays available for other students and can be assigned to this student again.
+* Without `m/`, the assignment definition and every student's link and mark for it are removed. You can then create a new assignment using the same ID or name.
+* Neither form deletes or edits student details, other assignments, or their marks. The student is found by matriculation number even if hidden from the current list.
+* An unknown assignment or student, or an assignment not attached to the specified student, gives an error without changing records. A successful removal is saved with the address book; there is no assignment archive or undo command.
+
+Examples:
+* `removeassignment id/CS2103T:A1 m/A1234567X`
+* `removeassignment id/CS2103T:A1`
+
 ### Deleting a student: `delete`
 
 Deletes the specified student from the address book.
@@ -306,6 +323,7 @@ Action     | Format, Examples
 **Assignment** | `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`<br> e.g., `assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20`
 **Mark** | `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`<br> e.g., `mark m/A1234567A id/CS2103T:A1 mark/17.5`
 **Marks** | `marks id/MODULE:CODE`<br> e.g., `marks id/CS2103T:A1`
+**Remove assignment** | `removeassignment id/MODULE:CODE [m/MATRICULATION_NUMBER]`<br> e.g., `removeassignment id/CS2103T:A1 m/A1234567A`
 **Attendance** | `attendance INDEX [d/DATE]`<br> e.g., `attendance 1 d/07-10-2026`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
