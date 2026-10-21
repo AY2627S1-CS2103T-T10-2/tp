@@ -28,10 +28,12 @@ public class FilterCommandParser {
 
         String[] classKeywords = trimmedArgs.split("\\s+");
 
-        for (String classKeyword : classKeywords){
-            ClassCode.isValidClassCode(classKeyword);
+        for (String classKeyword : classKeywords) {
+            if (!ClassCode.isValidClassCode(classKeyword)) {
+                throw new ParseException(
+                        String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassCode.MESSAGE_CONSTRAINTS));
+            }
         }
-
 
         return new FilterCommand(new ClassContainsKeywordsPredicate(List.of(classKeywords)));
     }
