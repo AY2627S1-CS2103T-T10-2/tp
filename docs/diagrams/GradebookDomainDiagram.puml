@@ -1,0 +1,34 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class Gradebook {
+    +addAssignment(assignment)
+    +assignStudent(student, assignmentId)
+    +recordMark(student, assignmentId, mark)
+}
+
+class Assignment {
+    id
+    name
+    maxMark
+}
+
+class AssignmentId {
+    moduleCode
+    code
+}
+
+class Mark {
+    value
+}
+
+Gradebook "1" o-- "0..*" Assignment : definitions
+Gradebook "1" o-- "0..*" Mark : recorded results
+Assignment "1" *-- "1" AssignmentId
+
+note right of Gradebook
+  Each student-assignment pair is either
+  unmarked or has one Mark.
+  Students are keyed by matriculation number.
+end note
+@enduml

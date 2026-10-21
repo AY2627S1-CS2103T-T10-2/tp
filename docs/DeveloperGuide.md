@@ -159,6 +159,18 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Assignment mark domain model (in development)
+
+The `seedu.address.model.gradebook` package defines the data model for assignment marks. These classes are not yet connected to `AddressBook`, commands, or storage, so assignment marks cannot be entered through the App in this version.
+
+<puml src="diagrams/GradebookDomainDiagram.puml" alt="Assignment mark domain model" />
+
+`AssignmentId` combines a module code and an assignment code, such as `CS2103T:A1`. This keeps `A1` in one module distinct from `A1` in another. `Assignment` holds that ID, a name, and a positive maximum mark. The `Gradebook` rejects duplicate IDs and names within the same module; names are compared without regard to case or repeated spaces. The maximum is defined once for all students assigned that work.
+
+The `Gradebook` separately maps each student's matriculation number and assignment ID to an optional `Mark`. Assigning work creates an unmarked entry. A recorded zero is represented by a `Mark` with value `0`, so it remains distinct from an unmarked entry. `Mark` uses `BigDecimal` to preserve fractional marks without floating-point rounding; the `Gradebook` checks that a recorded value does not exceed the assignment maximum. `Assignment` does not contain a student's mark because the same assignment can have different marks for different students.
+
+The `Gradebook` also supports removing one student's assignment, removing an assignment and all its results, removing a student, and moving a student's results to a new matriculation number. A later increment will integrate those operations with student editing and deletion in `AddressBook` so that the data cannot become inconsistent.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -566,8 +578,8 @@ Performance checks use a desktop with at least two CPU cores, 8 GB RAM, an SSD, 
 | Class / class section | A tutorial or lab group within a module. A class identifier is interpreted together with its module code. |
 | Class session | One occurrence of a tutorial or lab. This term is relevant to later class-aware attendance features; the MVP attendance command identifies an attendance record by student and date only. |
 | Attendance record | In the MVP, a record that a student was present on a particular calendar date. The same student cannot have two records for the same date. No record does not mean the student was absent. |
-| Assignment | An assessed piece of work within a module, identified separately from other assignments in that module. |
-| Assignment mark | A student's numeric score on an assignment's marking scale. An unrecorded mark is not a zero mark. |
+| Assignment | An assessed piece of work with a module-scoped ID, a name, and a maximum mark shared by assigned students. |
+| Assignment mark | A student's numeric score for an assigned piece of work. An unrecorded mark is not a zero mark. |
 | Grade | An academic result used for comparison, such as an assignment mark. Sorting by grades must identify which assessment result is being compared; marks from different assignments are not interchangeable. |
 | Grade trend | The pattern of change in a student's grades over time. |
 | Participation | A recorded measure of a student's contribution during a tutorial or lab, distinct from attendance. |
