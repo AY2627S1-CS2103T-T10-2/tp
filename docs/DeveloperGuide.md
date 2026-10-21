@@ -476,7 +476,7 @@ Without an active name sort, students appear in their existing order, with newly
 **MSS**
 
 1. Tutor requests to view a student's profile using the student's index in the currently displayed list.
-2. TAssist displays the selected student's name, matriculation number, email, tags, attendance dates and classes. Tags are sorted by their text, and attendance is ordered from most recent to oldest.
+2. TAssist displays the selected student's name, matriculation number, email, tags and attendance dates. Tags are sorted by their text, and attendance is ordered from most recent to oldest.
 
 Use case ends.
 
