@@ -544,11 +544,17 @@ Use case ends.
 
 **Extensions**
 
-* 1a. The module code or class code is invalid
+* 1a. The module code or class code is invalid.
 
-  * 1a1. TAssist will specify the format of the module and class code.
+    * 1a1. TAssist will specify the format of the module and class code.
 
-  Use case ends.
+    Use case ends.
+
+* 1b. The index is not a positive integer, or is outside the range of the displayed student list.
+
+    * 1b1. TAssist shows an error message.
+
+    Use case ends.
 
 ### Non-Functional Requirements
 
