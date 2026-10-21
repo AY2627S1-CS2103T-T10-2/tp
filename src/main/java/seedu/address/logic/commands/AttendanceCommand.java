@@ -8,6 +8,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
+import seedu.address.model.person.Attendance;
 import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.Person;
 
@@ -55,16 +56,17 @@ public class AttendanceCommand extends Command {
             throw new CommandException(String.format(MESSAGE_DUPLICATE_DATE, student.getName(), attendanceDate));
         }
 
-        model.setPerson(student, createMarkedStudent(student, attendanceDate));
+        model.setPerson(student,
+                createStudentWithAttendance(student, student.getAttendance().withDate(attendanceDate)));
         return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), attendanceDate));
     }
 
     /**
-     * Creates a student with the given attendance date added, preserving the student's other details.
+     * Creates a copy of the student with the given attendance history, preserving other details.
      */
-    private static Person createMarkedStudent(Person student, AttendanceDate attendanceDate) {
+    static Person createStudentWithAttendance(Person student, Attendance attendance) {
         return new Person(student.getName(), student.getMatriculationNumber(), student.getEmail(),
-                student.getTags(), student.getAttendance().withDate(attendanceDate), student.getClassCodes());
+                student.getTags(), attendance, student.getClassCodes());
     }
 
     @Override
