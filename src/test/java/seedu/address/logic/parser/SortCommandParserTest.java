@@ -13,6 +13,7 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSucces
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.SortCommand;
+import seedu.address.model.gradebook.AssignmentId;
 
 public class SortCommandParserTest {
 
@@ -30,6 +31,9 @@ public class SortCommandParserTest {
         assertParseSuccess(parser, "matric desc", new SortCommand(MATRIC, DESC));
         assertParseSuccess(parser, " email \t asc ", new SortCommand(EMAIL, ASC));
         assertParseSuccess(parser, "attendance desc", new SortCommand(ATTENDANCE, DESC));
+        assertParseSuccess(parser, "mark id/CS2103T:A1", new SortCommand(new AssignmentId("CS2103T:A1"), ASC));
+        assertParseSuccess(parser, "mark id/CS2103T:A1 desc",
+                new SortCommand(new AssignmentId("CS2103T:A1"), DESC));
     }
 
     @Test
@@ -41,5 +45,10 @@ public class SortCommandParserTest {
         assertParseFailure(parser, "grade asc", expectedMessage);
         assertParseFailure(parser, "name sideways", expectedMessage);
         assertParseFailure(parser, "name asc extra", expectedMessage);
+        assertParseFailure(parser, "mark", expectedMessage);
+        assertParseFailure(parser, "mark CS2103T:A1", expectedMessage);
+        assertParseFailure(parser, "mark id/INVALID", expectedMessage);
+        assertParseFailure(parser, "mark id/CS2103T:A1 sideways", expectedMessage);
+        assertParseFailure(parser, "mark id/CS2103T:A1 desc extra", expectedMessage);
     }
 }

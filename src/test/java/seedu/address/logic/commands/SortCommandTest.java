@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.SortCommand.SortDirection.ASC;
 import static seedu.address.logic.commands.SortCommand.SortDirection.DESC;
@@ -11,6 +12,7 @@ import static seedu.address.logic.commands.SortCommand.SortField.EMAIL;
 import static seedu.address.logic.commands.SortCommand.SortField.MATRIC;
 import static seedu.address.logic.commands.SortCommand.SortField.NAME;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +23,10 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.gradebook.Assignment;
+import seedu.address.model.gradebook.AssignmentId;
+import seedu.address.model.gradebook.Gradebook;
+import seedu.address.model.gradebook.Mark;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
@@ -41,6 +47,7 @@ public class SortCommandTest {
             .withMatriculationNumber("A1000004D").withEmail("alpha@example.com").build();
 
     private Model model;
+    private final AssignmentId assignmentId = new AssignmentId("CS2103T:A1");
 
     @BeforeEach
     public void setUp() {
@@ -165,6 +172,58 @@ public class SortCommandTest {
         assertEquals(attendedBob, model.getFilteredPersonList().getFirst());
         assertEquals("Attendance dates: 1",
                 model.sortDisplayProperty().getValue().detailFor(attendedBob).orElseThrow());
+    }
+
+    @Test
+    public void execute_markSort_placesMissingMarksLastInBothDirections() throws Exception {
+        model.addAssignmentForStudent(new Assignment(assignmentId, "Assignment One", new BigDecimal("20")),
+                BOB.getMatriculationNumber());
+        model.assignStudent(ZOE.getMatriculationNumber(), assignmentId);
+        model.assignStudent(CHARLIE.getMatriculationNumber(), assignmentId);
+        model.recordMark(ZOE.getMatriculationNumber(), assignmentId, new Mark(new BigDecimal("0")));
+        model.recordMark(CHARLIE.getMatriculationNumber(), assignmentId, new Mark(new BigDecimal("12.5")));
+
+        new SortCommand(assignmentId, ASC).execute(model);
+        assertEquals(List.of(ZOE, CHARLIE, ALICE_LOWERCASE, BOB), model.getFilteredPersonList());
+        assertEquals("CS2103T:A1: 0/20", model.sortDisplayProperty().getValue().detailFor(ZOE).orElseThrow());
+        assertEquals("CS2103T:A1: Unmarked", model.sortDisplayProperty().getValue().detailFor(BOB).orElseThrow());
+        assertEquals("CS2103T:A1: Not assigned",
+                model.sortDisplayProperty().getValue().detailFor(ALICE_LOWERCASE).orElseThrow());
+
+        new SortCommand(assignmentId, DESC).execute(model);
+        assertEquals(List.of(CHARLIE, ZOE, ALICE_LOWERCASE, BOB), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_unknownAssignment_keepsPreviousSortAndDetail() throws Exception {
+        new SortCommand(ATTENDANCE, DESC).execute(model);
+        assertCommandFailure(new SortCommand(assignmentId, ASC), model, Gradebook.MESSAGE_UNKNOWN_ASSIGNMENT);
+        assertEquals(List.of(ALICE_LOWERCASE, BOB, CHARLIE, ZOE), model.getFilteredPersonList());
+        assertEquals("Attendance dates: 0", model.sortDisplayProperty().getValue().detailFor(BOB).orElseThrow());
+    }
+
+    @Test
+    public void execute_markSortOnFilteredList_keepsOtherStudentsHidden() throws Exception {
+        model.addAssignmentForStudent(new Assignment(assignmentId, "Assignment One", new BigDecimal("20")),
+                BOB.getMatriculationNumber());
+        model.recordMark(BOB.getMatriculationNumber(), assignmentId, new Mark(new BigDecimal("10")));
+        model.updateFilteredPersonList(person -> !person.equals(BOB));
+
+        new SortCommand(assignmentId, DESC).execute(model);
+
+        assertEquals(List.of(ALICE_LOWERCASE, CHARLIE, ZOE), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_markUpdateAfterSort_resetsToNameOrder() throws Exception {
+        model.addAssignmentForStudent(new Assignment(assignmentId, "Assignment One", new BigDecimal("20")),
+                BOB.getMatriculationNumber());
+        new SortCommand(assignmentId, DESC).execute(model);
+
+        model.recordMark(BOB.getMatriculationNumber(), assignmentId, new Mark(new BigDecimal("15")));
+
+        assertEquals(List.of(ALICE_LOWERCASE, BOB, CHARLIE, ZOE), model.getFilteredPersonList());
+        assertTrue(model.sortDisplayProperty().getValue().detailFor(BOB).isEmpty());
     }
 
     @Test

@@ -127,8 +127,8 @@ The `Model` component,
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores shared assignment definitions and student marks in a `Gradebook` owned by `AddressBook`. Gradebook mutations are exposed through the `Model` API, while reads use a snapshot.
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
-* displays the filtered students through a sorted view. Name order is the default; `add`, `find`, and `list` restore it after a sort. `SortCommand` selects a comparator for name, matriculation number, email, or recorded attendance count, and may reverse its primary comparison. Equal values use name and matriculation number as tie-breakers. Sorting changes only the view, not the stored student order.
-* exposes the active sort's optional card detail through an observable `SortDisplay`. The UI refreshes student cards when this changes. Attendance sorting shows each student's recorded date count; returning to a sort on an already visible field removes that extra line.
+* displays the filtered students through a sorted view. Name order is the default; `add`, `find`, and `list` restore it after a sort. `SortCommand` selects a comparator for name, matriculation number, email, recorded attendance count, or one assignment's marks, and may reverse its primary comparison. Equal values use name and matriculation number as tie-breakers. Sorting changes only the view, not the stored student order.
+* exposes the active sort's optional card detail through an observable `SortDisplay`. The UI refreshes student cards when this changes. Attendance sorting shows each student's recorded date count; mark sorting shows the selected assignment's result or missing status. Gradebook changes, student edits, and data restoration reset an active mark sort to name order so the saved comparison snapshot does not become stale.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -684,12 +684,12 @@ Neither removal form changes student particulars. A removed shared assignment ca
 
 **MSS**
 
-1. Tutor requests to sort the currently displayed students by name, matriculation number, email address, or recorded attendance count, optionally choosing ascending or descending order.
+1. Tutor requests to sort the currently displayed students by name, matriculation number, email address, recorded attendance count, or one existing assignment's mark, optionally choosing ascending or descending order.
 2. TAssist reorders the displayed students and confirms the selected field and direction.
 
 Use case ends.
 
-The default is name ascending, including when the tutor enters `sort` without arguments. Name and email comparisons ignore case. An empty attendance history counts as zero, not as an absence. When sorting by attendance, each student card shows the count used for comparison. Equal values are ordered by name, then matriculation number. The displayed indices follow the new order, while the stored student order remains unchanged. A later `add`, `find`, or `list` restores name-ascending order and removes the extra count from each card.
+The default is name ascending, including when the tutor enters `sort` without arguments. Name and email comparisons ignore case. An empty attendance history counts as zero, not as an absence. When sorting by attendance, each student card shows the count used for comparison. Mark sorting uses `sort mark id/MODULE:CODE [asc|desc]`; recorded marks come first, followed by `Unmarked` and `Not assigned` students in name order in either direction. The selected mark or status appears on every card. Equal values are ordered by name, then matriculation number. The displayed indices follow the new order, while the stored student order remains unchanged. A later `add`, `find`, or `list` restores name-ascending order and removes the extra card line. Assignment, mark, or student detail changes also reset an active mark sort.
 
 **Extensions**
 
@@ -702,6 +702,12 @@ The default is name ascending, including when the tutor enters `sort` without ar
 * 2a. No students are currently displayed.
 
   * 2a1. TAssist confirms the sort; the displayed list remains empty.
+
+  Use case ends.
+
+* 1b. The assignment ID is syntactically valid but does not exist.
+
+  * 1b1. TAssist reports the unknown assignment and preserves the displayed order and card details.
 
   Use case ends.
 
@@ -811,6 +817,20 @@ testers are expected to do more *exploratory* testing.
 
    1. Run `list`.<br>
       Expected: Students return to name order and the attendance count line disappears.
+
+1. Sorting by one assignment's mark
+
+   1. In a fresh data folder with the original sample students, create an assignment and attach it to two students using `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20` and `assignment m/A6789012U id/CS2103T:A1`. Record `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
+      Expected: One student has a recorded zero, one is unmarked, and at least one other sample student is not assigned.
+
+   1. Run `sort mark id/CS2103T:A1 desc`.<br>
+      Expected: The student with zero appears before the unmarked and unassigned students. Every card shows `CS2103T:A1` with `0/20`, `Unmarked`, or `Not assigned` as appropriate.
+
+   1. Run `sort mark id/CS2103T:A9`.<br>
+      Expected: TAssist reports that the assignment does not exist; the displayed order and card details remain unchanged.
+
+   1. Record another mark using `mark m/A6789012U id/CS2103T:A1 mark/15`.<br>
+      Expected: The list returns to name order and the assignment result line disappears. Running `sort mark id/CS2103T:A1 desc` again shows the student with 15 first.
 
 ### Deleting a student
 

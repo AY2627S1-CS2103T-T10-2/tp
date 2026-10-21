@@ -75,6 +75,7 @@ public class ModelManager implements Model {
     @Override
     public void setAddressBook(ReadOnlyAddressBook addressBook) {
         this.addressBook.resetData(addressBook);
+        resetAssignmentSort();
     }
 
     @Override
@@ -105,36 +106,50 @@ public class ModelManager implements Model {
         requireAllNonNull(target, editedPerson);
 
         addressBook.setPerson(target, editedPerson);
+        resetAssignmentSort();
     }
 
     @Override
     public void addAssignment(Assignment assignment) {
         addressBook.addAssignment(assignment);
+        resetAssignmentSort();
     }
 
     @Override
     public void addAssignmentForStudent(Assignment assignment, MatriculationNumber student) {
         addressBook.addAssignmentForStudent(assignment, student);
+        resetAssignmentSort();
     }
 
     @Override
     public void assignStudent(MatriculationNumber student, AssignmentId assignmentId) {
         addressBook.assignStudent(student, assignmentId);
+        resetAssignmentSort();
     }
 
     @Override
     public Optional<Mark> recordMark(MatriculationNumber student, AssignmentId assignmentId, Mark mark) {
-        return addressBook.recordMark(student, assignmentId, mark);
+        Optional<Mark> previous = addressBook.recordMark(student, assignmentId, mark);
+        resetAssignmentSort();
+        return previous;
     }
 
     @Override
     public void unassignStudent(MatriculationNumber student, AssignmentId assignmentId) {
         addressBook.unassignStudent(student, assignmentId);
+        resetAssignmentSort();
     }
 
     @Override
     public void removeAssignment(AssignmentId assignmentId) {
         addressBook.removeAssignment(assignmentId);
+        resetAssignmentSort();
+    }
+
+    private void resetAssignmentSort() {
+        if (sortDisplay.get().isAssignmentSort()) {
+            sortPersons(COMPARATOR_NAME_ASC);
+        }
     }
 
     @Override
