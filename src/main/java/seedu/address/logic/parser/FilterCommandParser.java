@@ -6,6 +6,7 @@ import java.util.List;
 
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.ClassContainsKeywordsPredicate;
 
 /**
@@ -25,8 +26,13 @@ public class FilterCommandParser {
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE));
         }
 
-        String[] nameKeywords = trimmedArgs.split("\\s+");
+        String[] classKeywords = trimmedArgs.split("\\s+");
 
-        return new FilterCommand(new ClassContainsKeywordsPredicate(List.of(nameKeywords)));
+        for (String classKeyword : classKeywords){
+            ClassCode.isValidClassCode(classKeyword);
+        }
+
+
+        return new FilterCommand(new ClassContainsKeywordsPredicate(List.of(classKeywords)));
     }
 }
