@@ -6,7 +6,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
-import seedu.address.model.person.ClassContainsKeywordsPredicate;
+import seedu.address.model.person.PersonContainsClassCodePredicate;
 
 /**
  * Filters all persons in the address book according to class.
@@ -24,9 +24,9 @@ public class FilterCommand extends Command {
     public static final String MESSAGE_SUCCESS = "Filtered all students by class code: %1$s";
     public static final String MESSAGE_NO_SUCH_CLASS = "This class code does not exist in the address book.";
 
-    private final ClassContainsKeywordsPredicate predicate;
+    private final PersonContainsClassCodePredicate predicate;
 
-    public FilterCommand(ClassContainsKeywordsPredicate predicate) {
+    public FilterCommand(PersonContainsClassCodePredicate predicate) {
         this.predicate = predicate;
     }
 

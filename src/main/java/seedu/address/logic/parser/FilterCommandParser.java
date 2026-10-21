@@ -2,12 +2,13 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.classcode.ClassCode;
-import seedu.address.model.person.ClassContainsKeywordsPredicate;
+import seedu.address.model.person.PersonContainsClassCodePredicate;
 
 /**
  * Parses input arguments and creates a new FilterCommand object
@@ -27,14 +28,16 @@ public class FilterCommandParser {
         }
 
         String[] classKeywords = trimmedArgs.split("\\s+");
+        List<ClassCode> classCodes = new ArrayList<>();
 
         for (String classKeyword : classKeywords) {
             if (!ClassCode.isValidClassCode(classKeyword)) {
                 throw new ParseException(
                         String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassCode.MESSAGE_CONSTRAINTS));
             }
+            classCodes.add(new ClassCode(classKeyword));
         }
 
-        return new FilterCommand(new ClassContainsKeywordsPredicate(List.of(classKeywords)));
+        return new FilterCommand(new PersonContainsClassCodePredicate(classCodes));
     }
 }
