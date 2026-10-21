@@ -18,8 +18,8 @@ public class Messages {
     public static final String MESSAGE_PERSONS_LISTED_OVERVIEW = "%1$d student(s) listed!";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
-    public static final String MESSAGE_INVALID_FILTER_KEYWORD = "Each keyword must be a module code (e.g. CS2103T) or a" +
-            " class code (CS2103T-T10).";
+    public static final String MESSAGE_INVALID_FILTER_KEYWORD = "Each keyword must be a module code (e.g. CS2103T) or a"
+            + " class code (CS2103T-T10).";
 
     /**
      * Returns an error message indicating the duplicate prefixes.

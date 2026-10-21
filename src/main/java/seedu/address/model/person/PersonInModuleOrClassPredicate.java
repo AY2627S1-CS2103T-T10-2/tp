@@ -5,14 +5,14 @@ import static java.util.Objects.requireNonNull;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.classcode.ModuleCode;
 
 /**
- * Tests that a {@code Person}'s {@code ClassCodes} or {@code ModuleCodes} matches any of the {@code ClassCodes} or {@code ModuleCodes} given.
+ * Tests that a {@code Person}'s {@code ClassCodes} or {@code ModuleCodes}
+ * matches any of the {@code ClassCodes} or {@code ModuleCodes} given.
  */
 public class PersonInModuleOrClassPredicate implements Predicate<Person> {
     private final Set<ClassCode> classCodes;
@@ -51,12 +51,13 @@ public class PersonInModuleOrClassPredicate implements Predicate<Person> {
             return false;
         }
 
-        return classCodes.equals(otherPersonContainsClassCodePredicate.classCodes) &&
-                moduleCodes.equals(otherPersonContainsClassCodePredicate.moduleCodes);
+        return classCodes.equals(otherPersonContainsClassCodePredicate.classCodes)
+                && moduleCodes.equals(otherPersonContainsClassCodePredicate.moduleCodes);
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this).add("classCodes", classCodes).add("moduleCodes", classCodes).toString();
+        return new ToStringBuilder(this).add("classCodes", classCodes)
+                .add("moduleCodes", classCodes).toString();
     }
 }
