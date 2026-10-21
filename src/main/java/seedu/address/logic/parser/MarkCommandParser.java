@@ -49,6 +49,10 @@ public class MarkCommandParser implements Parser<MarkCommand> {
         if (value.signum() < 0) {
             throw new ParseException(Mark.MESSAGE_CONSTRAINTS);
         }
-        return new MarkCommand(student, new AssignmentId(idText), new Mark(value));
+        try {
+            return new MarkCommand(student, new AssignmentId(idText), new Mark(value));
+        } catch (IllegalArgumentException ex) {
+            throw new ParseException(ex.getMessage(), ex);
+        }
     }
 }

@@ -72,5 +72,7 @@ public class AssignmentCommandParserTest {
                 Assignment.MESSAGE_MAX_MARK_CONSTRAINTS);
         assertParseFailure(parser, required + " n/Assignment One max/-1",
                 Assignment.MESSAGE_MAX_MARK_CONSTRAINTS);
+        assertParseFailure(parser, required + " n/Assignment One max/1e1000000",
+                Assignment.MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS);
     }
 }

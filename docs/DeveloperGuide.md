@@ -171,6 +171,8 @@ The `seedu.address.model.gradebook` package defines the data model for assignmen
 
 The `Gradebook` separately maps each student's matriculation number and assignment ID to an optional `Mark`. Assigning work creates an unmarked entry. A recorded zero is represented by a `Mark` with value `0`, so it remains distinct from an unmarked entry. `Mark` uses `BigDecimal` to preserve fractional marks without floating-point rounding; the `Gradebook` checks that a recorded value does not exceed the assignment maximum. `Assignment` does not contain a student's mark because the same assignment can have different marks for different students.
 
+`GradebookNumber` checks the length of a normalized value's plain decimal form using its precision and scale, before creating that string. `Assignment` and `Mark` both reject values that would display as more than 64 characters. The check is in the domain constructors, so commands and restored JSON data follow the same limit. Parsers turn this validation failure into a normal input error. This prevents short scientific-notation inputs with enormous exponents from expanding during display or JSON saving.
+
 `AddressBook` coordinates student and gradebook changes. Creating an assignment for a student adds its definition and the student's unmarked entry as one operation. Editing a student's matriculation number moves their assignment entries and marks; editing other details leaves them in place. Deleting a student removes their entries but keeps shared assignment definitions. Replacing the student list removes entries for students no longer present, while resetting or clearing the whole address book replaces the gradebook too. A failed student replacement leaves the original gradebook unchanged. `ReadOnlyAddressBook#getGradebook()` returns an independent snapshot so callers cannot mutate the stored gradebook through a read-only view.
 
 JSON storage keeps shared definitions in `assignments` and each student's link to a definition in `studentAssignments`. An assignment stores its ID, name, and decimal maximum mark. A student assignment stores a matriculation number, assignment ID, and decimal `mark`; a `null` mark means the assignment is unmarked, while `"0"` means a recorded zero. Decimal values are written as strings to preserve exact fractional marks. On restoration, students are loaded first, followed by definitions and student assignments. The storage adapter rejects invalid or duplicate definitions, unknown students or assignments, duplicate student links, and marks outside the allowed range. Files created before these two JSON arrays existed load with an empty gradebook. A failed restoration leaves the saved file unchanged.
@@ -767,6 +769,8 @@ testers are expected to do more *exploratory* testing.
       Expected: TAssist confirms the same definition was attached to the second student without a mark.
    1. Repeat either command for the same student, or create `CS2103T:A2` with the name `Assignment One`.<br>
       Expected: TAssist reports the duplicate and preserves the existing assignments.
+   1. Enter `assignment m/A1234567X id/CS2103T:A3 n/Extreme max/1e1000000`.<br>
+      Expected: TAssist rejects the maximum as too long for display, and does not create `CS2103T:A3`.
    1. Close and reopen TAssist. Enter `marks id/CS2103T:A1`.<br>
       Expected: Both assigned students appear as `Unmarked`, confirming their links were restored.
 
@@ -778,6 +782,8 @@ testers are expected to do more *exploratory* testing.
    Expected: TAssist confirms the score was updated to `17.5/20`.
 1. Enter the same command with `mark/21`.<br>
    Expected: TAssist rejects the score because it exceeds the maximum. The previous score remains stored after reopening the app.
+1. Enter the same command with `mark/1e1000000`.<br>
+   Expected: TAssist rejects the score as too long for display. The previous score remains stored.
 
 ### Viewing assignment marks
 

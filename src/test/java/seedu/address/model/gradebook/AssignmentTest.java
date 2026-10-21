@@ -25,4 +25,16 @@ public class AssignmentTest {
         assertThrows(IllegalArgumentException.class, Assignment.MESSAGE_MAX_MARK_CONSTRAINTS, () ->
                 new Assignment(id, "Assignment One", BigDecimal.ZERO));
     }
+
+    @Test
+    public void constructor_displayLengthLimit_rejectsExpandedScientificNotation() {
+        assertEquals(64, new Assignment(id, "Assignment One", new BigDecimal("1e63"))
+                .getMaxMark().toPlainString().length());
+        assertThrows(IllegalArgumentException.class, Assignment.MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS, () ->
+                new Assignment(id, "Assignment One", new BigDecimal("1e64")));
+        assertThrows(IllegalArgumentException.class, Assignment.MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS, () ->
+                new Assignment(id, "Assignment One", new BigDecimal("1e-63")));
+        assertThrows(IllegalArgumentException.class, Assignment.MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS, () ->
+                new Assignment(id, "Assignment One", new BigDecimal("1e1000000")));
+    }
 }

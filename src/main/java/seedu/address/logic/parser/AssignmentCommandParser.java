@@ -61,6 +61,10 @@ public class AssignmentCommandParser implements Parser<AssignmentCommand> {
         if (maximum.signum() <= 0) {
             throw new ParseException(Assignment.MESSAGE_MAX_MARK_CONSTRAINTS);
         }
-        return new AssignmentCommand(student, new Assignment(id, name, maximum));
+        try {
+            return new AssignmentCommand(student, new Assignment(id, name, maximum));
+        } catch (IllegalArgumentException ex) {
+            throw new ParseException(ex.getMessage(), ex);
+        }
     }
 }

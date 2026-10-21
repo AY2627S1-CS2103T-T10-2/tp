@@ -59,7 +59,8 @@ public class JsonSerializableAddressBookTest {
                 new JsonAdaptedAssignment("bad", "Assignment One", "20"),
                 new JsonAdaptedAssignment("CS2103T:A1", " ", "20"),
                 new JsonAdaptedAssignment("CS2103T:A1", "Assignment One", "0"),
-                new JsonAdaptedAssignment("CS2103T:A1", "Assignment One", "not a number"));
+                new JsonAdaptedAssignment("CS2103T:A1", "Assignment One", "not a number"),
+                new JsonAdaptedAssignment("CS2103T:A1", "Assignment One", "1e1000000"));
         for (JsonAdaptedAssignment invalidAssignment : invalidAssignments) {
             JsonSerializableAddressBook data = new JsonSerializableAddressBook(
                     List.of(), List.of(invalidAssignment), List.of());
@@ -88,7 +89,8 @@ public class JsonSerializableAddressBookTest {
                 new JsonAdaptedStudentAssignment(student, "CS2103T:A2", "10"),
                 new JsonAdaptedStudentAssignment(student, "CS2103T:A1", "-1"),
                 new JsonAdaptedStudentAssignment(student, "CS2103T:A1", "21"),
-                new JsonAdaptedStudentAssignment(student, "CS2103T:A1", "invalid"));
+                new JsonAdaptedStudentAssignment(student, "CS2103T:A1", "invalid"),
+                new JsonAdaptedStudentAssignment(student, "CS2103T:A1", "1e-1000000"));
         for (JsonAdaptedStudentAssignment invalidEntry : invalidEntries) {
             JsonSerializableAddressBook data = new JsonSerializableAddressBook(
                     List.of(new JsonAdaptedPerson(TypicalPersons.ALICE)), List.of(assignment), List.of(invalidEntry));

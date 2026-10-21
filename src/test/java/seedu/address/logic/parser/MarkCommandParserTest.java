@@ -62,5 +62,7 @@ public class MarkCommandParserTest {
         assertParseFailure(parser, " m/A1234567X id/CS2103T:A1 mark/letter",
                 MarkCommandParser.MESSAGE_INVALID_MARK);
         assertParseFailure(parser, " m/A1234567X id/CS2103T:A1 mark/-1", Mark.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " m/A1234567X id/CS2103T:A1 mark/1e1000000",
+                Mark.MESSAGE_LENGTH_CONSTRAINTS);
     }
 }

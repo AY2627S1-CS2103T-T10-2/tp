@@ -33,6 +33,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.gradebook.Assignment;
 import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.gradebook.Gradebook;
 import seedu.address.model.gradebook.Mark;
@@ -119,6 +120,25 @@ public class LogicManagerTest {
                 + "Student marks:\n" + student + " - " + AMY.getName() + ": 17.5/20";
         assertEquals(expectedMarks, new MarksCommand(new AssignmentId("CS2103T:A1"))
                 .execute(new ModelManager(restored, new UserPrefs())).getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_oversizedGradebookNumbers_rejectsWithoutChangingSavedData() throws Exception {
+        model.addPerson(AMY);
+        String student = AMY.getMatriculationNumber().toString();
+        String assignment = " id/CS2103T:A1";
+        assertParseException("assignment m/" + student + assignment + " n/Assignment One max/1e1000000",
+                Assignment.MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS);
+        assertTrue(model.getAddressBook().getGradebook().getAssignments().isEmpty());
+
+        logic.execute("assignment m/" + student + assignment + " n/Assignment One max/20");
+        assertParseException("mark m/" + student + assignment + " mark/1e1000000",
+                Mark.MESSAGE_LENGTH_CONSTRAINTS);
+        assertEquals(Optional.empty(), model.getAddressBook().getGradebook()
+                .getMarksForStudent(AMY.getMatriculationNumber()).get(new AssignmentId("CS2103T:A1")));
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
     }
 
     @Test

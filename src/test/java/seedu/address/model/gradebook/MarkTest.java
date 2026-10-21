@@ -20,4 +20,14 @@ public class MarkTest {
         assertThrows(IllegalArgumentException.class, Mark.MESSAGE_CONSTRAINTS, () ->
                 new Mark(new BigDecimal("-0.1")));
     }
+
+    @Test
+    public void constructor_displayLengthLimit_rejectsExpandedScientificNotation() {
+        assertEquals(64, new Mark(new BigDecimal("1e-62")).toString().length());
+        assertEquals("0", new Mark(new BigDecimal("0e-1000000")).toString());
+        assertThrows(IllegalArgumentException.class, Mark.MESSAGE_LENGTH_CONSTRAINTS, () ->
+                new Mark(new BigDecimal("1e-63")));
+        assertThrows(IllegalArgumentException.class, Mark.MESSAGE_LENGTH_CONSTRAINTS, () ->
+                new Mark(new BigDecimal("1e1000000")));
+    }
 }

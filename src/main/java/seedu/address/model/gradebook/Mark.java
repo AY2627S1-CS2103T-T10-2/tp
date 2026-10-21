@@ -10,6 +10,9 @@ import java.math.BigDecimal;
  */
 public final class Mark {
     public static final String MESSAGE_CONSTRAINTS = "Marks must be zero or greater.";
+    public static final String MESSAGE_LENGTH_CONSTRAINTS =
+            "Mark's displayed decimal form must be at most "
+                    + GradebookNumber.MAX_PLAIN_LENGTH + " characters.";
 
     private final BigDecimal value;
 
@@ -19,6 +22,7 @@ public final class Mark {
     public Mark(BigDecimal value) {
         requireNonNull(value);
         checkArgument(value.signum() >= 0, MESSAGE_CONSTRAINTS);
+        checkArgument(GradebookNumber.fitsPlainLength(value), MESSAGE_LENGTH_CONSTRAINTS);
         this.value = value.stripTrailingZeros();
     }
 

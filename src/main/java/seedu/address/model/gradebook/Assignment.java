@@ -13,6 +13,9 @@ import java.util.Objects;
 public final class Assignment {
     public static final String MESSAGE_NAME_CONSTRAINTS = "Assignment names must not be blank.";
     public static final String MESSAGE_MAX_MARK_CONSTRAINTS = "Maximum marks must be greater than zero.";
+    public static final String MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS =
+            "Maximum mark's displayed decimal form must be at most "
+                    + GradebookNumber.MAX_PLAIN_LENGTH + " characters.";
 
     private final AssignmentId id;
     private final String name;
@@ -28,6 +31,7 @@ public final class Assignment {
         String normalizedName = name.strip().replaceAll("\\s+", " ");
         checkArgument(!normalizedName.isEmpty(), MESSAGE_NAME_CONSTRAINTS);
         checkArgument(maxMark.signum() > 0, MESSAGE_MAX_MARK_CONSTRAINTS);
+        checkArgument(GradebookNumber.fitsPlainLength(maxMark), MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS);
         this.name = normalizedName;
         this.maxMark = maxMark.stripTrailingZeros();
     }

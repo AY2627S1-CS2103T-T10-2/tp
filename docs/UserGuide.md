@@ -157,6 +157,7 @@ Format for existing work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`
 * `id/` identifies an assignment within a module, such as `CS2103T:A1`. IDs ignore letter case.
 * `n/` gives the assignment a name. Names must not be blank and must be unique within a module, ignoring letter case and repeated spaces.
 * `max/` is a positive numeric maximum mark; decimals are allowed.
+* Values whose displayed decimal form would exceed 64 characters are rejected. This prevents very large or very precise values from slowing the app when it displays or saves them.
 * The assignment begins without a recorded mark. A mark of zero, when later recorded, is different from an unmarked assignment.
 * To assign the same work to another student, use its existing ID without `n/` or `max/`. Repeating the assignment for the same student reports an error and changes nothing.
 * An existing ID or name cannot be used to create a second definition in the same module. A student and assignment ID must already exist when using the shorter form.
@@ -174,6 +175,7 @@ Format: `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`
 
 * The student and assignment must exist, and the assignment must already be attached to that student using `assignment`.
 * `MARK` may be zero or a positive decimal, up to the assignment's maximum mark. A recorded `0` is different from an unmarked assignment.
+* A mark's displayed decimal form must also fit within 64 characters.
 * The confirmation includes the score and maximum mark. Updating a recorded score gives a short updated message.
 * The student's matriculation number identifies them even when they are absent from the current search results. Use `mark` to change a score; `edit` changes student details and does not accept marks.
 
