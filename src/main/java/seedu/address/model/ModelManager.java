@@ -102,6 +102,11 @@ public class ModelManager implements Model {
         sortedPersons.setComparator(comparator);
     }
 
+    @Override
+    public void filterPersons(Comparator<Person> comparator) {
+        sortedPersons.setComparator(comparator);
+    }
+
     //=========== Filtered Person List Accessors =============================================================
 
     /**

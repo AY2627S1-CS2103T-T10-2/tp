@@ -70,6 +70,11 @@ public interface Model {
      */
     void sortPersons(Comparator<Person> comparator);
 
+    /**
+     * Filters the displayed list of persons by class.
+     */
+    void filterPersons(Comparator<Person> comparator);
+
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();
 
