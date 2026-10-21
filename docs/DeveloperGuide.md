@@ -163,7 +163,7 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Assignment mark domain model (in development)
 
-The `seedu.address.model.gradebook` package defines the data model for assignment marks. `AddressBook` owns a `Gradebook`, and `Model` exposes operations for assigning work and recording marks. JSON storage saves and restores this data. The `assignment` command creates and attaches assignments; commands for recording and displaying marks are not yet available.
+The `seedu.address.model.gradebook` package defines the data model for assignment marks. `AddressBook` owns a `Gradebook`, and `Model` exposes operations for assigning work and recording marks. JSON storage saves and restores this data. The `assignment` command creates and attaches assignments, and `mark` records or updates a student's score. A command for displaying the full gradebook is not yet available.
 
 <puml src="diagrams/GradebookDomainDiagram.puml" alt="Assignment mark domain model" />
 
@@ -176,6 +176,8 @@ The `Gradebook` separately maps each student's matriculation number and assignme
 JSON storage keeps shared definitions in `assignments` and each student's link to a definition in `studentAssignments`. An assignment stores its ID, name, and decimal maximum mark. A student assignment stores a matriculation number, assignment ID, and decimal `mark`; a `null` mark means the assignment is unmarked, while `"0"` means a recorded zero. Decimal values are written as strings to preserve exact fractional marks. On restoration, students are loaded first, followed by definitions and student assignments. The storage adapter rejects invalid or duplicate definitions, unknown students or assignments, duplicate student links, and marks outside the allowed range. Files created before these two JSON arrays existed load with an empty gradebook. A failed restoration leaves the saved file unchanged.
 
 `AssignmentCommandParser` accepts a student's matriculation number and assignment ID, plus a name and maximum mark together when defining new work. `AssignmentCommand` resolves the student against all stored students, independently of the displayed list. For new work, it calls `Model#addAssignmentForStudent`, which validates and publishes the definition and student link as one change. For existing work, it calls `Model#assignStudent` using the stored definition. The gradebook rejects a duplicate ID or name in the module and prevents assigning the same work twice to one student. Neither command form records a mark.
+
+`MarkCommandParser` accepts a matriculation number, an assignment ID, and a nonnegative decimal score. `MarkCommand` checks that the student, shared definition, and student's assignment link exist before calling `Model#recordMark`. The gradebook rejects scores above the shared maximum. `recordMark` returns the previous optional value, allowing the command to distinguish the first recorded mark from an update; a previous zero is present and therefore produces the updated response. The command changes only that student's score. `edit` remains for student particulars, and `view` remains focused on profile details.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -342,7 +344,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 These use cases describe the current program's behavior. For all use cases, the **System** is TAssist, the **Actor** is a university Computer Science tutor, and **MSS** means Main Success Scenario. Unless stated otherwise, TAssist is running and startup has completed without a restoration error. Restoration failures are covered by UC07.
 
-**Common extension (UC01–UC06):** If TAssist cannot save the records after processing a request, it reports the save failure instead of confirming success. Any changes already made to student information or the displayed list remain. The main success scenarios assume saving succeeds.
+**Common extension (UC01–UC06, UC08–UC09):** If TAssist cannot save the records after processing a request, it reports the save failure instead of confirming success. Any changes already made to student information, assignment marks, or the displayed list remain. The main success scenarios assume saving succeeds.
 
 #### UC01: Add a student
 
@@ -524,14 +526,14 @@ Use case ends.
 
   Use case ends.
 
-#### UC07: Restore student records when reopening the app
+#### UC07: Restore saved records when reopening the app
 
-**Precondition:** The tutor has added a student or recorded attendance in an earlier session, and the change was saved successfully.
+**Precondition:** The tutor has added a student, recorded attendance, or saved assignment marks in an earlier session, and the change was saved successfully.
 
 **MSS**
 
 1. Tutor closes TAssist and reopens it.
-2. TAssist restores the saved student and attendance records.
+2. TAssist restores the saved student, attendance, and assignment records.
 
 Use case ends.
 
@@ -543,7 +545,7 @@ Use case ends.
 
   Use case ends.
 
-* 2b. TAssist cannot restore the saved records because the data file cannot be read, contains malformed data, or contains invalid student or attendance records.
+* 2b. TAssist cannot restore the saved records because the data file cannot be read, contains malformed data, or contains invalid student, attendance, or assignment records.
 
   * 2b1. TAssist reports why restoration failed.
   * 2b2. TAssist leaves the original data file unchanged and prevents command execution.
@@ -580,6 +582,34 @@ Use case ends.
 
   Use case ends.
 
+#### UC09: Record or update an assignment mark
+
+**MSS**
+
+1. Tutor supplies a stored student's matriculation number, an assignment ID already attached to that student, and a score from zero through that assignment's maximum.
+2. TAssist records the score and confirms it alongside the assignment maximum.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. The student or assignment does not exist, the student has not been assigned that work, or the score exceeds its maximum.
+
+  * 1a1. TAssist reports the problem and leaves the records unchanged.
+
+  Use case ends.
+
+* 1b. The input is malformed or the score is not a nonnegative number.
+
+  * 1b1. TAssist explains the invalid input and leaves the records unchanged.
+
+  Use case ends.
+
+* 2a. A score was already recorded for that student and assignment, including zero.
+
+  * 2a1. TAssist replaces the score and confirms that the mark was updated.
+
+  Use case ends.
 
 ### Non-Functional Requirements
 
@@ -595,7 +625,7 @@ Performance checks use a desktop with at least two CPU cores, 8 GB RAM, an SSD, 
 6. **Keyboard operability:** All student-management operations shall be completable using the keyboard alone after launch, including operations added in later iterations. Routine record operations shall accept all required input in one command, without requiring separate prompts for each field.
 7. **Learnability:** At least 4 of 5 first-time users who are comfortable with CLI applications shall, with the User Guide available, complete a prepared exercise of adding a student, listing all students, searching students, viewing a student's profile, recording attendance, and deleting a student within 15 minutes without assistance. The exercise shall supply all required student particulars and attendance dates.
 8. **Error tolerance:** Invalid user input shall not crash the App or change existing records. Error feedback shall identify the offending input or missing information and explain how to correct it. Check missing required parameters, unexpected parameters, invalid student details, duplicate matriculation numbers, invalid displayed indices, nonexistent students, invalid dates, and duplicate attendance for the same student and date. Later commands shall meet the same standard for their own parameters.
-9. **Persistence reliability:** After the App reports a data-changing operation as successful, normal shutdown and relaunch shall preserve the resulting records, field values, and relationships, including additions, deletions, and recorded attendance. Verify a save-and-relaunch cycle for each supported data-changing operation. A simulated save failure shall be reported visibly and shall not be presented as a successful operation.
+9. **Persistence reliability:** After the App reports a data-changing operation as successful, normal shutdown and relaunch shall preserve the resulting records, field values, and relationships, including additions, deletions, recorded attendance, and assignment marks. Verify a save-and-relaunch cycle for each supported data-changing operation. A simulated save failure shall be reported visibly and shall not be presented as a successful operation.
 10. **Preservation on restoration failure:** A saved file that cannot be read or validated shall remain unmodified during the failed restoration attempt and subsequent normal shutdown. Verify this by comparing its contents before and after the attempt; the App shall report the failure rather than claim that records were restored.
 11. **Offline availability:** All local student-management operations, including saving and restoring records, shall work with networking disabled and shall not depend on a remote server. Accessing online help or an external email service is outside this requirement.
 12. **Display usability:** At 1920 x 1080 and higher resolutions with 100% or 125% scaling, command input, feedback, and student information shall remain readable without overlapping controls or inaccessible content. At 1280 x 720 and higher resolutions with 150% scaling, all functions shall remain accessible, allowing scrolling or resizing where necessary.
@@ -680,6 +710,15 @@ testers are expected to do more *exploratory* testing.
       Expected: TAssist reports the duplicate and preserves the existing assignments.
    1. Close and reopen TAssist. Repeating the second command should still report the duplicate, confirming that the student link was restored. Later increments will add a `marks` command for direct inspection.
 
+### Recording an assignment mark
+
+1. After assigning `CS2103T:A1` with maximum `20` to student `A1234567X`, enter `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
+   Expected: TAssist confirms a recorded score of `0/20`.
+1. Enter `mark m/A1234567X id/CS2103T:A1 mark/17.5`.<br>
+   Expected: TAssist confirms the score was updated to `17.5/20`.
+1. Enter the same command with `mark/21`.<br>
+   Expected: TAssist rejects the score because it exceeds the maximum. The previous score remains stored after reopening the app.
+
 ### Saving data
 
 1. Dealing with missing/corrupted data files
@@ -697,7 +736,7 @@ testers are expected to do more *exploratory* testing.
       Expected: The command box does not accept input or execute a command. The failure message remains
       visible; scroll the result display to read the full recovery instructions if necessary.
    1. Repeat with valid JSON containing an invalid student email, an invalid attendance date
-      (e.g., `31-02-2026`), or a repeated attendance date.<br>
+      (e.g., `31-02-2026`), a repeated attendance date, or an assignment mark above its maximum.<br>
       Expected: The same command block and file preservation apply, with the corresponding validation error.
    1. Close TAssist, correct the file or replace it with the valid backup, and reopen TAssist.<br>
       Expected: The saved student and attendance records are restored, the command box is enabled,

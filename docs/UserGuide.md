@@ -166,6 +166,21 @@ Examples:
 * `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20`
 * `assignment m/A2345678Y id/CS2103T:A1`
 
+### Recording an assignment mark: `mark`
+
+Records a student's numeric mark for work already assigned to them. Entering another mark for the same student and assignment updates the previous value.
+
+Format: `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`
+
+* The student and assignment must exist, and the assignment must already be attached to that student using `assignment`.
+* `MARK` may be zero or a positive decimal, up to the assignment's maximum mark. A recorded `0` is different from an unmarked assignment.
+* The confirmation includes the score and maximum mark. Updating a recorded score gives a short updated message.
+* The student's matriculation number identifies them even when they are absent from the current search results. Use `mark` to change a score; `edit` changes student details and does not accept marks.
+
+Examples:
+* `mark m/A1234567X id/CS2103T:A1 mark/17.5`
+* `mark m/A1234567X id/CS2103T:A1 mark/0`
+
 ### Deleting a student: `delete`
 
 Deletes the specified student from the address book.
@@ -270,6 +285,7 @@ Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME m/MATRICULATION_NUMBER e/EMAIL [t/TAG]... ` <br> e.g., `add n/James Ho m/A1234567A e/jamesho@example.com t/friend t/colleague`
 **Assignment** | `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`<br> e.g., `assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20`
+**Mark** | `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`<br> e.g., `mark m/A1234567A id/CS2103T:A1 mark/17.5`
 **Attendance** | `attendance INDEX [d/DATE]`<br> e.g., `attendance 1 d/07-10-2026`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`

@@ -11,6 +11,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.AMY;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -23,6 +24,7 @@ import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.AssignmentCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.MarkCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
@@ -30,6 +32,8 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.gradebook.AssignmentId;
+import seedu.address.model.gradebook.Gradebook;
+import seedu.address.model.gradebook.Mark;
 import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
@@ -91,6 +95,27 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_markCommand_recordsUpdatesAndRestoresMark() throws Exception {
+        model.addPerson(AMY);
+        String student = AMY.getMatriculationNumber().toString();
+        String assignment = " id/CS2103T:A1";
+        logic.execute("assignment m/" + student + assignment + " n/Assignment One max/20");
+
+        assertEquals(String.format(MarkCommand.MESSAGE_RECORDED, "0", "20", student, "CS2103T:A1"),
+                logic.execute("mark m/" + student + assignment + " mark/0").getFeedbackToUser());
+        assertEquals(String.format(MarkCommand.MESSAGE_UPDATED, "17.5", "20", student, "CS2103T:A1"),
+                logic.execute("mark m/" + student + assignment + " mark/17.5").getFeedbackToUser());
+        assertThrows(CommandException.class, Gradebook.MESSAGE_MARK_EXCEEDS_MAX, () ->
+                logic.execute("mark m/" + student + assignment + " mark/21"));
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        ReadOnlyAddressBook restored = storage.readAddressBook().orElseThrow();
+        assertEquals(model.getAddressBook(), restored);
+        assertEquals(Optional.of(new Mark(new BigDecimal("17.5"))), restored.getGradebook()
+                .getMarksForStudent(AMY.getMatriculationNumber()).get(new AssignmentId("CS2103T:A1")));
+    }
+
+    @Test
     public void execute_restoreFailed_blocksAllCommandsWithoutChangingModelOrSaving() {
         String startupError = "Saved records could not be restored. Close TAssist and correct the data file.";
         JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(temporaryFolder.resolve("data.json")) {
@@ -107,6 +132,7 @@ public class LogicManagerTest {
         String[] commands = {"clear", "delete 1", "edit 1 n/Changed", "list", "find Nobody", "help", "exit",
             "attendance m/" + AMY.getMatriculationNumber() + " d/07-10-2026",
             "assignment m/" + AMY.getMatriculationNumber() + " id/CS2103T:A1 n/Assignment One max/20",
+            "mark m/" + AMY.getMatriculationNumber() + " id/CS2103T:A1 mark/10",
             AddCommand.COMMAND_WORD + NAME_DESC_AMY + MATRICULATION_NUMBER_DESC_AMY + EMAIL_DESC_AMY,
             "invalid command", ""};
         for (String command : commands) {
