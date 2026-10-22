@@ -64,6 +64,7 @@
         "appendix-instructions-for-manual-testing": "Appendix: Instructions for manual testing",
         "launch-and-shutdown": "Launch and shutdown",
         "deleting-a-student": "Deleting a student",
+        "recording-attendance": "Recording attendance",
         "saving-data": "Saving data"
       },
       "headingKeywords": {}
@@ -120,6 +121,7 @@
         "deleting-a-student-delete": "Deleting a student: delete",
         "sorting-students-by-name-sort": "Sorting students by name: sort",
         "marking-attendance-attendance": "Marking attendance: attendance",
+        "unmarking-attendance-attendance-unmark": "Unmarking attendance: attendance unmark",
         "filtering-students-by-class-module-filter": "Filtering students by class/module: filter",
         "enrolling-a-student-in-a-class-enroll": "Enrolling a student in a class: enroll",
         "clearing-all-entries-clear": "Clearing all entries: clear",
