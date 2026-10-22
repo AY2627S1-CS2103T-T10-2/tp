@@ -219,6 +219,27 @@ Examples:
 * `filter CS2103` returns students in `CS2103`.
 * `filter CS2103T-T10 CS3230` returns students in `CS2103T-T10` tutorial group, as well as all students enrolled in the module `CS3230`.
 
+### Enrolling a student in a class: `enroll`
+
+Enrolls a student in a class.
+
+Format: `enroll INDEX c/MODULE-CLASS`
+
+* Enrolls the student at the specified `INDEX` in the class `CLASS` of the module `MODULE`.
+* The index refers to the index number shown in the displayed student list.
+* The index **must be a positive integer** 1, 2, 3, ...
+* `MODULE` and `CLASS` are joined by a hyphen, e.g. `CS2103T-T10`.
+* `MODULE` is a module code: 2 to 3 letters, followed by 4 digits and an optional suffix of up to 2 letters (e.g. `CS2103T`), with no spaces.
+* `CLASS` is a class group: 1 to 5 letters or digits (e.g. `T10`), with no spaces or symbols.
+* Class codes are not case-sensitive: `cs2103t-t10` is saved as `CS2103T-T10`.
+* A student can be enrolled in more than one class, including classes from different modules. Use `enroll` once for each class.
+* Enrolling a student in a class they are already in shows an error and changes nothing.
+* Only one `c/` can be given per command.
+
+Examples:
+* `enroll 1 c/CS2103T-T10` enrolls the 1st student in the displayed list in class `T10` of module `CS2103T`.
+* `enroll 2 c/CS3230-T01` enrolls the 2nd student in class `T01` of module `CS3230`.
+
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
@@ -277,6 +298,7 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
+**Enroll** | `enroll INDEX c/MODULE-CLASS` <br> e.g., `enroll 1 c/CS2103T-T10`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **Sort**   | `sort`
