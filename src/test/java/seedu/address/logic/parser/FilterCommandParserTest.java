@@ -66,7 +66,7 @@ public class FilterCommandParserTest {
     public void parse_invalidModuleBoundaries_throwsParseException() {
         // One step outside each prefix, digit-count and suffix boundary.
         for (String keyword : new String[]{"C2103", "ABCD2103", "CS210", "CS21030", "CS2103ABC"}) {
-            assertParseFailure(parser, keyword, MESSAGE_INVALID_FILTER_KEYWORD);
+            assertParseFailure(parser, keyword, String.format(MESSAGE_INVALID_FILTER_KEYWORD, keyword));
         }
     }
 
@@ -75,15 +75,15 @@ public class FilterCommandParserTest {
         // Group lengths 0 and 6; missing module, standalone group, symbols and extra separators.
         for (String keyword : new String[]{"CS2103T-", "CS2103T-A12345", "-T10", "T10",
             "CS2103T-T!", "CS2103T--T10", "CS2103T-T10-X", "C2103-T10"}) {
-            assertParseFailure(parser, keyword, MESSAGE_INVALID_FILTER_KEYWORD);
+            assertParseFailure(parser, keyword, String.format(MESSAGE_INVALID_FILTER_KEYWORD, keyword));
         }
     }
 
     @Test
     public void parse_invalidKeywordAmongValidKeywords_rejectsWholeCommand() {
-        assertParseFailure(parser, "T10 CS3230", MESSAGE_INVALID_FILTER_KEYWORD);
-        assertParseFailure(parser, "CS3230 T10 CS2103T-T10", MESSAGE_INVALID_FILTER_KEYWORD);
-        assertParseFailure(parser, "CS2103T-T10 T10", MESSAGE_INVALID_FILTER_KEYWORD);
+        assertParseFailure(parser, "T10 CS3230", String.format(MESSAGE_INVALID_FILTER_KEYWORD, "T10"));
+        assertParseFailure(parser, "CS3230 T10 CS2103T-T10", String.format(MESSAGE_INVALID_FILTER_KEYWORD, "T10"));
+        assertParseFailure(parser, "CS2103T-T10 T10", String.format(MESSAGE_INVALID_FILTER_KEYWORD, "T10"));
     }
 
     @Test

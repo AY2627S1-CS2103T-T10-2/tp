@@ -25,7 +25,7 @@ public class PersonInModuleOrClassPredicate implements Predicate<Person> {
     public PersonInModuleOrClassPredicate(Set<ClassCode> classCodes, Set<ModuleCode> moduleCodes) {
         requireNonNull(classCodes);
         requireNonNull(moduleCodes);
-        assert((!classCodes.isEmpty()) || (!moduleCodes.isEmpty()));
+        assert !classCodes.isEmpty() || !moduleCodes.isEmpty();
 
         this.classCodes = Set.copyOf(classCodes);
         this.moduleCodes = Set.copyOf(moduleCodes);

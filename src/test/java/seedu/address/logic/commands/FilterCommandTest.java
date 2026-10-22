@@ -64,7 +64,7 @@ class FilterCommandTest {
     }
 
     @Test
-    void equals() throws ParseException {
+    void equals() {
         PersonInModuleOrClassPredicate firstPredicate =
                 new PersonInModuleOrClassPredicate(Set.of(new ClassCode(VALID_CLASS_CODE_CS2103T_T10)),
                         Set.of(new ModuleCode("CS2103T")));
@@ -98,7 +98,7 @@ class FilterCommandTest {
     }
 
     @Test
-    public void toStringMethod() throws ParseException {
+    public void toStringMethod() {
         PersonInModuleOrClassPredicate predicate = new PersonInModuleOrClassPredicate(Set.of(
                 new ClassCode(VALID_CLASS_CODE_CS2103T_T10)), Set.of(new ModuleCode("CS2103T")));
         FilterCommand filterCommand = new FilterCommand(predicate);
