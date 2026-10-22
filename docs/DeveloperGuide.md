@@ -484,7 +484,7 @@ Without an active name sort, students appear in their existing order, with newly
 **MSS**
 
 1. Tutor requests to view a student's profile using the student's index in the currently displayed list.
-2. TAssist displays the selected student's name, matriculation number, email, tags, and attendance dates. Tags are sorted by their text, and attendance is ordered from most recent to oldest.
+2. TAssist displays the selected student's name, matriculation number, email, tags and attendance dates. Tags are sorted by their text, and attendance is ordered from most recent to oldest.
 
 Use case ends.
 
@@ -541,6 +541,34 @@ Use case ends.
 
   Use case ends.
 
+#### UC08: Enroll student into a class
+
+**MSS**
+
+1. Tutor requests to enroll a student into a class, supplying an index number, module code and class code.
+2. TAssist will enroll the student into the specified class.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. The module code or class code is invalid.
+
+    * 1a1. TAssist will specify the format of the module and class code.
+
+    Use case ends.
+
+* 1b. The index is not a positive integer, or is outside the range of the displayed student list.
+
+    * 1b1. TAssist shows an error message.
+
+    Use case ends.
+    
+* 1c. The student is already enrolled in that class.
+    
+    * 1c1. TAssist shows an error message and does not change the student.
+
+    Use case ends.
 
 ### Non-Functional Requirements
 
