@@ -27,6 +27,7 @@ class PersonInModuleOrClassPredicateTest {
 
     @Test
     public void constructor_bothSetsEmpty_throwsAssertionError() {
+        // Relies on assertions being enabled (-ea).
         assertThrows(AssertionError.class, () -> new PersonInModuleOrClassPredicate(Set.of(), Set.of()));
     }
 

@@ -20,10 +20,9 @@ public class FilterCommand extends Command {
             + "Example: "
             + COMMAND_WORD + " CS2103T-T10 CS3230";
 
-
     public static final String MESSAGE_SUCCESS =
             "Filtered all students by class/module code(s): " + Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
-    public static final String MESSAGE_NO_SUCH_CLASS = "No student matched the given class/module code(s).";
+    public static final String MESSAGE_NO_MATCHING_STUDENTS = "No student matched the given class/module code(s).";
 
     private final PersonInModuleOrClassPredicate predicate;
 
@@ -41,7 +40,7 @@ public class FilterCommand extends Command {
         model.updateFilteredPersonList(predicate);
         int personListSize = model.getFilteredPersonList().size();
         return new CommandResult(
-                personListSize == 0 ? MESSAGE_NO_SUCH_CLASS
+                personListSize == 0 ? MESSAGE_NO_MATCHING_STUDENTS
                         : String.format(MESSAGE_SUCCESS, personListSize));
     }
 

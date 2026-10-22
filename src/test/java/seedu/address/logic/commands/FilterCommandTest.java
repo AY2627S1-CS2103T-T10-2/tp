@@ -27,7 +27,7 @@ class FilterCommandTest {
     public void execute_emptyAddressBook_returnsNoMatches() throws ParseException {
         Model model = new ModelManager();
         CommandResult result = new FilterCommandParser().parse("CS3230").execute(model);
-        assertEquals(FilterCommand.MESSAGE_NO_SUCH_CLASS, result.getFeedbackToUser());
+        assertEquals(FilterCommand.MESSAGE_NO_MATCHING_STUDENTS, result.getFeedbackToUser());
         assertEquals(List.of(), model.getFilteredPersonList());
     }
 
@@ -48,7 +48,7 @@ class FilterCommandTest {
 
         // Zero results from a populated book.
         CommandResult result = parser.parse("CS9999").execute(model);
-        assertEquals(FilterCommand.MESSAGE_NO_SUCH_CLASS, result.getFeedbackToUser());
+        assertEquals(FilterCommand.MESSAGE_NO_MATCHING_STUDENTS, result.getFeedbackToUser());
         assertEquals(List.of(), model.getFilteredPersonList());
 
         // The next command searches the whole book even when the displayed list is empty.
