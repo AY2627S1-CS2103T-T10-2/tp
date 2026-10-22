@@ -510,7 +510,7 @@ Without an active name sort, students appear in their existing order, with newly
 **MSS**
 
 1. Tutor requests to view a student's profile using the student's index in the currently displayed list.
-2. TAssist displays the selected student's name, matriculation number, email, tags and attendance dates. Tags are sorted by their text, and attendance is ordered from most recent to oldest.
+2. TAssist opens or updates a details window showing the selected student's name, matriculation number, email, tags, enrolled classes and attendance dates. Tags are sorted by their text, classes by module and class group, and attendance from most recent to oldest.
 
 Use case ends.
 
@@ -571,8 +571,8 @@ Use case ends.
 
 **MSS**
 
-1. Tutor requests to enroll a student into a class, supplying an index number, module code and class code.
-2. TAssist will enroll the student into the specified class.
+1. Tutor requests to enroll a student from the displayed list in a class, supplying one class code that includes the module and group.
+2. TAssist enrolls the student in that class and confirms the enrolment.
 
 Use case ends.
 

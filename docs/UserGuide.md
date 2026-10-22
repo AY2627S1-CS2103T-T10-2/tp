@@ -417,12 +417,11 @@ Action     | Format, Examples
 **Mark** | `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`<br> e.g., `mark m/A1234567A id/CS2103T:A1 mark/17.5`
 **Marks** | `marks id/MODULE:CODE`<br> e.g., `marks id/CS2103T:A1`
 **Remove assignment** | `removeassignment id/MODULE:CODE [m/MATRICULATION_NUMBER]`<br> e.g., `removeassignment id/CS2103T:A1 m/A1234567A`
-**Attendance** | `attendance INDEX [d/DATE]` or `attendance m/MATRICULATION_NUMBER [d/DATE]`<br> e.g., `attendance 1 d/07-10-2026`, `attendance m/A1234567X`
 **Clear**  | `clear`
-**Delete** | `delete INDEX`<br> e.g., `delete 3`
+**Delete** | `delete INDEX` or `delete m/MATRICULATION_NUMBER`<br> e.g., `delete 3`, `delete m/A1234567X`
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Enroll** | `enroll INDEX c/MODULE-CLASS` <br> e.g., `enroll 1 c/CS2103T-T10`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]...` or `find m/MATRICULATION_NUMBER`<br> e.g., `find James Jake`, `find m/A1234567X`
 **List**   | `list`
 **Sort**   | `sort`
 **Filter** | `filter KEYWORD [MORE_KEYWORDS]`<br> e.g., `filter CS2103T-T10 CS3230`
