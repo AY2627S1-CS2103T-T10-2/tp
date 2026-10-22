@@ -2,6 +2,9 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.logging.Logger;
+
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
@@ -23,6 +26,8 @@ public class FilterCommand extends Command {
     public static final String MESSAGE_SUCCESS = Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
     public static final String MESSAGE_NO_MATCHING_STUDENTS = "No student matched the given class/module code(s).";
 
+    private static final Logger logger = LogsCenter.getLogger(FilterCommand.class);
+
     private final PersonInModuleOrClassPredicate predicate;
 
     /**
@@ -38,6 +43,7 @@ public class FilterCommand extends Command {
         requireNonNull(model);
         model.updateFilteredPersonList(predicate);
         int personListSize = model.getFilteredPersonList().size();
+        logger.fine("Filter Command matched " + personListSize + " students.");
         return new CommandResult(
                 personListSize == 0 ? MESSAGE_NO_MATCHING_STUDENTS
                         : String.format(MESSAGE_SUCCESS, personListSize));
