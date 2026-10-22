@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -11,6 +12,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.Email;
@@ -19,6 +21,7 @@ import seedu.address.model.person.Name;
 import seedu.address.model.tag.Tag;
 
 public class ParserUtilTest {
+    private static final String USAGE = "usage";
     private static final String INVALID_NAME = "R@chel";
     private static final String INVALID_MATRICULATION_NUMBER = "+651234";
     private static final String INVALID_EMAIL = "example.com";
@@ -32,6 +35,73 @@ public class ParserUtilTest {
     private static final String VALID_TAG_2 = "neighbour";
 
     private static final String WHITESPACE = " \t\r\n";
+
+    @Test
+    public void parseStudentIdentifier_validIndex_returnsIdentifier() throws Exception {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" 1", PREFIX_MATRICULATION_NUMBER);
+        assertEquals(new StudentIdentifier(INDEX_FIRST_PERSON), ParserUtil.parseStudentIdentifier(arguments, USAGE));
+    }
+
+    @Test
+    public void parseStudentIdentifier_validMatriculationNumber_returnsIdentifier() throws Exception {
+        StudentIdentifier expected = new StudentIdentifier(new MatriculationNumber("A1234567X"));
+        for (String input : List.of(" m/A1234567X", " m/a1234567x", " m/ A1234567X ")) {
+            ArgumentMultimap arguments = ArgumentTokenizer.tokenize(input, PREFIX_MATRICULATION_NUMBER);
+            assertEquals(expected, ParserUtil.parseStudentIdentifier(arguments, USAGE));
+        }
+    }
+
+    @Test
+    public void parseStudentIdentifier_missingIdentifier_throwsParseException() {
+        String expectedMessage = "Specify the student by either INDEX or m/MATRICULATION_NUMBER.\nusage";
+        assertStudentIdentifierParseFailure("", expectedMessage);
+        assertStudentIdentifierParseFailure(" ", expectedMessage);
+    }
+
+    @Test
+    public void parseStudentIdentifier_bothIdentifiers_throwsParseException() {
+        assertStudentIdentifierParseFailure(" 1 m/A1234567X",
+                "Specify the student by either INDEX or m/MATRICULATION_NUMBER, not both.\nusage");
+    }
+
+    @Test
+    public void parseStudentIdentifier_duplicateMatriculationNumbers_throwsParseException() {
+        assertStudentIdentifierParseFailure(" m/A1234567X m/A1234567Y",
+                "Multiple values specified for the following single-valued field(s): m/");
+    }
+
+    @Test
+    public void parseStudentIdentifier_multipleProblems_throwsHigherPriorityError() {
+        assertStudentIdentifierParseFailure(" 1 m/A1234567X m/A1234567Y",
+                "Multiple values specified for the following single-valued field(s): m/");
+        assertStudentIdentifierParseFailure(" 1 m/bad",
+                "Specify the student by either INDEX or m/MATRICULATION_NUMBER, not both.\nusage");
+    }
+
+    @Test
+    public void parseStudentIdentifier_malformedIndex_throwsParseException() {
+        for (String input : List.of(" 0", " -1", " a", " 1 extra")) {
+            assertStudentIdentifierParseFailure(input, "Index must be a positive integer.");
+        }
+    }
+
+    @Test
+    public void parseStudentIdentifier_malformedMatriculationNumber_throwsParseException() {
+        for (String input : List.of(" m/A123456X", " m/A12345678X", " m/A123", " m/", " m/B1234567X")) {
+            assertStudentIdentifierParseFailure(input, MatriculationNumber.MESSAGE_CONSTRAINTS);
+        }
+    }
+
+    @Test
+    public void parseStudentIdentifier_nullMultimap_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseStudentIdentifier(null, USAGE));
+    }
+
+    private void assertStudentIdentifierParseFailure(String input, String expectedMessage) {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(input, PREFIX_MATRICULATION_NUMBER);
+        assertThrows(ParseException.class, expectedMessage, ()
+                -> ParserUtil.parseStudentIdentifier(arguments, USAGE));
+    }
 
     @Test
     public void parseIndex_invalidInput_throwsParseException() {

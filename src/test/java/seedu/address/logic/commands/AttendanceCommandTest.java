@@ -8,6 +8,8 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
+import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.Optional;
@@ -22,6 +24,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.AttendanceDate;
+import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
@@ -131,6 +134,49 @@ public class AttendanceCommandTest {
     }
 
     @Test
+    public void execute_validMatriculationNumber_success() {
+        Person markedStudent = new PersonBuilder(ALICE).withAttendance(ATTENDANCE_DATE.toString()).build();
+        AttendanceCommand command = new AttendanceCommand(new StudentIdentifier(new MatriculationNumber("A1234567A")),
+                Optional.of(ATTENDANCE_DATE));
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(ALICE, markedStudent);
+
+        assertCommandSuccess(command, model, "Marked attendance for Alice Pauline on 07-10-2026", expectedModel);
+    }
+
+    @Test
+    public void execute_matriculationNumberOutsideFilteredList_success() {
+        showPersonAtIndex(model, INDEX_FIRST_PERSON);
+        Person markedStudent = new PersonBuilder(BENSON).withAttendance(ATTENDANCE_DATE.toString()).build();
+        AttendanceCommand command = new AttendanceCommand(new StudentIdentifier(new MatriculationNumber("A1234567B")),
+                Optional.of(ATTENDANCE_DATE));
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(BENSON, markedStudent);
+        showPersonAtIndex(expectedModel, INDEX_FIRST_PERSON);
+
+        assertCommandSuccess(command, model, "Marked attendance for Benson Meier on 07-10-2026", expectedModel);
+    }
+
+    @Test
+    public void execute_nonexistentMatriculationNumber_throwsCommandException() {
+        AttendanceCommand command = new AttendanceCommand(new StudentIdentifier(new MatriculationNumber("A9999999Z")),
+                Optional.of(ATTENDANCE_DATE));
+
+        assertCommandFailure(command, model, "No student with matriculation number A9999999Z found.");
+    }
+
+    @Test
+    public void execute_matriculationNumberDateAlreadyRecorded_throwsCommandException() {
+        Person student = new PersonBuilder(ALICE).withAttendance(ATTENDANCE_DATE.toString()).build();
+        model.setPerson(ALICE, student);
+        AttendanceCommand command = new AttendanceCommand(new StudentIdentifier(new MatriculationNumber("A1234567A")),
+                Optional.of(ATTENDANCE_DATE));
+
+        assertCommandFailure(command, model,
+                "Attendance for Alice Pauline on 07-10-2026 has already been recorded.");
+    }
+
+    @Test
     public void equals() {
         AttendanceCommand command = new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(ATTENDANCE_DATE));
 
@@ -141,13 +187,22 @@ public class AttendanceCommandTest {
         assertFalse(command.equals(new AttendanceCommand(INDEX_SECOND_PERSON, Optional.of(ATTENDANCE_DATE))));
         assertFalse(command.equals(new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(OTHER_DATE))));
         assertFalse(command.equals(new AttendanceCommand(INDEX_FIRST_PERSON, Optional.empty())));
+
+        AttendanceCommand matricCommand = new AttendanceCommand(
+                new StudentIdentifier(new MatriculationNumber("A1234567A")), Optional.of(ATTENDANCE_DATE));
+        assertTrue(matricCommand.equals(new AttendanceCommand(
+                new StudentIdentifier(new MatriculationNumber("A1234567A")), Optional.of(ATTENDANCE_DATE))));
+        assertFalse(matricCommand.equals(new AttendanceCommand(
+                new StudentIdentifier(new MatriculationNumber("A1234567B")), Optional.of(ATTENDANCE_DATE))));
+        assertFalse(command.equals(matricCommand));
     }
 
     @Test
     public void toStringMethod() {
         AttendanceCommand command = new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(ATTENDANCE_DATE));
         String expected = AttendanceCommand.class.getCanonicalName()
-                + "{targetIndex=" + INDEX_FIRST_PERSON + ", date=" + Optional.of(ATTENDANCE_DATE) + "}";
+                + "{targetStudent=" + new StudentIdentifier(INDEX_FIRST_PERSON)
+                + ", date=" + Optional.of(ATTENDANCE_DATE) + "}";
         assertEquals(expected, command.toString());
     }
 }

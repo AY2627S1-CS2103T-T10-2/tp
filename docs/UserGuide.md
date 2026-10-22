@@ -184,16 +184,40 @@ Examples:
 Marks the specified student present on the given date.
 
 Format: `attendance INDEX [d/DATE]`
+or
+`attendance m/MATRICULATION_NUMBER [d/DATE]`
 
-* Marks the student at the specified `INDEX` present on `DATE`.
+* Marks the student at the specified `INDEX` or with the specified `MATRICULATION_NUMBER` present on `DATE`.
+* Specify the student by either `INDEX` or `MATRICULATION_NUMBER`, not both.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
+* The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
+* The matriculation number can identify a student who is not in the displayed list, for example after `find`.
 * `DATE` must be in `dd-MM-yyyy` format. If omitted, today's date is used.
 * Marking a date already recorded for that student shows an error and changes nothing.
 
 Examples:
 * `attendance 1 d/07-10-2026` marks the 1st student in the displayed list present on `07-10-2026`.
 * `find Betsy` followed by `attendance 1` marks the 1st student in the results of the `find` command present on today's date.
+* `attendance m/A1234567X d/07-10-2026` marks the student whose matriculation number is `A1234567X` present on `07-10-2026`.
+
+### Filtering students by class/module: `filter`
+
+Filters students enrolled in any of the given modules or classes.
+
+Format: `filter KEYWORD [MORE_KEYWORDS]`
+
+* The search is case-insensitive; for example, `cs2103t` matches `CS2103T`.
+* Each `filter` command searches the entire address book and replaces the previous filter.
+* `KEYWORD` must be either a `MODULE` or `CLASS`.
+* `MODULE` is a module code: 2 to 3 letters, followed by 4 digits and an optional suffix of up to 2 letters (e.g. `CS2103T`), with no spaces.
+* `CLASS` is a full class code in the format `MODULE-GROUP` (e.g. `CS2103T-T10`). `GROUP` contains 1 to 5 letters or digits, with no spaces or symbols.
+* Only full words match; for example, `CS2103` does not match `CS2103T`.
+* Students matching at least one keyword are returned (an `OR` search); for example, `CS2103T CS2103` returns students taking `CS2103T` and students taking `CS2103`.
+
+Examples:
+* `filter CS2103` returns students in `CS2103`.
+* `filter CS2103T-T10 CS3230` returns students in `CS2103T-T10` tutorial group, as well as all students enrolled in the module `CS3230`.
 
 ### Enrolling a student in a class: `enroll`
 
@@ -270,7 +294,7 @@ _Details coming soon ..._
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME m/MATRICULATION_NUMBER e/EMAIL [t/TAG]... ` <br> e.g., `add n/James Ho m/A1234567A e/jamesho@example.com t/friend t/colleague`
-**Attendance** | `attendance INDEX [d/DATE]`<br> e.g., `attendance 1 d/07-10-2026`
+**Attendance** | `attendance INDEX [d/DATE]` or `attendance m/MATRICULATION_NUMBER [d/DATE]`<br> e.g., `attendance 1 d/07-10-2026`, `attendance m/A1234567X`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
@@ -278,4 +302,5 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **Sort**   | `sort`
+**Filter** | `filter KEYWORD [MORE_KEYWORDS]`<br> e.g., `filter CS2103T-T10 CS3230`
 **Help**   | `help`

@@ -407,7 +407,7 @@ Matching considers all students and ignores case. A student matches if any suppl
 
 **MSS**
 
-1. Tutor requests to record a student's attendance, supplying the student's index in the currently displayed list and a date.
+1. Tutor requests to record a student's attendance, identifying the student by their displayed index or matriculation number, and supplying a date. The matriculation number can identify a student excluded from the current search results.
 2. TAssist records the student as present on that date and confirms the student's name and attendance date.
 
 Use case ends.
@@ -438,9 +438,15 @@ Use case ends.
 
   Use case ends.
 
-* 1e. The student index is missing or malformed, more than one index is supplied, or the date is supplied more than once.
+* 1e. The student identifier is missing or malformed, both an index and a matriculation number are supplied, or the matriculation number or date is supplied more than once.
 
   * 1e1. TAssist explains the invalid input without adding an attendance record.
+
+  Use case resumes at step 1.
+
+* 1f. No stored student has the supplied matriculation number.
+
+  * 1f1. TAssist reports that no student with that matriculation number was found without adding an attendance record.
 
   Use case resumes at step 1.
 
@@ -587,8 +593,8 @@ Performance checks use a desktop with at least two CPU cores, 8 GB RAM, an SSD, 
 |------|------------|
 | Student record | The stored information for one student, including particulars, module and class memberships, and associated academic records. |
 | Student particulars | The identifying and contact details held in a student record. The MVP stores name, matriculation number, and email address. |
-| Matriculation number | The student's unique identifier. In the MVP, it is case-insensitive and consists of `A`, seven digits, and a final letter. It identifies the student for deletion. |
-| Displayed index | A student's temporary position in the currently displayed list or search results. Profile viewing uses this index; it is not a permanent identifier. |
+| Matriculation number | The student's unique identifier. In the MVP, it is case-insensitive and consists of `A`, seven digits, and a final letter. It identifies the student for deletion and attendance recording. |
+| Displayed index | A student's temporary position in the currently displayed list or search results. Profile viewing, deletion and attendance recording use this index; it is not a permanent identifier. |
 | Student profile | The view of one student's particulars, available class memberships, and attendance records. It displays stored memberships but does not assign students to classes. Later versions may also show assignment and grade information. |
 | Module | A university course identified by a module code, such as CS2103T. |
 | Class / class section | A tutorial or lab group within a module. A class identifier is interpreted together with its module code. |
