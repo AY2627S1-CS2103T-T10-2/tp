@@ -3,16 +3,13 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.Person;
-import seedu.address.model.tag.Tag;
 
 /**
  * Displays the details of a student identified by its displayed index.
@@ -27,7 +24,7 @@ public class ViewCommand extends Command {
             + "Parameters: INDEX (must be a positive integer)\n"
             + "Example: " + COMMAND_WORD + " 1";
 
-    public static final String MESSAGE_VIEW_PERSON_SUCCESS = "Student details:\n%1$s";
+    public static final String MESSAGE_VIEW_PERSON_SUCCESS = "Viewing student: %1$s";
 
     private final Index targetIndex;
 
@@ -45,21 +42,7 @@ public class ViewCommand extends Command {
         }
 
         Person personToView = lastShownList.get(targetIndex.getZeroBased());
-        String attendanceDates = personToView.getAttendance().getDates().stream()
-                .map(AttendanceDate::toString)
-                .collect(Collectors.joining(", "));
-        String attendance = attendanceDates.isEmpty() ? "None recorded" : attendanceDates;
-        String tags = personToView.getTags().stream()
-                .map(Tag::toString)
-                .sorted()
-                .collect(Collectors.joining(" "));
-        String details = String.join("\n",
-                "Name: " + personToView.getName(),
-                "Matriculation Number: " + personToView.getMatriculationNumber(),
-                "Email: " + personToView.getEmail(),
-                "Tags: " + (tags.isEmpty() ? "None" : tags),
-                "Attendance: " + attendance);
-        return new CommandResult(String.format(MESSAGE_VIEW_PERSON_SUCCESS, details));
+        return new CommandResult(String.format(MESSAGE_VIEW_PERSON_SUCCESS, personToView.getName()), personToView);
     }
 
     @Override
