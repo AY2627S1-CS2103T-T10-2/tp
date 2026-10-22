@@ -11,8 +11,9 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
-import seedu.address.logic.commands.AttendanceCommand;
+import seedu.address.logic.commands.MarkAttendanceCommand;
 import seedu.address.logic.commands.StudentIdentifier;
+import seedu.address.logic.commands.UnmarkAttendanceCommand;
 import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.MatriculationNumber;
 
@@ -22,9 +23,13 @@ import seedu.address.model.person.MatriculationNumber;
 public class AttendanceCommandParserTest {
 
     private static final String MESSAGE_MISSING_IDENTIFIER =
-            String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER, AttendanceCommand.MESSAGE_USAGE);
+            String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER, MarkAttendanceCommand.MESSAGE_USAGE);
     private static final String MESSAGE_MULTIPLE_IDENTIFIERS =
-            String.format(ParserUtil.MESSAGE_MULTIPLE_STUDENT_IDENTIFIERS, AttendanceCommand.MESSAGE_USAGE);
+            String.format(ParserUtil.MESSAGE_MULTIPLE_STUDENT_IDENTIFIERS, MarkAttendanceCommand.MESSAGE_USAGE);
+    private static final String MESSAGE_UNMARK_MISSING_IDENTIFIER =
+            String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER, UnmarkAttendanceCommand.MESSAGE_USAGE);
+    private static final String MESSAGE_UNMARK_MULTIPLE_IDENTIFIERS =
+            String.format(ParserUtil.MESSAGE_MULTIPLE_STUDENT_IDENTIFIERS, UnmarkAttendanceCommand.MESSAGE_USAGE);
     private static final AttendanceDate VALID_DATE = new AttendanceDate("07-10-2026");
     private static final StudentIdentifier VALID_MATRICULATION_IDENTIFIER =
             new StudentIdentifier(new MatriculationNumber("A1234567X"));
@@ -32,22 +37,76 @@ public class AttendanceCommandParserTest {
     private AttendanceCommandParser parser = new AttendanceCommandParser();
 
     @Test
-    public void parse_validArgs_returnsAttendanceCommand() {
-        assertParseSuccess(parser, "1", new AttendanceCommand(INDEX_FIRST_PERSON, Optional.empty()));
-        assertParseSuccess(parser, "1 d/07-10-2026",
-                new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(VALID_DATE)));
-        assertParseSuccess(parser, " 1   d/07-10-2026 ",
-                new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(VALID_DATE)));
+    public void parse_unmarkValidIndex_returnsUnmarkAttendanceCommand() {
+        assertParseSuccess(parser, "unmark 1",
+                new UnmarkAttendanceCommand(new StudentIdentifier(INDEX_FIRST_PERSON), Optional.empty()));
     }
 
     @Test
-    public void parse_validMatriculationNumber_returnsAttendanceCommand() {
+    public void parse_unmarkValidMatriculationNumberAndDate_returnsUnmarkAttendanceCommand() {
+        assertParseSuccess(parser, "unmark m/A1234567X d/07-10-2026",
+                new UnmarkAttendanceCommand(VALID_MATRICULATION_IDENTIFIER, Optional.of(VALID_DATE)));
+    }
+
+    @Test
+    public void parse_unmarkMissingIdentifier_throwsMissingIdentifierError() {
+        assertParseFailure(parser, "unmark", MESSAGE_UNMARK_MISSING_IDENTIFIER);
+    }
+
+    @Test
+    public void parse_unmarkBothIdentifiers_throwsMultipleIdentifiersError() {
+        assertParseFailure(parser, "unmark 1 m/A1234567X", MESSAGE_UNMARK_MULTIPLE_IDENTIFIERS);
+    }
+
+    @Test
+    public void parse_unmarkInvalidIndex_throwsIndexError() {
+        assertParseFailure(parser, "unmark 1 extra", ParserUtil.MESSAGE_INVALID_INDEX);
+    }
+
+    @Test
+    public void parse_unmarkInvalidDate_throwsDateConstraints() {
+        assertParseFailure(parser, "unmark 1 d/32-01-2026", AttendanceDate.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_unmarkDuplicateDate_throwsDuplicatePrefixError() {
+        assertParseFailure(parser, "unmark 1 d/07-10-2026 d/08-10-2026",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_DATE));
+    }
+
+    @Test
+    public void parse_unmarkCaseAndWhitespaceVariations_returnsUnmarkAttendanceCommand() {
+        UnmarkAttendanceCommand expectedCommand =
+                new UnmarkAttendanceCommand(new StudentIdentifier(INDEX_FIRST_PERSON), Optional.empty());
+        assertParseSuccess(parser, "UNMARK 1", expectedCommand);
+        assertParseSuccess(parser, "Unmark 1", expectedCommand);
+        assertParseSuccess(parser, " unmark   1 ", expectedCommand);
+    }
+
+    @Test
+    public void parse_notUnmarkSubcommand_throwsIndexError() {
+        assertParseFailure(parser, "unmarkx 1", ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, "un mark 1", ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, "1 unmark", ParserUtil.MESSAGE_INVALID_INDEX);
+    }
+
+    @Test
+    public void parse_validArgs_returnsMarkAttendanceCommand() {
+        assertParseSuccess(parser, "1", new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.empty()));
+        assertParseSuccess(parser, "1 d/07-10-2026",
+                new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.of(VALID_DATE)));
+        assertParseSuccess(parser, " 1   d/07-10-2026 ",
+                new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.of(VALID_DATE)));
+    }
+
+    @Test
+    public void parse_validMatriculationNumber_returnsMarkAttendanceCommand() {
         assertParseSuccess(parser, " m/A1234567X",
-                new AttendanceCommand(VALID_MATRICULATION_IDENTIFIER, Optional.empty()));
+                new MarkAttendanceCommand(VALID_MATRICULATION_IDENTIFIER, Optional.empty()));
         assertParseSuccess(parser, " m/a1234567x d/07-10-2026",
-                new AttendanceCommand(VALID_MATRICULATION_IDENTIFIER, Optional.of(VALID_DATE)));
+                new MarkAttendanceCommand(VALID_MATRICULATION_IDENTIFIER, Optional.of(VALID_DATE)));
         assertParseSuccess(parser, " d/07-10-2026 m/A1234567X",
-                new AttendanceCommand(VALID_MATRICULATION_IDENTIFIER, Optional.of(VALID_DATE)));
+                new MarkAttendanceCommand(VALID_MATRICULATION_IDENTIFIER, Optional.of(VALID_DATE)));
     }
 
     @Test

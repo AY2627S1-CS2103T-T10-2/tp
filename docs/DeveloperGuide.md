@@ -450,6 +450,8 @@ Use case ends.
 
   Use case resumes at step 1.
 
+Removing an attendance record (unmarking) follows the same interaction, with these differences: in step 2, TAssist removes the student's record for that date instead of adding one; extension 1d does not apply; instead, if no attendance is recorded for that student on that date, TAssist reports this and leaves the student's records unchanged (use case ends).
+
 #### UC05: List all students
 
 **MSS**
@@ -593,8 +595,8 @@ Performance checks use a desktop with at least two CPU cores, 8 GB RAM, an SSD, 
 |------|------------|
 | Student record | The stored information for one student, including particulars, module and class memberships, and associated academic records. |
 | Student particulars | The identifying and contact details held in a student record. The MVP stores name, matriculation number, and email address. |
-| Matriculation number | The student's unique identifier. In the MVP, it is case-insensitive and consists of `A`, seven digits, and a final letter. It identifies the student for deletion and attendance recording. |
-| Displayed index | A student's temporary position in the currently displayed list or search results. Profile viewing, deletion and attendance recording use this index; it is not a permanent identifier. |
+| Matriculation number | The student's unique identifier. In the MVP, it is case-insensitive and consists of `A`, seven digits, and a final letter. It identifies the student for deletion and for recording or removing attendance. |
+| Displayed index | A student's temporary position in the currently displayed list or search results. Profile viewing, deletion, and recording or removing attendance use this index; it is not a permanent identifier. |
 | Student profile | The view of one student's particulars, available class memberships, and attendance records. It displays stored memberships but does not assign students to classes. Later versions may also show assignment and grade information. |
 | Module | A university course identified by a module code, such as CS2103T. |
 | Class / class section | A tutorial or lab group within a module. A class identifier is interpreted together with its module code. |
@@ -655,6 +657,31 @@ testers are expected to do more *exploratory* testing.
       Expected: Similar to previous.
 
 1. _{ more test cases … }_
+
+### Recording attendance
+
+1. Marking and unmarking attendance
+
+   1. Prerequisites: List all students using the `list` command. The first student has no attendance recorded on 07-10-2026.
+
+   1. Test case: `attendance 1 d/07-10-2026`<br>
+      Expected: The status message shows `Marked attendance for NAME on 07-10-2026`, where NAME is the first student's name. `view 1` lists 07-10-2026.
+
+   1. Test case: `attendance unmark 1 d/07-10-2026`<br>
+      Expected: The status message shows `Unmarked attendance for NAME on 07-10-2026`. `view 1` no longer lists 07-10-2026.
+
+   1. Test case: repeat `attendance unmark 1 d/07-10-2026`<br>
+      Expected: Nothing changes. The status message shows `No attendance recorded for NAME on 07-10-2026.`
+
+1. Identifying a student outside the displayed list
+
+   1. Prerequisites: Note the second student's matriculation number (MATRIC) using `view 2`. Then use `find` with a keyword that matches the first student only, so the second student is not displayed.
+
+   1. Test case: `attendance m/MATRIC d/07-10-2026`<br>
+      Expected: Attendance is recorded for the second student, although they are not in the displayed list.
+
+   1. Test case: `attendance unmark m/MATRIC d/07-10-2026`<br>
+      Expected: The record is removed. The status message names the second student.
 
 ### Saving data
 
