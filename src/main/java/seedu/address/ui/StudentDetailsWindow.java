@@ -1,8 +1,8 @@
 package seedu.address.ui;
 
 import java.util.Comparator;
-import java.util.stream.Collectors;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -21,8 +21,7 @@ public class StudentDetailsWindow extends UiPart<Stage> {
 
     private static final String FXML = "StudentDetailsWindow.fxml";
 
-    private static final Logger logger =
-        LogsCenter.getLogger(StudentDetailsWindow.class);
+    private static final Logger logger = LogsCenter.getLogger(StudentDetailsWindow.class);
 
     @FXML
     private Label studentName;
@@ -58,7 +57,6 @@ public class StudentDetailsWindow extends UiPart<Stage> {
      */
     public void showStudent(Person person) {
         logger.fine("Showing details for student: " + person.getName());
-        
         studentName.setText(person.getName().toString());
         matriculationNumber.setText(person.getMatriculationNumber().toString());
         email.setText(person.getEmail().toString());
