@@ -558,7 +558,6 @@ Compatibility, packaging and storage requirements follow the [CS2103T project co
 12. **Offline use:** All features should work without an internet connection; only reading the online User Guide needs one.
 13. **Display:** Should display without overlapping or hidden content at 1920 x 1080 and above with 100% or 125% scaling, and keep all functions usable at 1280 x 720 and above with 150% scaling.
 14. **Single user:** Should be for a single user, without the data file being shared between users.
-15. **File access:** Should read and write files only inside the folder it is launched from.
 
 ### Glossary
 
