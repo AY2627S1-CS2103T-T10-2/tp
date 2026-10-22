@@ -19,6 +19,9 @@ public class PersonInModuleOrClassPredicate implements Predicate<Person> {
 
     /**
      * Constructs a PersonInModuleOrClassPredicate object.
+     * At least one of {@code classCodes} and {@code moduleCodes} must be non-empty; this is enforced
+     * with an assertion, as callers such as {@code FilterCommandParser} are expected to have validated
+     * the input.
      * @param classCodes Set of {@link ClassCode}(s) to check the Person against.
      * @param moduleCodes Set of {@link ModuleCode}(s) to check the Person against.
      */
