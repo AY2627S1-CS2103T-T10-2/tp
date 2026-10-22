@@ -155,6 +155,8 @@ Format for new work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME ma
 Format for existing work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`
 
 * `id/` identifies an assignment within a module, such as `CS2103T:A1`. IDs ignore letter case.
+* In the ID, `MODULE` has 2 or 3 letters, 4 digits, and up to 2 final letters (for example, `CS2103T`).
+* `CODE` starts with a letter and then uses only letters and digits (for example, `A1`). Spaces are not allowed in the ID.
 * `n/` gives the assignment a name. Names must not be blank and must be unique within a module, ignoring letter case and repeated spaces.
 * `max/` is a positive numeric maximum mark; decimals are allowed.
 * Values whose displayed decimal form would exceed 64 characters are rejected. This prevents very large or very precise values from slowing the app when it displays or saves them.
@@ -169,7 +171,7 @@ Examples:
 
 ### Recording an assignment mark: `mark`
 
-Records a student's numeric mark for work already assigned to them. Entering another mark for the same student and assignment updates the previous value.
+Records a student's numeric mark for work already assigned to them. Entering another mark for the same student and assignment updates the previous value. Use `mark` (singular) to record or update a score; `marks` (plural) only displays results. Use `attendance` to record attendance dates.
 
 Format: `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`
 
@@ -213,7 +215,7 @@ Format for all students: `removeassignment id/MODULE:CODE`
 * With `m/`, only that student's assignment link and recorded mark are removed. The shared assignment stays available for other students and can be assigned to this student again.
 * Without `m/`, the assignment definition and every student's link and mark for it are removed. You can then create a new assignment using the same ID or name.
 * Neither form deletes or edits student details, other assignments, or their marks. The student is found by matriculation number even if hidden from the current list.
-* An unknown assignment or student, or an assignment not attached to the specified student, gives an error without changing records. A successful removal is saved with the address book; there is no assignment archive or undo command.
+* An unknown assignment or student, or an assignment not attached to the specified student, gives an error without changing records. A successful removal is saved in TAssist's data file; there is no assignment archive or undo command.
 
 Examples:
 * `removeassignment id/CS2103T:A1 m/A1234567X`
