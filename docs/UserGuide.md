@@ -118,35 +118,55 @@ Examples:
 *  `edit 1 m/A1234567A e/johndoe@example.com` Edits the matriculation number and email address of the 1st student to be `A1234567A` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd student to be `Betsy Crower` and clears all existing tags.
 
-### Locating students by name: `find`
+### Locating students by name or matriculation number: `find`
 
-Finds students whose names contain any of the given keywords.
+Finds students by name keywords or a full matriculation number.
 
 The results appear in alphabetical name order. A new `find` clears the previous sort.
 
-Format: `find KEYWORD [MORE_KEYWORDS]`
+**Search by name**
 
-* The search is case-insensitive; for example, `hans` matches `Hans`.
-* Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
-* Both partial and full words match; for example, `Han` matches `Hans`.
-* Students matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+Format: `find KEYWORD [MORE_KEYWORDS]...`
+
+* Name matching is case-insensitive.
+* Keyword order does not matter.
+* Both partial and full words match.
+* Students matching at least one keyword are returned.
+* This form searches names only.
 
 Examples:
-* `find John` returns `john` and `John Doe`
-* `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
-* `find august` returns `August` and `Augustine`
+
+* `find John` returns students whose names contain `John`.
+* `find alex david` returns students whose names contain `alex` or `david`.
+* `find august` matches names such as `August` and `Augustine`.
+
+**Search by matriculation number**
+
+Format: `find m/MATRICULATION_NUMBER`
+
+* Enter one complete matriculation number: `A`, followed by 7 digits, and a final letter.
+* Matriculation number matching is exact and case-insensitive.
+* The search includes students hidden by the current filter.
+* A valid matriculation number with no matching student produces zero results.
+* Do not combine name keywords with a matriculation number or repeat the `m/` prefix.
+
+Examples:
+
+* `find m/A1234567X` finds the student with matriculation number `A1234567X`, if present.
+* `find m/a1234567x` performs the same search.
 
 ### Viewing a student's details: `view`
 
-Displays the selected student's details, including their matriculation number and recorded attendance dates.
+Opens a separate student details window showing particulars, enrolled classes and modules, and recorded attendance dates.
 
 Format: `view INDEX`
 
 * The index refers to the number shown in the displayed student list.
-* Each detail appears on its own line in the result panel.
-* Attendance dates are listed from newest to oldest. If no dates have been recorded, the result shows `None recorded`.
+* Details are organised into Particulars, Classes and modules, and Attendance sections.
+* Classes are listed by module code and class group. Students without classes show `No classes enrolled`.
+* Running `view` again updates the same window to the selected student. Press `Esc` to close the window.
+* Attendance dates are listed from newest to oldest. If no dates have been recorded, the Attendance section shows `None recorded`.
+* Attendance is currently recorded for the student overall. Attendance by class or module and marks are planned for future updates.
 
 Example: `view 1` displays the first student in the current list.
 
@@ -159,6 +179,8 @@ Format for new work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME ma
 Format for existing work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`
 
 * `id/` identifies an assignment within a module, such as `CS2103T:A1`. IDs ignore letter case.
+* In the ID, `MODULE` has 2 or 3 letters, 4 digits, and up to 2 final letters (for example, `CS2103T`).
+* `CODE` starts with a letter and then uses only letters and digits (for example, `A1`). Spaces are not allowed in the ID.
 * `n/` gives the assignment a name. Names must not be blank and must be unique within a module, ignoring letter case and repeated spaces.
 * `max/` is a positive numeric maximum mark; decimals are allowed.
 * Values whose displayed decimal form would exceed 64 characters are rejected. This prevents very large or very precise values from slowing the app when it displays or saves them.
@@ -173,7 +195,7 @@ Examples:
 
 ### Recording an assignment mark: `mark`
 
-Records a student's numeric mark for work already assigned to them. Entering another mark for the same student and assignment updates the previous value.
+Records a student's numeric mark for work already assigned to them. Entering another mark for the same student and assignment updates the previous value. Use `mark` (singular) to record or update a score; `marks` (plural) only displays results. Use `attendance` to record attendance dates.
 
 Format: `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`
 
@@ -217,7 +239,7 @@ Format for all students: `removeassignment id/MODULE:CODE`
 * With `m/`, only that student's assignment link and recorded mark are removed. The shared assignment stays available for other students and can be assigned to this student again.
 * Without `m/`, the assignment definition and every student's link and mark for it are removed. You can then create a new assignment using the same ID or name.
 * Neither form deletes or edits student details, other assignments, or their marks. The student is found by matriculation number even if hidden from the current list.
-* An unknown assignment or student, or an assignment not attached to the specified student, gives an error without changing records. A successful removal is saved with the address book; there is no assignment archive or undo command.
+* An unknown assignment or student, or an assignment not attached to the specified student, gives an error without changing records. A successful removal is saved in TAssist's data file; there is no assignment archive or undo command.
 
 Examples:
 * `removeassignment id/CS2103T:A1 m/A1234567X`
@@ -291,6 +313,67 @@ Examples:
 * `find Betsy` followed by `attendance 1` marks the 1st student in the results of the `find` command present on today's date.
 * `attendance m/A1234567X d/07-10-2026` marks the student whose matriculation number is `A1234567X` present on `07-10-2026`.
 
+### Unmarking attendance: `attendance unmark`
+
+Removes the specified student's attendance record for the given date.
+
+Format: `attendance unmark INDEX [d/DATE]`
+or
+`attendance unmark m/MATRICULATION_NUMBER [d/DATE]`
+
+* Removes the attendance record for the student at the specified `INDEX` or with the specified `MATRICULATION_NUMBER` on `DATE`.
+* Specify the student by either `INDEX` or `MATRICULATION_NUMBER`, not both.
+* The index refers to the index number shown in the displayed student list.
+* The index **must be a positive integer** 1, 2, 3, ...
+* The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
+* The matriculation number can identify a student who is not in the displayed list, for example after `find`.
+* `DATE` must be in `dd-MM-yyyy` format. If omitted, today's date is used.
+* `unmark` is not case-sensitive.
+* Unmarking a date with no attendance recorded for that student shows an error and changes nothing.
+
+Examples:
+* `attendance unmark 1 d/07-10-2026` removes the attendance record for `07-10-2026` for the 1st student in the displayed list.
+* `attendance unmark m/A1234567X` removes the attendance record for today's date for the student whose matriculation number is `A1234567X`.
+
+### Filtering students by class/module: `filter`
+
+Filters students enrolled in any of the given modules or classes.
+
+Format: `filter KEYWORD [MORE_KEYWORDS]`
+
+* The search is case-insensitive; for example, `cs2103t` matches `CS2103T`.
+* Each `filter` command searches the entire address book and replaces the previous filter.
+* `KEYWORD` must be either a `MODULE` or `CLASS`.
+* `MODULE` is a module code: 2 to 3 letters, followed by 4 digits and an optional suffix of up to 2 letters (e.g. `CS2103T`), with no spaces.
+* `CLASS` is a full class code in the format `MODULE-GROUP` (e.g. `CS2103T-T10`). `GROUP` contains 1 to 5 letters or digits, with no spaces or symbols.
+* Only full words match; for example, `CS2103` does not match `CS2103T`.
+* Students matching at least one keyword are returned (an `OR` search); for example, `CS2103T CS2103` returns students taking `CS2103T` and students taking `CS2103`.
+
+Examples:
+* `filter CS2103` returns students in `CS2103`.
+* `filter CS2103T-T10 CS3230` returns students in `CS2103T-T10` tutorial group, as well as all students enrolled in the module `CS3230`.
+
+### Enrolling a student in a class: `enroll`
+
+Enrolls a student in a class.
+
+Format: `enroll INDEX c/MODULE-CLASS`
+
+* Enrolls the student at the specified `INDEX` in the class `CLASS` of the module `MODULE`.
+* The index refers to the index number shown in the displayed student list.
+* The index **must be a positive integer** 1, 2, 3, ...
+* `MODULE` and `CLASS` are joined by a hyphen, e.g. `CS2103T-T10`.
+* `MODULE` is a module code: 2 to 3 letters, followed by 4 digits and an optional suffix of up to 2 letters (e.g. `CS2103T`), with no spaces.
+* `CLASS` is a class group: 1 to 5 letters or digits (e.g. `T10`), with no spaces or symbols.
+* Class codes are not case-sensitive: `cs2103t-t10` is saved as `CS2103T-T10`.
+* A student can be enrolled in more than one class, including classes from different modules. Use `enroll` once for each class.
+* Enrolling a student in a class they are already in shows an error and changes nothing.
+* Only one `c/` can be given per command.
+
+Examples:
+* `enroll 1 c/CS2103T-T10` enrolls the 1st student in the displayed list in class `T10` of module `CS2103T`.
+* `enroll 2 c/CS3230-T01` enrolls the 2nd student in class `T01` of module `CS3230`.
+
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
@@ -345,15 +428,18 @@ _Details coming soon ..._
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME m/MATRICULATION_NUMBER e/EMAIL [t/TAG]... ` <br> e.g., `add n/James Ho m/A1234567A e/jamesho@example.com t/friend t/colleague`
+**Mark attendance** | `attendance INDEX [d/DATE]` or `attendance m/MATRICULATION_NUMBER [d/DATE]`<br> e.g., `attendance 1 d/07-10-2026`, `attendance m/A1234567X`
+**Unmark attendance** | `attendance unmark INDEX [d/DATE]` or `attendance unmark m/MATRICULATION_NUMBER [d/DATE]`<br> e.g., `attendance unmark 1 d/07-10-2026`
 **Assignment** | `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`<br> e.g., `assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20`
 **Mark** | `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`<br> e.g., `mark m/A1234567A id/CS2103T:A1 mark/17.5`
 **Marks** | `marks id/MODULE:CODE`<br> e.g., `marks id/CS2103T:A1`
 **Remove assignment** | `removeassignment id/MODULE:CODE [m/MATRICULATION_NUMBER]`<br> e.g., `removeassignment id/CS2103T:A1 m/A1234567A`
-**Attendance** | `attendance INDEX [d/DATE]` or `attendance m/MATRICULATION_NUMBER [d/DATE]`<br> e.g., `attendance 1 d/07-10-2026`, `attendance m/A1234567X`
 **Clear**  | `clear`
-**Delete** | `delete INDEX`<br> e.g., `delete 3`
+**Delete** | `delete INDEX` or `delete m/MATRICULATION_NUMBER`<br> e.g., `delete 3`, `delete m/A1234567X`
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Enroll** | `enroll INDEX c/MODULE-CLASS` <br> e.g., `enroll 1 c/CS2103T-T10`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]...` or `find m/MATRICULATION_NUMBER`<br> e.g., `find James Jake`, `find m/A1234567X`
 **List**   | `list`
 **Sort**   | `sort`, `sort FIELD [asc\|desc]`, or `sort mark id/MODULE:CODE [asc\|desc]`<br> e.g., `sort matric desc`, `sort mark id/CS2103T:A1 desc`
+**Filter** | `filter KEYWORD [MORE_KEYWORDS]`<br> e.g., `filter CS2103T-T10 CS3230`
 **Help**   | `help`

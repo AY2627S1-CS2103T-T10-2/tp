@@ -36,6 +36,7 @@ public class MainWindow extends UiPart<Stage> {
     private PersonListPanel personListPanel;
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
+    private StudentDetailsWindow studentDetailsWindow;
 
     @FXML
     private StackPane commandBoxPlaceholder;
@@ -169,6 +170,9 @@ public class MainWindow extends UiPart<Stage> {
                 (int) primaryStage.getX(), (int) primaryStage.getY());
         logic.setGuiSettings(guiSettings);
         helpWindow.hide();
+        if (studentDetailsWindow != null) {
+            studentDetailsWindow.getRoot().hide();
+        }
         primaryStage.hide();
     }
 
@@ -190,6 +194,13 @@ public class MainWindow extends UiPart<Stage> {
             if (commandResult.isShowHelp()) {
                 handleHelp();
             }
+
+            commandResult.getPersonToView().ifPresent(person -> {
+                if (studentDetailsWindow == null) {
+                    studentDetailsWindow = new StudentDetailsWindow(primaryStage);
+                }
+                studentDetailsWindow.showStudent(person);
+            });
 
             if (commandResult.isExit()) {
                 handleExit();

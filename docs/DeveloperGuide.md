@@ -358,7 +358,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 These use cases describe the current program's behavior. For all use cases, the **System** is TAssist, the **Actor** is a university Computer Science tutor, and **MSS** means Main Success Scenario. Unless stated otherwise, TAssist is running and startup has completed without a restoration error. Restoration failures are covered by UC07.
 
-**Common extension (UC01–UC06, UC08–UC11):** If TAssist cannot save the records after processing a request, it reports the save failure instead of confirming success. Any changes already made to student information, assignment marks, or the displayed list remain. The main success scenarios assume saving succeeds.
+**Common extension (UC01–UC06, UC08–UC13):** If TAssist cannot save the records after processing a request, it reports the save failure instead of confirming success. Any changes already made to student information, assignment marks, or the displayed list remain. The main success scenarios assume saving succeeds.
 
 #### UC01: Add a student
 
@@ -484,6 +484,8 @@ Use case ends.
 
   Use case resumes at step 1.
 
+Removing an attendance record (unmarking) follows the same interaction, with these differences: in step 2, TAssist removes the student's record for that date instead of adding one; extension 1d does not apply; instead, if no attendance is recorded for that student on that date, TAssist reports this and leaves the student's records unchanged (use case ends).
+
 #### UC05: List all students
 
 **MSS**
@@ -516,7 +518,7 @@ The default display order ignores case when comparing names. It does not change 
 **MSS**
 
 1. Tutor requests to view a student's profile using the student's index in the currently displayed list.
-2. TAssist displays the selected student's name, matriculation number, email, tags, and attendance dates. Tags are sorted by their text, and attendance is ordered from most recent to oldest.
+2. TAssist opens or updates a details window showing the selected student's name, matriculation number, email, tags, enrolled classes and attendance dates. Tags are sorted by their text, classes by module and class group, and attendance from most recent to oldest.
 
 Use case ends.
 
@@ -546,7 +548,7 @@ Use case ends.
 
   Use case ends.
 
-#### UC07: Restore saved records when reopening the app
+#### UC07: Restore student records when reopening the app
 
 **Precondition:** The tutor has added a student, recorded attendance, or saved assignment marks in an earlier session, and the change was saved successfully.
 
@@ -573,7 +575,35 @@ Use case ends.
 
   Use case ends.
 
-#### UC08: Assign work to a student
+#### UC08: Enroll student into a class
+
+**MSS**
+
+1. Tutor requests to enroll a student from the displayed list in a class, supplying one class code that includes the module and group.
+2. TAssist enrolls the student in that class and confirms the enrolment.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. The module code or class code is invalid.
+
+    * 1a1. TAssist will specify the format of the module and class code.
+
+    Use case ends.
+
+* 1b. The index is not a positive integer, or is outside the range of the displayed student list.
+
+    * 1b1. TAssist shows an error message.
+
+    Use case ends.
+
+* 1c. The student is already enrolled in that class.
+
+    * 1c1. TAssist shows an error message and does not change the student.
+
+    Use case ends.
+#### UC09: Assign work to a student
 
 **MSS**
 
@@ -602,7 +632,7 @@ Use case ends.
 
   Use case ends.
 
-#### UC09: Record or update an assignment mark
+#### UC10: Record or update an assignment mark
 
 **MSS**
 
@@ -631,7 +661,7 @@ Use case ends.
 
   Use case ends.
 
-#### UC10: View an assignment's marks
+#### UC11: View an assignment's marks
 
 **MSS**
 
@@ -654,7 +684,7 @@ Use case ends.
 
   Use case ends.
 
-#### UC11: Remove an assignment
+#### UC12: Remove an assignment
 
 **MSS**
 
@@ -686,7 +716,7 @@ Use case ends.
 
 Neither removal form changes student particulars. A removed shared assignment can be created again with the same ID or name.
 
-#### UC12: Sort displayed students
+#### UC13: Sort displayed students
 
 **MSS**
 
@@ -719,22 +749,22 @@ With no field or direction supplied, TAssist uses name ascending. Students witho
 
 ### Non-Functional Requirements
 
-These requirements apply to the intended product, including future features where relevant. They specify quality targets and product constraints, not current test results. Compatibility, packaging, storage, and display requirements follow the applicable [CS2103T project constraints](https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-constraints.html). The numerical performance and learnability thresholds below are proposed product acceptance targets, not course-mandated thresholds.
+Compatibility, packaging and storage requirements follow the [CS2103T project constraints](https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-constraints.html). Performance targets assume a computer with at least 8 GB RAM running Java 25.
 
-Performance checks use a desktop with at least two CPU cores, 8 GB RAM, an SSD, and Java 25, with no other resource-intensive applications running. The test dataset contains 1,000 students with 40 attendance records on distinct dates per student. For versions supporting module and class memberships or assignment marks, extend the dataset to distribute the students across 10 modules and 40 classes or include 10 assignment marks per student, as applicable. The test report shall record the actual hardware, OS, runtime versions, and dataset used.
-
-1. **Platform compatibility:** The App shall run on Windows, Linux, and macOS with Java 25 as the only installed Java version. The same release shall support the documented workflows on all three platforms; any bundled native libraries shall support the platform being tested.
-2. **Portability and distribution:** The App shall be distributed as a single JAR of at most 100 MB, with its required libraries bundled; if that is not feasible, the JAR and required files shall be packaged in one ZIP of at most 100 MB. Given Java 25, a tutor shall be able to launch it from a writable folder without an installer or additional software installation.
-3. **Local, editable storage:** Persistent application data shall be held in local, human-editable text files, without a database management system. With the App closed, a valid edit to a documented student field using a text editor shall be reflected on the next launch. This assumes one tutor using one running instance with exclusive access to the data files.
-4. **Capacity and responsiveness:** With the test dataset loaded, at least 95 of 100 executions of each specified operation shall display the result within 2 seconds of submission, after five warm-up executions per operation. These operations are adding a student, deleting a student, searching students, recording attendance, listing all students, and viewing a student's profile (UC01–UC06). The same target shall apply to student editing, module and class assignment, class filtering, assignment mark recording, and grade sorting when supported. Measurements include saving for operations that change data and exclude tutor input time. Restoring records on launch is covered by the startup performance requirement. Bulk file import is outside this latency target.
-5. **Startup performance:** With the test dataset saved locally, the App shall restore the records and accept a command within 10 seconds of launch in at least 9 of 10 launches on the test desktop.
-6. **Keyboard operability:** All student-management operations shall be completable using the keyboard alone after launch, including operations added in later iterations. Routine record operations shall accept all required input in one command, without requiring separate prompts for each field.
-7. **Learnability:** At least 4 of 5 first-time users who are comfortable with CLI applications shall, with the User Guide available, complete a prepared exercise of adding a student, listing all students, searching students, viewing a student's profile, recording attendance, and deleting a student within 15 minutes without assistance. The exercise shall supply all required student particulars and attendance dates.
-8. **Error tolerance:** Invalid user input shall not crash the App or change existing records. Error feedback shall identify the offending input or missing information and explain how to correct it. Check missing required parameters, unexpected parameters, invalid student details, duplicate matriculation numbers, invalid displayed indices, nonexistent students, invalid dates, and duplicate attendance for the same student and date. Later commands shall meet the same standard for their own parameters.
-9. **Persistence reliability:** After the App reports a data-changing operation as successful, normal shutdown and relaunch shall preserve the resulting records, field values, and relationships, including additions, deletions, recorded attendance, and assignment marks. Verify a save-and-relaunch cycle for each supported data-changing operation. A simulated save failure shall be reported visibly and shall not be presented as a successful operation.
-10. **Preservation on restoration failure:** A saved file that cannot be read or validated shall remain unmodified during the failed restoration attempt and subsequent normal shutdown. Verify this by comparing its contents before and after the attempt; the App shall report the failure rather than claim that records were restored.
-11. **Offline availability:** All local student-management operations, including saving and restoring records, shall work with networking disabled and shall not depend on a remote server. Accessing online help or an external email service is outside this requirement.
-12. **Display usability:** At 1920 x 1080 and higher resolutions with 100% or 125% scaling, command input, feedback, and student information shall remain readable without overlapping controls or inaccessible content. At 1280 x 720 and higher resolutions with 150% scaling, all functions shall remain accessible, allowing scrolling or resizing where necessary.
+1. **Platform:** Should work on Windows, Linux and macOS on a computer with only Java 25 installed.
+2. **Distribution:** Should be a single JAR file of at most 100 MB that runs without an installer.
+3. **Storage:** Should store data locally in a human-editable text file, without a database management system.
+4. **Performance:** Should respond to any command within 2 seconds with 1,000 students, each with 40 attendance records, stored.
+5. **Startup:** Should be ready to accept commands within 10 seconds of launch with the same data as NFR 4 stored.
+6. **Keyboard use:** Every operation should be possible with the keyboard alone, with each command entered on a single line.
+7. **Learnability:** A first-time user familiar with CLI apps should be able to add, find, view, record attendance for and delete a student within 15 minutes, using only the User Guide.
+8. **Error handling:** Invalid input should not crash the app or change any record, and the error message should name the problem.
+9. **Persistence:** Changes from a successful command should remain after closing and reopening the app.
+10. **Save failure:** A failed save should be reported instead of shown as a success.
+11. **Corrupted data:** If the data file cannot be read or contains invalid data, the app should report the problem and leave the file unchanged.
+12. **Offline use:** All features should work without an internet connection; only reading the online User Guide needs one.
+13. **Display:** Should display without overlapping or hidden content at 1920 x 1080 and above with 100% or 125% scaling, and keep all functions usable at 1280 x 720 and above with 150% scaling.
+14. **Single user:** Should be for a single user, without the data file being shared between users.
 
 ### Glossary
 
@@ -742,8 +772,8 @@ Performance checks use a desktop with at least two CPU cores, 8 GB RAM, an SSD, 
 |------|------------|
 | Student record | The stored information for one student, including particulars, module and class memberships, and associated academic records. |
 | Student particulars | The identifying and contact details held in a student record. The MVP stores name, matriculation number, and email address. |
-| Matriculation number | The student's unique identifier. In the MVP, it is case-insensitive and consists of `A`, seven digits, and a final letter. It identifies the student for deletion and attendance recording. |
-| Displayed index | A student's temporary position in the currently displayed list or search results. Profile viewing, deletion and attendance recording use this index; it is not a permanent identifier. |
+| Matriculation number | The student's unique identifier. In the MVP, it is case-insensitive and consists of `A`, seven digits, and a final letter. It identifies the student for deletion and for recording or removing attendance. |
+| Displayed index | A student's temporary position in the currently displayed list or search results. Profile viewing, deletion, and recording or removing attendance use this index; it is not a permanent identifier. |
 | Student profile | The view of one student's particulars, available class memberships, and attendance records. It displays stored memberships but does not assign students to classes. Later versions may also show assignment and grade information. |
 | Module | A university course identified by a module code, such as CS2103T. |
 | Class / class section | A tutorial or lab group within a module. A class identifier is interpreted together with its module code. |
@@ -854,6 +884,31 @@ testers are expected to do more *exploratory* testing.
       Expected: Similar to previous.
 
 1. _{ more test cases … }_
+
+### Recording attendance
+
+1. Marking and unmarking attendance
+
+   1. Prerequisites: List all students using the `list` command. The first student has no attendance recorded on 07-10-2026.
+
+   1. Test case: `attendance 1 d/07-10-2026`<br>
+      Expected: The status message shows `Marked attendance for NAME on 07-10-2026`, where NAME is the first student's name. `view 1` lists 07-10-2026.
+
+   1. Test case: `attendance unmark 1 d/07-10-2026`<br>
+      Expected: The status message shows `Unmarked attendance for NAME on 07-10-2026`. `view 1` no longer lists 07-10-2026.
+
+   1. Test case: repeat `attendance unmark 1 d/07-10-2026`<br>
+      Expected: Nothing changes. The status message shows `No attendance recorded for NAME on 07-10-2026.`
+
+1. Identifying a student outside the displayed list
+
+   1. Prerequisites: Note the second student's matriculation number (MATRIC) using `view 2`. Then use `find` with a keyword that matches the first student only, so the second student is not displayed.
+
+   1. Test case: `attendance m/MATRIC d/07-10-2026`<br>
+      Expected: Attendance is recorded for the second student, although they are not in the displayed list.
+
+   1. Test case: `attendance unmark m/MATRIC d/07-10-2026`<br>
+      Expected: The record is removed. The status message names the second student.
 
 ### Assigning work to a student
 

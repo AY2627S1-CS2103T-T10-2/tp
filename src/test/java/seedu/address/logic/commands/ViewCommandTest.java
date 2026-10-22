@@ -26,37 +26,33 @@ import seedu.address.testutil.PersonBuilder;
  */
 public class ViewCommandTest {
 
-    private static final String ALICE_DETAILS = "Student details:\n"
-            + "Name: Alice Pauline\n"
-            + "Matriculation Number: A1234567A\n"
-            + "Email: alice@example.com\n"
-            + "Tags: [friends]\n";
-
     private final Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
     public void execute_validIndexUnfilteredList_success() {
         ViewCommand viewCommand = new ViewCommand(INDEX_FIRST_PERSON);
 
-        String expectedMessage = ALICE_DETAILS + "Attendance: None recorded";
+        Person person = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        CommandResult expectedResult = new CommandResult("Viewing student: Alice Pauline", person);
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
 
-        assertCommandSuccess(viewCommand, model, expectedMessage, expectedModel);
+        assertCommandSuccess(viewCommand, model, expectedResult, expectedModel);
     }
 
     @Test
-    public void execute_multipleAttendanceDates_listsNewestFirst() {
+    public void execute_studentWithClassesAndAttendance_returnsStudentDetails() {
         Person originalPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         Person personWithAttendance = new PersonBuilder(originalPerson)
                 .withAttendance("07-10-2026", "14-10-2026")
+                .withClassCodes("CS2103T-T10", "CS2100-T01")
                 .build();
         model.setPerson(originalPerson, personWithAttendance);
         ViewCommand viewCommand = new ViewCommand(INDEX_FIRST_PERSON);
 
-        String expectedMessage = ALICE_DETAILS + "Attendance: 14-10-2026, 07-10-2026";
+        CommandResult expectedResult = new CommandResult("Viewing student: Alice Pauline", personWithAttendance);
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
 
-        assertCommandSuccess(viewCommand, model, expectedMessage, expectedModel);
+        assertCommandSuccess(viewCommand, model, expectedResult, expectedModel);
     }
 
     @Test
@@ -73,11 +69,12 @@ public class ViewCommandTest {
 
         ViewCommand viewCommand = new ViewCommand(INDEX_FIRST_PERSON);
 
-        String expectedMessage = ALICE_DETAILS + "Attendance: None recorded";
+        Person person = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        CommandResult expectedResult = new CommandResult("Viewing student: Alice Pauline", person);
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         showPersonAtIndex(expectedModel, INDEX_FIRST_PERSON);
 
-        assertCommandSuccess(viewCommand, model, expectedMessage, expectedModel);
+        assertCommandSuccess(viewCommand, model, expectedResult, expectedModel);
     }
 
     @Test

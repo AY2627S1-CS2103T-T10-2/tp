@@ -1,4 +1,9 @@
 @startuml
+!include style.puml
+show members
+skinparam arrowColor MODEL_COLOR
+skinparam classBackgroundColor MODEL_COLOR
+skinparam classAttributeFontColor #FFFFFF
 skinparam classAttributeIconSize 0
 
 class Gradebook {
