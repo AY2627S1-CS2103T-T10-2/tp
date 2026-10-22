@@ -2,6 +2,7 @@ package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.HOON;
@@ -9,6 +10,8 @@ import static seedu.address.testutil.TypicalPersons.IDA;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -18,6 +21,9 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.gradebook.Assignment;
+import seedu.address.model.gradebook.AssignmentId;
+import seedu.address.model.gradebook.Mark;
 import seedu.address.testutil.PersonBuilder;
 
 public class JsonAddressBookStorageTest {
@@ -70,6 +76,39 @@ public class JsonAddressBookStorageTest {
         JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
         storage.saveAddressBook(original);
         assertEquals(original, new AddressBook(storage.readAddressBook().orElseThrow()));
+    }
+
+    @Test
+    public void readAndSaveAddressBook_withGradebook_preservesDefinitionsAndMarks() throws Exception {
+        Path filePath = testFolder.resolve("GradebookAddressBook.json");
+        AddressBook original = new AddressBook();
+        original.addPerson(ALICE);
+        original.addPerson(HOON);
+        AssignmentId id = new AssignmentId("CS2103T:A1");
+        original.addAssignment(new Assignment(id, "Assignment One", new BigDecimal("20.5")));
+        original.assignStudent(ALICE.getMatriculationNumber(), id);
+        original.assignStudent(HOON.getMatriculationNumber(), id);
+        original.recordMark(ALICE.getMatriculationNumber(), id, new Mark(new BigDecimal("17.5")));
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+        storage.saveAddressBook(original);
+        String saved = Files.readString(filePath);
+        assertTrue(saved.contains("\"mark\" : \"17.5\""));
+        assertTrue(saved.contains("\"mark\" : null"));
+        assertEquals(original, new AddressBook(storage.readAddressBook().orElseThrow()));
+    }
+
+    @Test
+    public void readAddressBook_invalidGradebook_preservesFileAndThrowsDataLoadingException() throws Exception {
+        Path filePath = testFolder.resolve("InvalidGradebookAddressBook.json");
+        String contents = "{\"persons\":[],\"assignments\":[{\"id\":\"CS2103T:A1\","
+                + "\"name\":\"Assignment One\",\"maxMark\":\"20\"}],"
+                + "\"studentAssignments\":[{\"matriculationNumber\":\"A7654321Y\","
+                + "\"assignmentId\":\"CS2103T:A1\",\"mark\":\"10\"}]}";
+        Files.writeString(filePath, contents);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
+        assertEquals(contents, Files.readString(filePath));
     }
 
     @Test
