@@ -22,10 +22,10 @@ public class EnrollCommand extends Command {
     public static final String COMMAND_WORD = "enroll";
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Enrolls a student in a class.\n"
             + "Parameters: INDEX (must be a positive integer) " + PREFIX_CLASS_CODE + "MODULE-CLASS\n"
-            + "Example: " + COMMAND_WORD + " 1 " + PREFIX_CLASS_CODE + "CS2103-T01";
+            + "Example: " + COMMAND_WORD + " 1 " + PREFIX_CLASS_CODE + "CS2103T-T10";
 
     public static final String MESSAGE_SUCCESS = "Enrolled student %1$s in class %2$s";
-    public static final String MESSAGE_DUPLICATE_DATE =
+    public static final String MESSAGE_DUPLICATE_CLASS =
             "Student is already enrolled in class %1$s.";
 
     private final Index index;
@@ -50,7 +50,7 @@ public class EnrollCommand extends Command {
         }
         student = lastShownList.get(index.getZeroBased());
         if (student.getClassCodes().contains(classCode)) {
-            throw new CommandException(String.format(MESSAGE_DUPLICATE_DATE, classCode));
+            throw new CommandException(String.format(MESSAGE_DUPLICATE_CLASS, classCode));
         }
         model.setPerson(student, createEnrolledStudent(student, classCode));
         return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), classCode));

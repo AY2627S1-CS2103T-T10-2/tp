@@ -35,7 +35,7 @@ public class EnrollCommandParser implements Parser<EnrollCommand> {
 
         String classCode;
         if (!argMultimap.getValue(PREFIX_CLASS_CODE).isPresent()) {
-            throw new ParseException(EnrollCommand.MESSAGE_USAGE);
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EnrollCommand.MESSAGE_USAGE));
         }
         classCode = argMultimap.getValue(PREFIX_CLASS_CODE).get().trim();
         if (!ClassCode.isValidClassCode(classCode)) {
