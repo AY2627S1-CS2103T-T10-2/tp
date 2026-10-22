@@ -193,6 +193,23 @@ The `sort` command accepts `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MOD
 
 `SortDisplay` supplies the optional extra line on each student card. An attendance sort shows the recorded date count. A mark sort shows the assignment ID and each student's mark or missing status. `add`, `find`, and `list` restore name order and remove that line. Assignment, mark, or student detail changes reset an active mark sort so its display does not become stale.
 
+### Attendance feature
+
+The `attendance` command marks a student present on a date, and `attendance unmark` removes that record. Both identify the student by `INDEX` or `m/MATRICULATION_NUMBER` and take an optional `d/DATE`, which defaults to today.
+
+`AttendanceCommandParser` checks the first word of the arguments. If it is `unmark`, in any letter case, the parser builds an `UnmarkAttendanceCommand` from the remaining arguments; otherwise, it builds a `MarkAttendanceCommand` from all of them. One shared helper parses the student identifier and optional date for both commands, then passes them to the chosen command's constructor. This keeps the two forms' argument formats identical without a second parser class.
+
+The sequence diagram below shows how `attendance unmark m/A1234567X` executes after parsing.
+
+<puml src="diagrams/UnmarkAttendanceSequenceDiagram.puml" alt="Execution of the attendance unmark command" />
+
+1. `StudentIdentifier#resolve` returns the student `s`, found by displayed index or matriculation number.
+2. The command uses today's date because none was given. If `s` has no attendance record on that date, it throws a `CommandException` and changes nothing.
+3. The command does not modify `s`. It creates a copy whose `Attendance` no longer contains the date, using `Attendance#withoutDate`.
+4. `Model#setPerson` replaces `s` with the copy, and the command returns a `CommandResult` `r` with the success message.
+
+Marking follows the same flow, except that the copy gains the date instead of losing it.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
