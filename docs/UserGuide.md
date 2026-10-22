@@ -197,7 +197,7 @@ Examples:
 
 ### Filtering students by class/module: `filter`
 
-Finds students whose modules or classes contain any of the given keywords.
+Filter students whose modules or classes contain any of the given keywords.
 
 Format: `filter KEYWORD [MORE_KEYWORDS]`
 
@@ -211,6 +211,7 @@ Format: `filter KEYWORD [MORE_KEYWORDS]`
 Examples:
 * `filter CS2103` returns students in `CS2103`.
 * `filter CS2103T-T10 CS3230` returns students in `CS2103T-T10` tutorial group, as well as all students enrolled in the module `CS3230`.
+
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
@@ -272,5 +273,5 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **Sort**   | `sort`
-**Filter** | `filter KEYWORD [KEYWORD]`<br> e.g., `find CS2103T-T10 CS3230`
+**Filter** | `filter KEYWORD [MORE_KEYWORDS]`<br> e.g., `find CS2103T-T10 CS3230`
 **Help**   | `help`

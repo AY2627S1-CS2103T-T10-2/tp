@@ -12,7 +12,6 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.classcode.ModuleCode;
 import seedu.address.testutil.PersonBuilder;
@@ -27,12 +26,12 @@ class PersonInModuleOrClassPredicateTest {
     }
 
     @Test
-    public void constructor_bothSetsEmpty_throwsParseException() {
-        assertThrows(ParseException.class, () -> new PersonInModuleOrClassPredicate(Set.of(), Set.of()));
+    public void constructor_bothSetsEmpty_throwsAssertionError() {
+        assertThrows(AssertionError.class, () -> new PersonInModuleOrClassPredicate(Set.of(), Set.of()));
     }
 
     @Test
-    public void test_moduleOnly_matchesAnyGroupButRequiresExactModule() throws ParseException {
+    public void test_moduleOnly_matchesAnyGroupButRequiresExactModule() {
         PersonInModuleOrClassPredicate predicate = new PersonInModuleOrClassPredicate(Set.of(),
                 Set.of(new ModuleCode("cs2103t"), new ModuleCode("CS3230")));
         assertTrue(predicate.test(new PersonBuilder().withClassCodes("CS2103T-T10").build()));
@@ -44,7 +43,7 @@ class PersonInModuleOrClassPredicateTest {
     }
 
     @Test
-    public void test_classOnly_requiresBothModuleAndGroup() throws ParseException {
+    public void test_classOnly_requiresBothModuleAndGroup() {
         PersonInModuleOrClassPredicate predicate = new PersonInModuleOrClassPredicate(
                 Set.of(new ClassCode("cs2103t-t10"), new ClassCode("CS3230-T01")), Set.of());
         assertTrue(predicate.test(new PersonBuilder().withClassCodes("CS2103T-T10").build()));
@@ -56,7 +55,7 @@ class PersonInModuleOrClassPredicateTest {
     }
 
     @Test
-    public void test_mixedKeywords_matchesEitherPartition() throws ParseException {
+    public void test_mixedKeywords_matchesEitherPartition() {
         PersonInModuleOrClassPredicate predicate = new PersonInModuleOrClassPredicate(
                 Set.of(new ClassCode("CS2103T-T10")), Set.of(new ModuleCode("CS3230")));
         // Class-only match, module-only match, both, and neither.
@@ -69,7 +68,7 @@ class PersonInModuleOrClassPredicateTest {
     }
 
     @Test
-    public void equals_sameClassesDifferentModules_returnsFalse() throws ParseException {
+    public void equals_sameClassesDifferentModules_returnsFalse() {
         Set<ClassCode> classes = Set.of(new ClassCode("CS2103T-T10"));
         PersonInModuleOrClassPredicate first = new PersonInModuleOrClassPredicate(classes,
                 Set.of(new ModuleCode("CS3230")));
@@ -80,7 +79,7 @@ class PersonInModuleOrClassPredicateTest {
     }
 
     @Test
-    public void equals() throws ParseException {
+    public void equals() {
 
         //same object
         PersonInModuleOrClassPredicate firstPredicate =

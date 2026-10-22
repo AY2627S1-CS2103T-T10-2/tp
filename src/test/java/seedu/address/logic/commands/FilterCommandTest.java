@@ -71,9 +71,13 @@ class FilterCommandTest {
         PersonInModuleOrClassPredicate secondPredicate =
                 new PersonInModuleOrClassPredicate(Set.of(new ClassCode(VALID_CLASS_CODE_CS3230_T01)),
                         Set.of(new ModuleCode("CS2103T")));
+        PersonInModuleOrClassPredicate thirdPredicate =
+                new PersonInModuleOrClassPredicate(Set.of(new ClassCode(VALID_CLASS_CODE_CS3230_T01)),
+                        Set.of(new ModuleCode("CS3230")));
 
         FilterCommand firstFilterCommand = new FilterCommand(firstPredicate);
         FilterCommand secondFilterCommand = new FilterCommand(secondPredicate);
+        FilterCommand thirdFilterCommand = new FilterCommand(thirdPredicate);
 
         //same object -> returns true
         assertTrue(firstFilterCommand.equals(firstFilterCommand));
@@ -88,6 +92,9 @@ class FilterCommandTest {
 
         //different set of ClassCode -> return false
         assertFalse(firstFilterCommand.equals(secondFilterCommand));
+
+        //different set of ModuleCode -> return false
+        assertFalse(thirdFilterCommand.equals(secondFilterCommand));
     }
 
     @Test

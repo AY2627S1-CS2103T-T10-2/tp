@@ -40,7 +40,7 @@ public class FilterCommandParser implements Parser<FilterCommand> {
             } else if (ClassCode.isValidClassCode(keyword)) {
                 classCodes.add(new ClassCode(keyword));
             } else {
-                throw new ParseException(MESSAGE_INVALID_FILTER_KEYWORD);
+                throw new ParseException(String.format(MESSAGE_INVALID_FILTER_KEYWORD, keyword));
             }
         }
 

@@ -19,7 +19,7 @@ public class Messages {
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
     public static final String MESSAGE_INVALID_FILTER_KEYWORD = "Each keyword must be a module code (e.g. CS2103T) or a"
-            + " class code (CS2103T-T10).";
+            + " class code (CS2103T-T10).\n Invalid keyword used: %1$s";
 
     /**
      * Returns an error message indicating the duplicate prefixes.

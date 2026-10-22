@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.classcode.ModuleCode;
 
@@ -21,14 +20,12 @@ public class PersonInModuleOrClassPredicate implements Predicate<Person> {
     /**
      * Constructs a PersonInModuleOrClassPredicate object.
      * @param classCodes Set of {@link ClassCode}(s) to check the Person against.
+     * @param moduleCodes Set of {@link ModuleCode}(s) to check the Person against.
      */
-    public PersonInModuleOrClassPredicate(Set<ClassCode> classCodes, Set<ModuleCode> moduleCodes)
-            throws ParseException {
+    public PersonInModuleOrClassPredicate(Set<ClassCode> classCodes, Set<ModuleCode> moduleCodes) {
         requireNonNull(classCodes);
         requireNonNull(moduleCodes);
-        if (classCodes.isEmpty() && moduleCodes.isEmpty()) {
-            throw new ParseException("Both classCodes and moduleCodes cannot be empty at the same time.");
-        }
+        assert((!classCodes.isEmpty()) || (!moduleCodes.isEmpty()));
 
         this.classCodes = Set.copyOf(classCodes);
         this.moduleCodes = Set.copyOf(moduleCodes);
@@ -47,17 +44,17 @@ public class PersonInModuleOrClassPredicate implements Predicate<Person> {
         }
 
         // instanceof handles nulls
-        if (!(other instanceof PersonInModuleOrClassPredicate otherPersonContainsClassCodePredicate)) {
+        if (!(other instanceof PersonInModuleOrClassPredicate otherPersonInModuleOrClassPredicate)) {
             return false;
         }
 
-        return classCodes.equals(otherPersonContainsClassCodePredicate.classCodes)
-                && moduleCodes.equals(otherPersonContainsClassCodePredicate.moduleCodes);
+        return classCodes.equals(otherPersonInModuleOrClassPredicate.classCodes)
+                && moduleCodes.equals(otherPersonInModuleOrClassPredicate.moduleCodes);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this).add("classCodes", classCodes)
-                .add("moduleCodes", classCodes).toString();
+                .add("moduleCodes", moduleCodes).toString();
     }
 }

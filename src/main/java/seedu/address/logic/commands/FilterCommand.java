@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.person.PersonInModuleOrClassPredicate;
 
@@ -12,16 +13,17 @@ import seedu.address.model.person.PersonInModuleOrClassPredicate;
 public class FilterCommand extends Command {
     public static final String COMMAND_WORD = "filter";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Filters all students whose classes consists of "
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Filters all students whose classes consist of "
             + "the specified class code or module code, and displays them as a list with index numbers. "
             + "The keywords are case insensitive.\n"
             + "Parameters: KEYWORD [MORE_KEYWORDS]...\n"
             + "Example: "
-            + COMMAND_WORD + " CS2103T-T10" + "CS3230";
+            + COMMAND_WORD + " CS2103T-T10 CS3230";
 
 
-    public static final String MESSAGE_SUCCESS = "Filtered all students by class code: %1$d student(s) listed.";
-    public static final String MESSAGE_NO_SUCH_CLASS = "This class code does not exist in the address book.";
+    public static final String MESSAGE_SUCCESS =
+            "Filtered all students by class/module code(s): " + Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
+    public static final String MESSAGE_NO_SUCH_CLASS = "No student matched the given class/module code(s).";
 
     private final PersonInModuleOrClassPredicate predicate;
 
@@ -39,7 +41,7 @@ public class FilterCommand extends Command {
         model.updateFilteredPersonList(predicate);
         int personListSize = model.getFilteredPersonList().size();
         return new CommandResult(
-                personListSize == 0 ? String.format(MESSAGE_NO_SUCH_CLASS)
+                personListSize == 0 ? MESSAGE_NO_SUCH_CLASS
                         : String.format(MESSAGE_SUCCESS, personListSize));
     }
 
