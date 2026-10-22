@@ -10,6 +10,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.AssignmentCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
@@ -29,12 +31,18 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.MarkAttendanceCommand;
+import seedu.address.logic.commands.MarkCommand;
+import seedu.address.logic.commands.MarksCommand;
+import seedu.address.logic.commands.RemoveAssignmentCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.commands.UnmarkAttendanceCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.classcode.ModuleCode;
+import seedu.address.model.gradebook.Assignment;
+import seedu.address.model.gradebook.AssignmentId;
+import seedu.address.model.gradebook.Mark;
 import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
@@ -53,6 +61,38 @@ public class AddressBookParserTest {
         Person person = new PersonBuilder().build();
         AddCommand command = (AddCommand) parser.parseCommand(PersonUtil.getAddCommand(person));
         assertEquals(new AddCommand(person), command);
+    }
+
+    @Test
+    public void parseCommand_assignment() throws Exception {
+        MatriculationNumber student = new MatriculationNumber("A1234567X");
+        AssignmentId id = new AssignmentId("CS2103T:A1");
+        Assignment assignment = new Assignment(id, "Assignment One", new BigDecimal("20"));
+        assertEquals(new AssignmentCommand(student, assignment), parser.parseCommand(
+                "assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20"));
+        assertEquals(new AssignmentCommand(student, id), parser.parseCommand(
+                "assignment m/A1234567X id/CS2103T:A1"));
+    }
+
+    @Test
+    public void parseCommand_mark() throws Exception {
+        assertEquals(new MarkCommand(new MatriculationNumber("A1234567X"), new AssignmentId("CS2103T:A1"),
+                new Mark(new BigDecimal("17.5"))), parser.parseCommand(
+                "mark m/A1234567X id/CS2103T:A1 mark/17.5"));
+    }
+
+    @Test
+    public void parseCommand_marks() throws Exception {
+        assertEquals(new MarksCommand(new AssignmentId("CS2103T:A1")),
+                parser.parseCommand("marks id/CS2103T:A1"));
+    }
+
+    @Test
+    public void parseCommand_removeAssignment() throws Exception {
+        AssignmentId id = new AssignmentId("CS2103T:A1");
+        assertEquals(new RemoveAssignmentCommand(id), parser.parseCommand("removeassignment id/CS2103T:A1"));
+        assertEquals(new RemoveAssignmentCommand(id, new MatriculationNumber("A1234567X")),
+                parser.parseCommand("removeassignment id/CS2103T:A1 m/A1234567X"));
     }
 
     @Test

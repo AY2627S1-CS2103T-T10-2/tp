@@ -166,6 +166,81 @@ Format: `view INDEX`
 
 Example: `view 1` displays the first student in the current list.
 
+### Assigning work to a student: `assignment`
+
+Creates an assignment definition and assigns it to one student, or assigns an existing definition to another student. The student is identified by matriculation number, even if they are absent from the current search results.
+
+Format for new work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK`
+
+Format for existing work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`
+
+* `id/` identifies an assignment within a module, such as `CS2103T:A1`. IDs ignore letter case.
+* In the ID, `MODULE` has 2 or 3 letters, 4 digits, and up to 2 final letters (for example, `CS2103T`).
+* `CODE` starts with a letter and then uses only letters and digits (for example, `A1`). Spaces are not allowed in the ID.
+* `n/` gives the assignment a name. Names must not be blank and must be unique within a module, ignoring letter case and repeated spaces.
+* `max/` is a positive numeric maximum mark; decimals are allowed.
+* Values whose displayed decimal form would exceed 64 characters are rejected. This prevents very large or very precise values from slowing the app when it displays or saves them.
+* The assignment begins without a recorded mark. A mark of zero, when later recorded, is different from an unmarked assignment.
+* To assign the same work to another student, use its existing ID without `n/` or `max/`. Repeating the assignment for the same student reports an error and changes nothing.
+* An existing ID or name cannot be used to create a second definition in the same module. A student and assignment ID must already exist when using the shorter form.
+* Editing a student's matriculation number keeps their assignment links. Deleting that student removes their links but leaves the shared definition available for other students.
+
+Examples:
+* `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20`
+* `assignment m/A2345678Y id/CS2103T:A1`
+
+### Recording an assignment mark: `mark`
+
+Records a student's numeric mark for work already assigned to them. Entering another mark for the same student and assignment updates the previous value. Use `mark` (singular) to record or update a score; `marks` (plural) only displays results. Use `attendance` to record attendance dates.
+
+Format: `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`
+
+* The student and assignment must exist, and the assignment must already be attached to that student using `assignment`.
+* `MARK` may be zero or a positive decimal, up to the assignment's maximum mark. A recorded `0` is different from an unmarked assignment.
+* A mark's displayed decimal form must also fit within 64 characters.
+* The confirmation includes the score and maximum mark. Updating a recorded score gives a short updated message.
+* The student's matriculation number identifies them even when they are absent from the current search results. Use `mark` to change a score; `edit` changes student details and does not accept marks.
+
+Examples:
+* `mark m/A1234567X id/CS2103T:A1 mark/17.5`
+* `mark m/A1234567X id/CS2103T:A1 mark/0`
+
+### Viewing an assignment's marks: `marks`
+
+Shows one assignment's name, maximum mark, and every student to whom it is assigned.
+
+Format: `marks id/MODULE:CODE`
+
+* Students are listed by matriculation number, including those hidden by the current search or filter. The displayed student list does not change.
+* Each row shows the matriculation number, current student name, and either `MARK/MAX_MARK` or `Unmarked`. A recorded `0` appears as `0/MAX_MARK`.
+* If no students have been assigned the work, the result shows `None assigned.`. An unknown assignment ID gives an error.
+
+Example: `marks id/CS2103T:A1` may show:
+
+```text
+Assignment: CS2103T:A1 - Assignment One (out of 20)
+Student marks:
+A1234567X - John Doe: 17.5/20
+A2345678Y - Jane Tan: Unmarked
+```
+
+### Removing an assignment: `removeassignment`
+
+Removes an assignment from one student, or removes the shared assignment and all students' marks for it.
+
+Format for one student: `removeassignment id/MODULE:CODE m/MATRICULATION_NUMBER`
+
+Format for all students: `removeassignment id/MODULE:CODE`
+
+* With `m/`, only that student's assignment link and recorded mark are removed. The shared assignment stays available for other students and can be assigned to this student again.
+* Without `m/`, the assignment definition and every student's link and mark for it are removed. You can then create a new assignment using the same ID or name.
+* Neither form deletes or edits student details, other assignments, or their marks. The student is found by matriculation number even if hidden from the current list.
+* An unknown assignment or student, or an assignment not attached to the specified student, gives an error without changing records. A successful removal is saved in TAssist's data file; there is no assignment archive or undo command.
+
+Examples:
+* `removeassignment id/CS2103T:A1 m/A1234567X`
+* `removeassignment id/CS2103T:A1`
+
 ### Deleting a student: `delete`
 
 Deletes the specified student from the address book.
@@ -305,7 +380,7 @@ TAssist data is saved automatically as a JSON file `[JAR file location]/data/add
 <box type="warning" seamless>
 
 **Caution:**
-If TAssist cannot read or validate the saved student or attendance records, it displays the failure reason and recovery instructions, disables the command box, and blocks all commands. The original data file remains unchanged, including when you close the app.<br>
+If TAssist cannot read or validate the saved student, attendance, or assignment records, it displays the failure reason and recovery instructions, disables the command box, and blocks all commands. The original data file remains unchanged, including when you close the app.<br>
 Close TAssist using the window's close button. Correct the data file, replace it with a valid backup, or delete it to start with sample student records. Then reopen TAssist. Commands remain blocked until you reopen the app, even if you correct the file while it is running.<br>
 If no data file exists, TAssist starts with sample student records and accepts commands. Back up your data file before editing it.<br>
 Furthermore, certain edits can cause TAssist to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
@@ -338,11 +413,15 @@ Action     | Format, Examples
 **Add**    | `add n/NAME m/MATRICULATION_NUMBER e/EMAIL [t/TAG]... ` <br> e.g., `add n/James Ho m/A1234567A e/jamesho@example.com t/friend t/colleague`
 **Mark attendance** | `attendance INDEX [d/DATE]` or `attendance m/MATRICULATION_NUMBER [d/DATE]`<br> e.g., `attendance 1 d/07-10-2026`, `attendance m/A1234567X`
 **Unmark attendance** | `attendance unmark INDEX [d/DATE]` or `attendance unmark m/MATRICULATION_NUMBER [d/DATE]`<br> e.g., `attendance unmark 1 d/07-10-2026`
+**Assignment** | `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`<br> e.g., `assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20`
+**Mark** | `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`<br> e.g., `mark m/A1234567A id/CS2103T:A1 mark/17.5`
+**Marks** | `marks id/MODULE:CODE`<br> e.g., `marks id/CS2103T:A1`
+**Remove assignment** | `removeassignment id/MODULE:CODE [m/MATRICULATION_NUMBER]`<br> e.g., `removeassignment id/CS2103T:A1 m/A1234567A`
 **Clear**  | `clear`
-**Delete** | `delete INDEX`<br> e.g., `delete 3`
+**Delete** | `delete INDEX` or `delete m/MATRICULATION_NUMBER`<br> e.g., `delete 3`, `delete m/A1234567X`
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Enroll** | `enroll INDEX c/MODULE-CLASS` <br> e.g., `enroll 1 c/CS2103T-T10`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]...` or `find m/MATRICULATION_NUMBER`<br> e.g., `find James Jake`, `find m/A1234567X`
 **List**   | `list`
 **Sort**   | `sort`
 **Filter** | `filter KEYWORD [MORE_KEYWORDS]`<br> e.g., `filter CS2103T-T10 CS3230`
