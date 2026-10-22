@@ -115,7 +115,7 @@
         "adding-a-student-add": "Adding a student: add",
         "listing-all-students-list": "Listing all students: list",
         "editing-a-student-edit": "Editing a student: edit",
-        "locating-students-by-name-find": "Locating students by name: find",
+        "locating-students-by-name-or-matriculation-number-find": "Locating students by name or matriculation number: find",
         "viewing-a-student-s-details-view": "Viewing a student's details: view",
         "deleting-a-student-delete": "Deleting a student: delete",
         "sorting-students-by-name-sort": "Sorting students by name: sort",
