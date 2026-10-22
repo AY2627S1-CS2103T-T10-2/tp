@@ -98,6 +98,8 @@ Examples:
 
 Shows a list of all students in the address book.
 
+Students appear in alphabetical name order. `list` clears any active search and sort.
+
 Format: `list`
 
 ### Editing a student: `edit`
@@ -119,6 +121,8 @@ Examples:
 ### Locating students by name or matriculation number: `find`
 
 Finds students by name keywords or a full matriculation number.
+
+The results appear in alphabetical name order. A new `find` clears the previous sort.
 
 **Search by name**
 
@@ -260,19 +264,32 @@ Examples:
 * `find Betsy` followed by `delete 1` deletes the 1st student in the results of the `find` command.
 * `delete m/A1234567X` deletes the student whose matriculation number is `A1234567X`.
 
-### Sorting students by name: `sort`
+### Sorting displayed students: `sort`
 
-Sorts the displayed list of students by name in alphabetical order (A-Z).
+Sorts only the students currently shown, by name, matriculation number, email address, recorded attendance count, or a specific assignment mark.
 
-Format: `sort`
+Format: `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MODULE:CODE [asc|desc]`
 
-* The sorting is case-insensitive; for example, `alice` is placed before `Bob`.
+* `FIELD` is `name`, `matric`, `email`, or `attendance`. Field and direction keywords ignore letter case. The direction defaults to `asc`.
+* `sort` is shorthand for `sort name asc`.
+* Name and email comparisons are case-insensitive; for example, `alice` comes before `Bob`.
+* `attendance` compares how many dates have been recorded for each student. A student with no records has a count of `0`; this does not mean the student was absent.
+* An attendance sort shows `Attendance dates: N` on each student card. This line disappears when another sort is chosen or the view returns to name order.
+* A mark sort requires an existing assignment ID, such as `CS2103T:A1`. Recorded marks sort numerically. Students with no recorded mark come last in both directions, whether they are `Unmarked` or `Not assigned`.
+* Each card shows the selected assignment ID and its mark out of the maximum, or `Unmarked` or `Not assigned`. A recorded zero appears as `0/MAX`.
+* Students with equal values are ordered by name, then matriculation number.
 * The sort only changes how the list is displayed. Your saved data and the original order of students are not affected.
 * Commands that use an `INDEX`, such as `delete`, `edit` and `view`, use the index number shown in the sorted list.
-* If you use `find` while the list is sorted, the results are also sorted by name.
+* The displayed list uses name order by default. A later `add`, `find`, or `list` resets to that order.
+* Changing an assignment, mark, or student details after a mark sort also returns the list to name order, so the previous marks and ordering are not left on screen.
 
 Examples:
-* `sort` followed by `delete 1` deletes the student who appears first in the sorted list.
+* `sort name desc` displays students in reverse alphabetical name order.
+* `sort matric` displays the current students by matriculation number, from lowest to highest.
+* `find Tan` followed by `sort email desc` sorts only the matching students by email address.
+* `sort attendance desc` shows students with the most recorded attendance dates first.
+* `sort mark id/CS2103T:A1 desc` shows the highest recorded marks for that assignment first, followed by students without a recorded mark.
+* `sort email asc` followed by `delete 1` deletes the student shown first after sorting.
 
 ### Marking attendance: `attendance`
 
@@ -423,6 +440,6 @@ Action     | Format, Examples
 **Enroll** | `enroll INDEX c/MODULE-CLASS` <br> e.g., `enroll 1 c/CS2103T-T10`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...` or `find m/MATRICULATION_NUMBER`<br> e.g., `find James Jake`, `find m/A1234567X`
 **List**   | `list`
-**Sort**   | `sort`
+**Sort**   | `sort`, `sort FIELD [asc\|desc]`, or `sort mark id/MODULE:CODE [asc\|desc]`<br> e.g., `sort matric desc`, `sort mark id/CS2103T:A1 desc`
 **Filter** | `filter KEYWORD [MORE_KEYWORDS]`<br> e.g., `filter CS2103T-T10 CS3230`
 **Help**   | `help`

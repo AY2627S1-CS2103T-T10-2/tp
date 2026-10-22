@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.gradebook.Assignment;
@@ -19,9 +20,10 @@ public interface Model {
     /** {@code Predicate} that always evaluates to true */
     Predicate<Person> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
 
-    /** {@code Comparator} that compares persons by name */
-    Comparator<Person> COMPARATOR_NAME_ASC = (p1, p2) -> p1.getName().fullName
-            .compareToIgnoreCase(p2.getName().fullName);
+    /** {@code Comparator} that compares persons by name, then matriculation number. */
+    Comparator<Person> COMPARATOR_NAME_ASC = Comparator
+            .comparing((Person person) -> person.getName().fullName, String.CASE_INSENSITIVE_ORDER)
+            .thenComparing(person -> person.getMatriculationNumber().value);
 
     /**
      * Returns the user prefs.
@@ -104,6 +106,12 @@ public interface Model {
      * Sorts the displayed list of persons.
      */
     void sortPersons(Comparator<Person> comparator);
+
+    /** Sorts the displayed persons and selects an extra detail to show on each card. */
+    void sortPersons(Comparator<Person> comparator, SortDisplay sortDisplay);
+
+    /** Returns the display detail selected by the active sort. */
+    ObservableValue<SortDisplay> sortDisplayProperty();
 
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();

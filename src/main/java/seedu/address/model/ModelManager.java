@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
@@ -29,6 +31,7 @@ public class ModelManager implements Model {
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
     private final SortedList<Person> sortedPersons;
+    private final ReadOnlyObjectWrapper<SortDisplay> sortDisplay = new ReadOnlyObjectWrapper<>(SortDisplay.NONE);
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -42,6 +45,7 @@ public class ModelManager implements Model {
         this.userPrefs = new UserPrefs(userPrefs);
         this.filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
         this.sortedPersons = new SortedList<>(this.filteredPersons);
+        this.sortedPersons.setComparator(COMPARATOR_NAME_ASC);
     }
 
     public ModelManager() {
@@ -71,6 +75,7 @@ public class ModelManager implements Model {
     @Override
     public void setAddressBook(ReadOnlyAddressBook addressBook) {
         this.addressBook.resetData(addressBook);
+        resetAssignmentSort();
     }
 
     @Override
@@ -93,6 +98,7 @@ public class ModelManager implements Model {
     public void addPerson(Person person) {
         addressBook.addPerson(person);
         updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        sortPersons(COMPARATOR_NAME_ASC);
     }
 
     @Override
@@ -100,41 +106,66 @@ public class ModelManager implements Model {
         requireAllNonNull(target, editedPerson);
 
         addressBook.setPerson(target, editedPerson);
+        resetAssignmentSort();
     }
 
     @Override
     public void addAssignment(Assignment assignment) {
         addressBook.addAssignment(assignment);
+        resetAssignmentSort();
     }
 
     @Override
     public void addAssignmentForStudent(Assignment assignment, MatriculationNumber student) {
         addressBook.addAssignmentForStudent(assignment, student);
+        resetAssignmentSort();
     }
 
     @Override
     public void assignStudent(MatriculationNumber student, AssignmentId assignmentId) {
         addressBook.assignStudent(student, assignmentId);
+        resetAssignmentSort();
     }
 
     @Override
     public Optional<Mark> recordMark(MatriculationNumber student, AssignmentId assignmentId, Mark mark) {
-        return addressBook.recordMark(student, assignmentId, mark);
+        Optional<Mark> previous = addressBook.recordMark(student, assignmentId, mark);
+        resetAssignmentSort();
+        return previous;
     }
 
     @Override
     public void unassignStudent(MatriculationNumber student, AssignmentId assignmentId) {
         addressBook.unassignStudent(student, assignmentId);
+        resetAssignmentSort();
     }
 
     @Override
     public void removeAssignment(AssignmentId assignmentId) {
         addressBook.removeAssignment(assignmentId);
+        resetAssignmentSort();
+    }
+
+    private void resetAssignmentSort() {
+        if (sortDisplay.get().isAssignmentSort()) {
+            sortPersons(COMPARATOR_NAME_ASC);
+        }
     }
 
     @Override
     public void sortPersons(Comparator<Person> comparator) {
+        sortPersons(comparator, SortDisplay.NONE);
+    }
+
+    @Override
+    public void sortPersons(Comparator<Person> comparator, SortDisplay sortDisplay) {
+        this.sortDisplay.set(requireNonNull(sortDisplay));
         sortedPersons.setComparator(comparator);
+    }
+
+    @Override
+    public ObservableValue<SortDisplay> sortDisplayProperty() {
+        return sortDisplay.getReadOnlyProperty();
     }
 
     //=========== Filtered Person List Accessors =============================================================
