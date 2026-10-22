@@ -1,0 +1,54 @@
+.root {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+    -fx-background-color: derive(#1d1d1d, 20%);
+}
+
+.scroll-pane, .scroll-pane > .viewport, .details-container {
+    -fx-background-color: derive(#1d1d1d, 20%);
+}
+
+.scroll-pane {
+    -fx-padding: 0;
+    -fx-background-insets: 0;
+}
+
+.details-container .label {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+    -fx-text-fill: white;
+    -fx-opacity: 1;
+}
+
+.details-container .eyebrow {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 11px;
+    -fx-text-fill: #cccccc;
+}
+
+.details-container .student-name {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 22px;
+}
+
+.section {
+    -fx-background-color: #3c3e3f;
+    -fx-background-radius: 0;
+    -fx-border-color: #4d4d4d;
+    -fx-border-width: 1;
+    -fx-padding: 15;
+}
+
+.details-container .section-title {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 16px;
+}
+
+.details-container .field-label, .details-container .column-heading {
+    -fx-font-size: 11px;
+    -fx-text-fill: #cccccc;
+}
+
+.details-container .column-heading {
+    -fx-font-family: "Segoe UI Semibold";
+}

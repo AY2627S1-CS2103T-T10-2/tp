@@ -18,6 +18,7 @@ Class JsonAddressBookStorage
 Class JsonSerializableAddressBook
 Class JsonAdaptedPerson
 Class JsonAdaptedTag
+Class JsonAdaptedClassCode
 Class JsonAdaptedAssignment
 Class JsonAdaptedStudentAssignment
 }
@@ -36,5 +37,6 @@ JsonSerializableAddressBook --> "*" JsonAdaptedPerson
 JsonSerializableAddressBook --> "*" JsonAdaptedAssignment
 JsonSerializableAddressBook --> "*" JsonAdaptedStudentAssignment
 JsonAdaptedPerson --> "*" JsonAdaptedTag
+JsonAdaptedPerson --> "*" JsonAdaptedClassCode
 
 @enduml

@@ -29,9 +29,9 @@ import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
 /**
- * Contains tests for {@code AttendanceCommand}.
+ * Contains tests for {@code MarkAttendanceCommand}.
  */
-public class AttendanceCommandTest {
+public class MarkAttendanceCommandTest {
 
     private static final AttendanceDate ATTENDANCE_DATE = new AttendanceDate("07-10-2026");
     private static final AttendanceDate OTHER_DATE = new AttendanceDate("08-10-2026");
@@ -42,9 +42,10 @@ public class AttendanceCommandTest {
     public void execute_validIndexWithDate_success() {
         Person student = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         Person markedStudent = new PersonBuilder(student).withAttendance(ATTENDANCE_DATE.toString()).build();
-        AttendanceCommand command = new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(ATTENDANCE_DATE));
+        MarkAttendanceCommand command = new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.of(ATTENDANCE_DATE));
 
-        String expectedMessage = String.format(AttendanceCommand.MESSAGE_SUCCESS, student.getName(), ATTENDANCE_DATE);
+        String expectedMessage = String.format(MarkAttendanceCommand.MESSAGE_SUCCESS,
+                student.getName(), ATTENDANCE_DATE);
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(student, markedStudent);
 
@@ -57,7 +58,7 @@ public class AttendanceCommandTest {
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
 
         AttendanceDate before = AttendanceDate.today();
-        CommandResult result = new AttendanceCommand(INDEX_FIRST_PERSON, Optional.empty()).execute(model);
+        CommandResult result = new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.empty()).execute(model);
         AttendanceDate after = AttendanceDate.today();
 
         Person markedStudent = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
@@ -67,7 +68,7 @@ public class AttendanceCommandTest {
 
         expectedModel.setPerson(student, new PersonBuilder(student).withAttendance(recorded.toString()).build());
         assertEquals(expectedModel, model);
-        assertEquals(String.format(AttendanceCommand.MESSAGE_SUCCESS, student.getName(), recorded),
+        assertEquals(String.format(MarkAttendanceCommand.MESSAGE_SUCCESS, student.getName(), recorded),
                 result.getFeedbackToUser());
     }
 
@@ -78,9 +79,10 @@ public class AttendanceCommandTest {
         model.setPerson(originalStudent, student);
         Person markedStudent = new PersonBuilder(student)
                 .withAttendance(OTHER_DATE.toString(), ATTENDANCE_DATE.toString()).build();
-        AttendanceCommand command = new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(ATTENDANCE_DATE));
+        MarkAttendanceCommand command = new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.of(ATTENDANCE_DATE));
 
-        String expectedMessage = String.format(AttendanceCommand.MESSAGE_SUCCESS, student.getName(), ATTENDANCE_DATE);
+        String expectedMessage = String.format(MarkAttendanceCommand.MESSAGE_SUCCESS,
+                student.getName(), ATTENDANCE_DATE);
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(student, markedStudent);
 
@@ -93,9 +95,10 @@ public class AttendanceCommandTest {
 
         Person student = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         Person markedStudent = new PersonBuilder(student).withAttendance(ATTENDANCE_DATE.toString()).build();
-        AttendanceCommand command = new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(ATTENDANCE_DATE));
+        MarkAttendanceCommand command = new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.of(ATTENDANCE_DATE));
 
-        String expectedMessage = String.format(AttendanceCommand.MESSAGE_SUCCESS, student.getName(), ATTENDANCE_DATE);
+        String expectedMessage = String.format(MarkAttendanceCommand.MESSAGE_SUCCESS,
+                student.getName(), ATTENDANCE_DATE);
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(student, markedStudent);
         showPersonAtIndex(expectedModel, INDEX_FIRST_PERSON);
@@ -106,7 +109,7 @@ public class AttendanceCommandTest {
     @Test
     public void execute_invalidIndexUnfilteredList_throwsCommandException() {
         Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
-        AttendanceCommand command = new AttendanceCommand(outOfBoundIndex, Optional.of(ATTENDANCE_DATE));
+        MarkAttendanceCommand command = new MarkAttendanceCommand(outOfBoundIndex, Optional.of(ATTENDANCE_DATE));
 
         assertCommandFailure(command, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
@@ -115,7 +118,7 @@ public class AttendanceCommandTest {
     public void execute_invalidIndexFilteredList_throwsCommandException() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
         assertTrue(INDEX_SECOND_PERSON.getZeroBased() < model.getAddressBook().getPersonList().size());
-        AttendanceCommand command = new AttendanceCommand(INDEX_SECOND_PERSON, Optional.of(ATTENDANCE_DATE));
+        MarkAttendanceCommand command = new MarkAttendanceCommand(INDEX_SECOND_PERSON, Optional.of(ATTENDANCE_DATE));
 
         assertCommandFailure(command, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
@@ -125,9 +128,9 @@ public class AttendanceCommandTest {
         Person originalStudent = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         Person student = new PersonBuilder(originalStudent).withAttendance(ATTENDANCE_DATE.toString()).build();
         model.setPerson(originalStudent, student);
-        AttendanceCommand command = new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(ATTENDANCE_DATE));
+        MarkAttendanceCommand command = new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.of(ATTENDANCE_DATE));
 
-        String expectedMessage = String.format(AttendanceCommand.MESSAGE_DUPLICATE_DATE,
+        String expectedMessage = String.format(MarkAttendanceCommand.MESSAGE_DUPLICATE_DATE,
                 student.getName(), ATTENDANCE_DATE);
 
         assertCommandFailure(command, model, expectedMessage);
@@ -136,7 +139,8 @@ public class AttendanceCommandTest {
     @Test
     public void execute_validMatriculationNumber_success() {
         Person markedStudent = new PersonBuilder(ALICE).withAttendance(ATTENDANCE_DATE.toString()).build();
-        AttendanceCommand command = new AttendanceCommand(new StudentIdentifier(new MatriculationNumber("A1234567A")),
+        MarkAttendanceCommand command = new MarkAttendanceCommand(
+                new StudentIdentifier(new MatriculationNumber("A1234567A")),
                 Optional.of(ATTENDANCE_DATE));
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(ALICE, markedStudent);
@@ -148,7 +152,8 @@ public class AttendanceCommandTest {
     public void execute_matriculationNumberOutsideFilteredList_success() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
         Person markedStudent = new PersonBuilder(BENSON).withAttendance(ATTENDANCE_DATE.toString()).build();
-        AttendanceCommand command = new AttendanceCommand(new StudentIdentifier(new MatriculationNumber("A1234567B")),
+        MarkAttendanceCommand command = new MarkAttendanceCommand(
+                new StudentIdentifier(new MatriculationNumber("A1234567B")),
                 Optional.of(ATTENDANCE_DATE));
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(BENSON, markedStudent);
@@ -159,7 +164,8 @@ public class AttendanceCommandTest {
 
     @Test
     public void execute_nonexistentMatriculationNumber_throwsCommandException() {
-        AttendanceCommand command = new AttendanceCommand(new StudentIdentifier(new MatriculationNumber("A9999999Z")),
+        MarkAttendanceCommand command = new MarkAttendanceCommand(
+                new StudentIdentifier(new MatriculationNumber("A9999999Z")),
                 Optional.of(ATTENDANCE_DATE));
 
         assertCommandFailure(command, model, "No student with matriculation number A9999999Z found.");
@@ -169,7 +175,8 @@ public class AttendanceCommandTest {
     public void execute_matriculationNumberDateAlreadyRecorded_throwsCommandException() {
         Person student = new PersonBuilder(ALICE).withAttendance(ATTENDANCE_DATE.toString()).build();
         model.setPerson(ALICE, student);
-        AttendanceCommand command = new AttendanceCommand(new StudentIdentifier(new MatriculationNumber("A1234567A")),
+        MarkAttendanceCommand command = new MarkAttendanceCommand(
+                new StudentIdentifier(new MatriculationNumber("A1234567A")),
                 Optional.of(ATTENDANCE_DATE));
 
         assertCommandFailure(command, model,
@@ -178,29 +185,29 @@ public class AttendanceCommandTest {
 
     @Test
     public void equals() {
-        AttendanceCommand command = new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(ATTENDANCE_DATE));
+        MarkAttendanceCommand command = new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.of(ATTENDANCE_DATE));
 
         assertTrue(command.equals(command));
-        assertTrue(command.equals(new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(ATTENDANCE_DATE))));
+        assertTrue(command.equals(new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.of(ATTENDANCE_DATE))));
         assertFalse(command.equals(null));
         assertFalse(command.equals(1));
-        assertFalse(command.equals(new AttendanceCommand(INDEX_SECOND_PERSON, Optional.of(ATTENDANCE_DATE))));
-        assertFalse(command.equals(new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(OTHER_DATE))));
-        assertFalse(command.equals(new AttendanceCommand(INDEX_FIRST_PERSON, Optional.empty())));
+        assertFalse(command.equals(new MarkAttendanceCommand(INDEX_SECOND_PERSON, Optional.of(ATTENDANCE_DATE))));
+        assertFalse(command.equals(new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.of(OTHER_DATE))));
+        assertFalse(command.equals(new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.empty())));
 
-        AttendanceCommand matricCommand = new AttendanceCommand(
+        MarkAttendanceCommand matricCommand = new MarkAttendanceCommand(
                 new StudentIdentifier(new MatriculationNumber("A1234567A")), Optional.of(ATTENDANCE_DATE));
-        assertTrue(matricCommand.equals(new AttendanceCommand(
+        assertTrue(matricCommand.equals(new MarkAttendanceCommand(
                 new StudentIdentifier(new MatriculationNumber("A1234567A")), Optional.of(ATTENDANCE_DATE))));
-        assertFalse(matricCommand.equals(new AttendanceCommand(
+        assertFalse(matricCommand.equals(new MarkAttendanceCommand(
                 new StudentIdentifier(new MatriculationNumber("A1234567B")), Optional.of(ATTENDANCE_DATE))));
         assertFalse(command.equals(matricCommand));
     }
 
     @Test
     public void toStringMethod() {
-        AttendanceCommand command = new AttendanceCommand(INDEX_FIRST_PERSON, Optional.of(ATTENDANCE_DATE));
-        String expected = AttendanceCommand.class.getCanonicalName()
+        MarkAttendanceCommand command = new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.of(ATTENDANCE_DATE));
+        String expected = MarkAttendanceCommand.class.getCanonicalName()
                 + "{targetStudent=" + new StudentIdentifier(INDEX_FIRST_PERSON)
                 + ", date=" + Optional.of(ATTENDANCE_DATE) + "}";
         assertEquals(expected, command.toString());
