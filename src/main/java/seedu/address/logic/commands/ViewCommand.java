@@ -58,7 +58,7 @@ public class ViewCommand extends Command {
             return true;
         }
 
-        if (!(other instanceof ViewCommand otherViewCommand)){
+        if (!(other instanceof ViewCommand otherViewCommand)) {
             return false;
         }
 
