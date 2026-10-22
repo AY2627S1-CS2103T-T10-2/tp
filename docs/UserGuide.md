@@ -201,6 +201,24 @@ Examples:
 * `find Betsy` followed by `attendance 1` marks the 1st student in the results of the `find` command present on today's date.
 * `attendance m/A1234567X d/07-10-2026` marks the student whose matriculation number is `A1234567X` present on `07-10-2026`.
 
+### Filtering students by class/module: `filter`
+
+Filters students enrolled in any of the given modules or classes.
+
+Format: `filter KEYWORD [MORE_KEYWORDS]`
+
+* The search is case-insensitive; for example, `cs2103t` matches `CS2103T`.
+* Each `filter` command searches the entire address book and replaces the previous filter.
+* `KEYWORD` must be either a `MODULE` or `CLASS`.
+* `MODULE` is a module code: 2 to 3 letters, followed by 4 digits and an optional suffix of up to 2 letters (e.g. `CS2103T`), with no spaces.
+* `CLASS` is a full class code in the format `MODULE-GROUP` (e.g. `CS2103T-T10`). `GROUP` contains 1 to 5 letters or digits, with no spaces or symbols.
+* Only full words match; for example, `CS2103` does not match `CS2103T`.
+* Students matching at least one keyword are returned (an `OR` search); for example, `CS2103T CS2103` returns students taking `CS2103T` and students taking `CS2103`.
+
+Examples:
+* `filter CS2103` returns students in `CS2103`.
+* `filter CS2103T-T10 CS3230` returns students in `CS2103T-T10` tutorial group, as well as all students enrolled in the module `CS3230`.
+
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
@@ -262,4 +280,5 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **Sort**   | `sort`
+**Filter** | `filter KEYWORD [MORE_KEYWORDS]`<br> e.g., `filter CS2103T-T10 CS3230`
 **Help**   | `help`
