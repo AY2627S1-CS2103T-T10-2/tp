@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import java.util.Comparator;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import javafx.fxml.FXML;
@@ -9,6 +10,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.Person;
 
@@ -18,6 +20,8 @@ import seedu.address.model.person.Person;
 public class StudentDetailsWindow extends UiPart<Stage> {
 
     private static final String FXML = "StudentDetailsWindow.fxml";
+
+    private static final Logger logger = LogsCenter.getLogger(StudentDetailsWindow.class);
 
     @FXML
     private Label studentName;
@@ -52,6 +56,7 @@ public class StudentDetailsWindow extends UiPart<Stage> {
      * Updates all sections and opens or focuses the window for the selected student.
      */
     public void showStudent(Person person) {
+        logger.fine("Showing details for student: " + person.getName());
         studentName.setText(person.getName().toString());
         matriculationNumber.setText(person.getMatriculationNumber().toString());
         email.setText(person.getEmail().toString());
