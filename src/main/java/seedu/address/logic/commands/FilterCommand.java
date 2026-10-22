@@ -13,8 +13,8 @@ import seedu.address.model.person.PersonInModuleOrClassPredicate;
 public class FilterCommand extends Command {
     public static final String COMMAND_WORD = "filter";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Filters all students whose classes consist of "
-            + "the specified class code or module code, and displays them as a list with index numbers. "
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Lists students enrolled in any of "
+            + "the specified classes or modules, with index numbers. "
             + "The keywords are case insensitive.\n"
             + "Parameters: KEYWORD [MORE_KEYWORDS]...\n"
             + "Example: "
