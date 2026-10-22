@@ -555,6 +555,12 @@ Use case ends.
     * 1b1. TAssist shows an error message.
 
     Use case ends.
+    
+* 1c. The student is already enrolled in that class.
+    
+    * 1c1. TAssist shows an error message and does not change the student.
+
+    Use case ends.
 
 ### Non-Functional Requirements
 
