@@ -18,6 +18,7 @@ Class Email
 Class Name
 Class MatriculationNumber
 Class Tag
+Class ClassCode
 
 Class I #FFFFFF
 }
@@ -40,6 +41,7 @@ Person *--> Name
 Person *--> MatriculationNumber
 Person *--> Email
 Person *--> "*" Tag
+Person *--> "*" ClassCode
 
 Person -[hidden]up--> I
 UniquePersonList -[hidden]right-> I
