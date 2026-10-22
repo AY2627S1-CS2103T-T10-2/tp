@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Scene?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.stage.Stage?>
+
+<fx:root type="javafx.stage.Stage" title="Student details" width="620" height="720"
+         minWidth="460" minHeight="400" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+  <scene>
+    <Scene>
+      <stylesheets>
+        <URL value="@DarkTheme.css" />
+        <URL value="@StudentDetailsWindow.css" />
+      </stylesheets>
+      <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+        <content>
+          <VBox spacing="20" styleClass="details-container">
+            <padding><Insets top="20" right="20" bottom="20" left="20" /></padding>
+            <Label text="STUDENT DETAILS" styleClass="eyebrow" />
+            <Label fx:id="studentName" wrapText="true" maxWidth="Infinity" styleClass="student-name" />
+            <VBox spacing="12" styleClass="section">
+              <Label text="Particulars" styleClass="section-title" />
+              <Label text="Matriculation number" styleClass="field-label" />
+              <Label fx:id="matriculationNumber" wrapText="true" maxWidth="Infinity" />
+              <Label text="Email" styleClass="field-label" />
+              <Label fx:id="email" wrapText="true" maxWidth="Infinity" />
+              <Label text="Tags" styleClass="field-label" />
+              <Label fx:id="tags" wrapText="true" maxWidth="Infinity" />
+            </VBox>
+            <VBox spacing="14" styleClass="section">
+              <Label text="Classes and modules" styleClass="section-title" />
+              <GridPane fx:id="classes" hgap="24" vgap="12">
+                <columnConstraints>
+                  <ColumnConstraints percentWidth="55" />
+                  <ColumnConstraints percentWidth="45" />
+                </columnConstraints>
+              </GridPane>
+            </VBox>
+            <VBox spacing="12" styleClass="section">
+              <Label text="Attendance" styleClass="section-title" />
+              <Label fx:id="attendanceSummary" styleClass="field-label" />
+              <VBox fx:id="attendanceDates" spacing="8" />
+            </VBox>
+            <Label text="Press Esc to close" styleClass="field-label" />
+          </VBox>
+        </content>
+      </ScrollPane>
+    </Scene>
+  </scene>
+</fx:root>

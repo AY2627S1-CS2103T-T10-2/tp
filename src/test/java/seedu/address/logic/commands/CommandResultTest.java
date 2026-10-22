@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.person.Person;
+import seedu.address.testutil.PersonBuilder;
+
 public class CommandResultTest {
     @Test
     public void equals() {
@@ -53,11 +56,25 @@ public class CommandResultTest {
     }
 
     @Test
+    public void studentDetailsResult_carriesSelectedStudent() {
+        Person person = new PersonBuilder().withClassCodes("CS2103T-T10")
+                .withAttendance("14-10-2026").build();
+        CommandResult result = new CommandResult("Viewing student", person);
+
+        assertEquals(person, result.getPersonToView().orElseThrow());
+        assertEquals(result, new CommandResult("Viewing student", new PersonBuilder(person).build()));
+        assertEquals(result.hashCode(), new CommandResult("Viewing student", person).hashCode());
+        assertNotEquals(result, new CommandResult("Viewing student"));
+        assertNotEquals(result, new CommandResult("Viewing student", new PersonBuilder().build()));
+        assertTrue(new CommandResult("feedback").getPersonToView().isEmpty());
+    }
+
+    @Test
     public void toStringMethod() {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
-                + ", exit=" + commandResult.isExit() + "}";
+                + ", exit=" + commandResult.isExit() + ", personToView=null}";
         assertEquals(expected, commandResult.toString());
     }
 }
