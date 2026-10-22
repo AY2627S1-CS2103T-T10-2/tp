@@ -19,6 +19,10 @@ Class Name
 Class MatriculationNumber
 Class Tag
 Class ClassCode
+   Class ClassGroup
+   Class ModuleCode
+   ClassCode *--> ModuleCode
+   ClassCode *--> ClassGroup
 
 Class I #FFFFFF
 }
