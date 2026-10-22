@@ -120,6 +120,7 @@
         "deleting-a-student-delete": "Deleting a student: delete",
         "sorting-students-by-name-sort": "Sorting students by name: sort",
         "marking-attendance-attendance": "Marking attendance: attendance",
+        "filtering-students-by-class-module-filter": "Filtering students by class/module: filter",
         "clearing-all-entries-clear": "Clearing all entries: clear",
         "exiting-the-program-exit": "Exiting the program: exit",
         "saving-the-data": "Saving the data",
