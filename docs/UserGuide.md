@@ -248,7 +248,7 @@ Sorts only the students currently shown, by name, matriculation number, email ad
 
 Format: `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MODULE:CODE [asc|desc]`
 
-* `FIELD` is `name`, `matric`, `email`, or `attendance`. The direction defaults to `asc`.
+* `FIELD` is `name`, `matric`, `email`, or `attendance`. Field and direction keywords ignore letter case. The direction defaults to `asc`.
 * `sort` is shorthand for `sort name asc`.
 * Name and email comparisons are case-insensitive; for example, `alice` comes before `Bob`.
 * `attendance` compares how many dates have been recorded for each student. A student with no records has a count of `0`; this does not mean the student was absent.
@@ -355,5 +355,5 @@ Action     | Format, Examples
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
-**Sort**   | `sort` or `sort FIELD [asc|desc]`<br> e.g., `sort matric desc`
+**Sort**   | `sort`, `sort FIELD [asc\|desc]`, or `sort mark id/MODULE:CODE [asc\|desc]`<br> e.g., `sort matric desc`, `sort mark id/CS2103T:A1 desc`
 **Help**   | `help`

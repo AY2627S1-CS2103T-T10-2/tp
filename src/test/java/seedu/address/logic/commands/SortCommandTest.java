@@ -138,19 +138,19 @@ public class SortCommandTest {
 
         new SortCommand(ATTENDANCE, DESC).execute(model);
         assertEquals(List.of(attendedCharlie, attendedAlice, BOB, ZOE), model.getFilteredPersonList());
-        assertEquals("Attendance dates: 0", model.sortDisplayProperty().getValue().detailFor(BOB).orElseThrow());
+        assertEquals("Attendance dates: 0", model.sortDisplayProperty().getValue().getDetailFor(BOB).orElseThrow());
         assertEquals("Attendance dates: 2",
-                model.sortDisplayProperty().getValue().detailFor(attendedCharlie).orElseThrow());
+                model.sortDisplayProperty().getValue().getDetailFor(attendedCharlie).orElseThrow());
     }
 
     @Test
     public void execute_attendanceSortThenList_clearsExtraDetail() throws Exception {
         new SortCommand(ATTENDANCE, DESC).execute(model);
-        assertTrue(model.sortDisplayProperty().getValue().detailFor(BOB).isPresent());
+        assertTrue(model.sortDisplayProperty().getValue().getDetailFor(BOB).isPresent());
 
         new ListCommand().execute(model);
 
-        assertTrue(model.sortDisplayProperty().getValue().detailFor(BOB).isEmpty());
+        assertTrue(model.sortDisplayProperty().getValue().getDetailFor(BOB).isEmpty());
     }
 
     @Test
@@ -159,7 +159,7 @@ public class SortCommandTest {
 
         new SortCommand(EMAIL, ASC).execute(model);
 
-        assertTrue(model.sortDisplayProperty().getValue().detailFor(BOB).isEmpty());
+        assertTrue(model.sortDisplayProperty().getValue().getDetailFor(BOB).isEmpty());
     }
 
     @Test
@@ -171,7 +171,7 @@ public class SortCommandTest {
 
         assertEquals(attendedBob, model.getFilteredPersonList().getFirst());
         assertEquals("Attendance dates: 1",
-                model.sortDisplayProperty().getValue().detailFor(attendedBob).orElseThrow());
+                model.sortDisplayProperty().getValue().getDetailFor(attendedBob).orElseThrow());
     }
 
     @Test
@@ -185,10 +185,10 @@ public class SortCommandTest {
 
         new SortCommand(assignmentId, ASC).execute(model);
         assertEquals(List.of(ZOE, CHARLIE, ALICE_LOWERCASE, BOB), model.getFilteredPersonList());
-        assertEquals("CS2103T:A1: 0/20", model.sortDisplayProperty().getValue().detailFor(ZOE).orElseThrow());
-        assertEquals("CS2103T:A1: Unmarked", model.sortDisplayProperty().getValue().detailFor(BOB).orElseThrow());
+        assertEquals("CS2103T:A1: 0/20", model.sortDisplayProperty().getValue().getDetailFor(ZOE).orElseThrow());
+        assertEquals("CS2103T:A1: Unmarked", model.sortDisplayProperty().getValue().getDetailFor(BOB).orElseThrow());
         assertEquals("CS2103T:A1: Not assigned",
-                model.sortDisplayProperty().getValue().detailFor(ALICE_LOWERCASE).orElseThrow());
+                model.sortDisplayProperty().getValue().getDetailFor(ALICE_LOWERCASE).orElseThrow());
 
         new SortCommand(assignmentId, DESC).execute(model);
         assertEquals(List.of(CHARLIE, ZOE, ALICE_LOWERCASE, BOB), model.getFilteredPersonList());
@@ -199,7 +199,7 @@ public class SortCommandTest {
         new SortCommand(ATTENDANCE, DESC).execute(model);
         assertCommandFailure(new SortCommand(assignmentId, ASC), model, Gradebook.MESSAGE_UNKNOWN_ASSIGNMENT);
         assertEquals(List.of(ALICE_LOWERCASE, BOB, CHARLIE, ZOE), model.getFilteredPersonList());
-        assertEquals("Attendance dates: 0", model.sortDisplayProperty().getValue().detailFor(BOB).orElseThrow());
+        assertEquals("Attendance dates: 0", model.sortDisplayProperty().getValue().getDetailFor(BOB).orElseThrow());
     }
 
     @Test
@@ -223,7 +223,7 @@ public class SortCommandTest {
         model.recordMark(BOB.getMatriculationNumber(), assignmentId, new Mark(new BigDecimal("15")));
 
         assertEquals(List.of(ALICE_LOWERCASE, BOB, CHARLIE, ZOE), model.getFilteredPersonList());
-        assertTrue(model.sortDisplayProperty().getValue().detailFor(BOB).isEmpty());
+        assertTrue(model.sortDisplayProperty().getValue().getDetailFor(BOB).isEmpty());
     }
 
     @Test

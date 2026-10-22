@@ -13,7 +13,7 @@ import seedu.address.model.person.Person;
  */
 public final class SortDisplay {
     public static final SortDisplay NONE = new SortDisplay(Optional.empty(), Optional.empty());
-    public static final SortDisplay ATTENDANCE = withDetail(
+    public static final SortDisplay ATTENDANCE = createWithDetail(
             person -> "Attendance dates: " + person.getAttendance().getDates().size());
 
     private final Optional<Function<Person, String>> detailFormatter;
@@ -25,12 +25,13 @@ public final class SortDisplay {
     }
 
     /** Creates a display description using the given student detail formatter. */
-    public static SortDisplay withDetail(Function<Person, String> detailFormatter) {
+    public static SortDisplay createWithDetail(Function<Person, String> detailFormatter) {
         return new SortDisplay(Optional.of(requireNonNull(detailFormatter)), Optional.empty());
     }
 
     /** Creates a display description for a sort on one assignment's marks. */
-    public static SortDisplay forAssignment(AssignmentId assignmentId, Function<Person, String> detailFormatter) {
+    public static SortDisplay createForAssignment(AssignmentId assignmentId,
+            Function<Person, String> detailFormatter) {
         return new SortDisplay(Optional.of(requireNonNull(detailFormatter)), Optional.of(requireNonNull(assignmentId)));
     }
 
@@ -40,7 +41,7 @@ public final class SortDisplay {
     }
 
     /** Returns the extra detail to display for a student, if any. */
-    public Optional<String> detailFor(Person person) {
+    public Optional<String> getDetailFor(Person person) {
         requireNonNull(person);
         return detailFormatter.map(formatter -> formatter.apply(person));
     }

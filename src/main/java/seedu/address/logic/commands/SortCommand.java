@@ -123,7 +123,7 @@ public class SortCommand extends Command {
             return direction == SortDirection.DESC ? -result : result;
         };
         String maximum = assignment.getMaxMark().toPlainString();
-        SortDisplay display = SortDisplay.forAssignment(id, person -> {
+        SortDisplay display = SortDisplay.createForAssignment(id, person -> {
             MatriculationNumber student = person.getMatriculationNumber();
             String value = marks.containsKey(student)
                     ? marks.get(student).map(mark -> mark + "/" + maximum).orElse("Unmarked")

@@ -31,8 +31,11 @@ public class SortCommandParserTest {
         assertParseSuccess(parser, "matric desc", new SortCommand(MATRIC, DESC));
         assertParseSuccess(parser, " email \t asc ", new SortCommand(EMAIL, ASC));
         assertParseSuccess(parser, "attendance desc", new SortCommand(ATTENDANCE, DESC));
+        assertParseSuccess(parser, "Name DESC", new SortCommand(NAME, DESC));
         assertParseSuccess(parser, "mark id/CS2103T:A1", new SortCommand(new AssignmentId("CS2103T:A1"), ASC));
         assertParseSuccess(parser, "mark id/CS2103T:A1 desc",
+                new SortCommand(new AssignmentId("CS2103T:A1"), DESC));
+        assertParseSuccess(parser, "MARK id/cs2103t:a1 DESC",
                 new SortCommand(new AssignmentId("CS2103T:A1"), DESC));
     }
 
@@ -47,7 +50,7 @@ public class SortCommandParserTest {
         assertParseFailure(parser, "name asc extra", expectedMessage);
         assertParseFailure(parser, "mark", expectedMessage);
         assertParseFailure(parser, "mark CS2103T:A1", expectedMessage);
-        assertParseFailure(parser, "mark id/INVALID", expectedMessage);
+        assertParseFailure(parser, "mark id/INVALID", AssignmentId.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "mark id/CS2103T:A1 sideways", expectedMessage);
         assertParseFailure(parser, "mark id/CS2103T:A1 desc extra", expectedMessage);
     }

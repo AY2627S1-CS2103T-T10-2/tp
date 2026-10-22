@@ -187,6 +187,12 @@ JSON storage keeps shared definitions in `assignments` and each student's link t
 
 `RemoveAssignmentCommandParser` accepts an assignment ID and an optional matriculation number. With a student number, `RemoveAssignmentCommand` checks that the student and assignment exist, then calls `Model#unassignStudent`; the gradebook removes only that student's link and optional mark. Without a student number, it calls `Model#removeAssignment`, which removes the definition and all links and marks under that ID. Both operations leave `Person` objects and unrelated gradebook entries untouched. Removing a definition releases its ID and name for reuse. The changed address book is saved through the usual command flow, so the removal persists after reopening the app. There is no archive or separate assignment edit operation.
 
+### Sorting displayed students
+
+The `sort` command accepts `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MODULE:CODE [asc|desc]`. `SortCommandParser` ignores letter case for field and direction keywords, and reports the assignment ID constraints for an invalid ID. `SortCommand` sorts the displayed students without changing their stored order. Name and email comparisons ignore case, and an empty attendance history counts as zero. Recorded marks come before `Unmarked` and `Not assigned` in either direction; ties use name and then matriculation number.
+
+`SortDisplay` supplies the optional extra line on each student card. An attendance sort shows the recorded date count. A mark sort shows the assignment ID and each student's mark or missing status. `add`, `find`, and `list` restore name order and remove that line. Assignment, mark, or student detail changes reset an active mark sort so its display does not become stale.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -689,7 +695,7 @@ Neither removal form changes student particulars. A removed shared assignment ca
 
 Use case ends.
 
-The default is name ascending, including when the tutor enters `sort` without arguments. Name and email comparisons ignore case. An empty attendance history counts as zero, not as an absence. When sorting by attendance, each student card shows the count used for comparison. Mark sorting uses `sort mark id/MODULE:CODE [asc|desc]`; recorded marks come first, followed by `Unmarked` and `Not assigned` students in name order in either direction. The selected mark or status appears on every card. Equal values are ordered by name, then matriculation number. The displayed indices follow the new order, while the stored student order remains unchanged. A later `add`, `find`, or `list` restores name-ascending order and removes the extra card line. Assignment, mark, or student detail changes also reset an active mark sort.
+With no field or direction supplied, TAssist uses name ascending. Students without a recorded mark appear after students with marks in either direction. Equal values are ordered by name, then matriculation number. Sorting changes the displayed order, not the stored student records.
 
 **Extensions**
 
@@ -699,15 +705,15 @@ The default is name ascending, including when the tutor enters `sort` without ar
 
   Use case resumes at step 1.
 
-* 2a. No students are currently displayed.
-
-  * 2a1. TAssist confirms the sort; the displayed list remains empty.
-
-  Use case ends.
-
 * 1b. The assignment ID is syntactically valid but does not exist.
 
   * 1b1. TAssist reports the unknown assignment and preserves the displayed order and card details.
+
+  Use case ends.
+
+* 2a. No students are currently displayed.
+
+  * 2a1. TAssist confirms the sort; the displayed list remains empty.
 
   Use case ends.
 
