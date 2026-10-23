@@ -43,7 +43,8 @@ public class FilterCommand extends Command {
         requireNonNull(model);
         model.updateFilteredPersonList(predicate);
         int personListSize = model.getFilteredPersonList().size();
-        logger.fine("Filter Command matched " + personListSize + " students.");
+        logger.fine("Filter used: " + predicate.toString()
+                + "\nFilter matched " + personListSize + " student(s).");
         return new CommandResult(
                 personListSize == 0 ? MESSAGE_NO_MATCHING_STUDENTS
                         : String.format(MESSAGE_SUCCESS, personListSize));
