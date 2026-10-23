@@ -199,14 +199,14 @@ The `attendance` command marks a student present on a date, and `attendance unma
 
 `AttendanceCommandParser` checks the first word of the arguments. If it is `unmark`, in any letter case, the parser builds an `UnmarkAttendanceCommand` from the remaining arguments; otherwise, it builds a `MarkAttendanceCommand` from all of them. One shared helper parses the student identifier and optional date for both commands, then passes them to the chosen command's constructor. This keeps the two forms' argument formats identical without a second parser class.
 
-The simplified sequence diagram below shows a successful run of `attendance unmark m/A1234567X` after parsing, assuming the student exists and has attendance recorded today. It omits date selection, the attendance check, and the creation of the updated student, which the steps below explain.
+The simplified sequence diagram below shows a successful run of `attendance unmark m/A1234567X` after parsing, assuming the student exists and has attendance recorded today. It omits date selection and the attendance check, which the steps below explain.
 
 <puml src="diagrams/UnmarkAttendanceSequenceDiagram.puml" alt="Execution of the attendance unmark command" />
 
 1. `StudentIdentifier#resolve` returns the student `s`, found by displayed index or matriculation number.
 2. The command uses today's date because none was given. If `s` has no attendance record on that date, it throws a `CommandException` and changes nothing.
-3. The command does not modify `s`. It creates a copy whose `Attendance` no longer contains the date, using `Attendance#withoutDate`.
-4. `Model#setPerson` replaces `s` with the copy, and the command returns a `CommandResult` `r` with the success message.
+3. The command does not modify `s`. It creates a copy `e` whose `Attendance` no longer contains the date, using `Attendance#withoutDate`.
+4. `Model#setPerson` replaces `s` with `e`, and the command returns a `CommandResult` `r` with the success message.
 
 Marking follows the same flow, except that the copy gains the date instead of losing it.
 

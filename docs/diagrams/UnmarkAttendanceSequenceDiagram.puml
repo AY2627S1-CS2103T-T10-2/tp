@@ -3,8 +3,8 @@
 skinparam ArrowFontStyle plain
 
 box Logic LOGIC_COLOR_T1
-participant "u:UnmarkAttendanceCommand" as UnmarkAttendanceCommand LOGIC_COLOR
-participant "t:StudentIdentifier" as StudentIdentifier LOGIC_COLOR
+participant ":UnmarkAttendanceCommand" as UnmarkAttendanceCommand LOGIC_COLOR
+participant ":StudentIdentifier" as StudentIdentifier LOGIC_COLOR
 participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
 
@@ -21,7 +21,12 @@ activate StudentIdentifier
 StudentIdentifier --> UnmarkAttendanceCommand : s
 deactivate StudentIdentifier
 
-UnmarkAttendanceCommand -> Model : setPerson(s, ...)
+note over UnmarkAttendanceCommand
+Creates e, a copy of s
+without the date.
+end note
+
+UnmarkAttendanceCommand -> Model : setPerson(s, e)
 activate Model
 
 Model --> UnmarkAttendanceCommand
