@@ -9,11 +9,13 @@ AddressBook *-right-> "1" UniqueTagList
 UniqueTagList -[hidden]down- UniquePersonList
 
 UniqueTagList -right-> "*" Tag
-UniquePersonList -right-> Person
+UniquePersonList -right-> "*" Person : "     "
 
 Person -up-> "*" Tag
 
 Person *--> Name
 Person *--> MatriculationNumber
 Person *--> Email
+Person *--> "*" ClassCode
+Person *--> Attendance
 @enduml
