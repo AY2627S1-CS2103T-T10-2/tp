@@ -199,7 +199,7 @@ The `attendance` command marks a student present on a date, and `attendance unma
 
 `AttendanceCommandParser` checks the first word of the arguments. If it is `unmark`, in any letter case, the parser builds an `UnmarkAttendanceCommand` from the remaining arguments; otherwise, it builds a `MarkAttendanceCommand` from all of them. One shared helper parses the student identifier and optional date for both commands, then passes them to the chosen command's constructor. This keeps the two forms' argument formats identical without a second parser class.
 
-The sequence diagram below shows how `attendance unmark m/A1234567X` executes after parsing.
+The simplified sequence diagram below shows a successful run of `attendance unmark m/A1234567X` after parsing, assuming the student exists and has attendance recorded today. It omits date selection, the attendance check, and the creation of the updated student, which the steps below explain.
 
 <puml src="diagrams/UnmarkAttendanceSequenceDiagram.puml" alt="Execution of the attendance unmark command" />
 
