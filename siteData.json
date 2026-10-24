@@ -54,6 +54,7 @@
         "implementation": "Implementation",
         "assignment-mark-feature": "Assignment mark feature",
         "sorting-displayed-students": "Sorting displayed students",
+        "attendance-feature": "Attendance feature",
         "proposed-undo-redo-feature": "[Proposed] Undo/redo feature",
         "proposed-data-archiving": "[Proposed] Data archiving",
         "documentation-logging-testing-dev-ops": "Documentation, logging, testing, dev-ops",
