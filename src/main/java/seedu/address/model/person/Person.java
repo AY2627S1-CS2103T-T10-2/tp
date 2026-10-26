@@ -89,6 +89,47 @@ public class Person {
     }
 
     /**
+     * Checks if a {@link Person} is enrolled in the class.
+     * @return True if the {@link Person} is enrolled in the class specified by {@link ClassCode}
+     */
+    public boolean isEnrolledIn(ClassCode classCode) {
+        requireAllNonNull(classCode);
+        return classCodes.contains(classCode);
+    }
+
+    /**
+     * Checks if a {@link Person} is enrolled in any class.
+     * @return True if the {@link Person} is enrolled in any class.
+     */
+    public boolean isEnrolled() {
+        return !classCodes.isEmpty();
+    }
+
+    /**
+     * Creates a copy of the Person without the specified classCode.
+     * Preconditions: the Person is enrolled in the given class.
+     * @param classCode the specified class to unenroll in.
+     */
+    public Person withoutClassCode(ClassCode classCode) {
+        Set<ClassCode> updatedClassCodes = new HashSet<>(classCodes);
+
+        assert updatedClassCodes.contains(classCode);
+
+        updatedClassCodes.remove(classCode);
+        return new Person(name, matriculationNumber, email, tags, attendance, updatedClassCodes);
+    }
+
+    /**
+     * Creates a copy of the Person without any classes.
+     * Preconditions: the Person is enrolled in at least one class.
+     */
+    public Person withoutClassCodes() {
+        assert !classCodes.isEmpty();
+
+        return new Person(name, matriculationNumber, email, tags, attendance);
+    }
+
+    /**
      * Returns true if both persons have the same name.
      * This defines a weaker notion of equality between two persons.
      */

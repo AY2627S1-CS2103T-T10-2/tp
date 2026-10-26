@@ -36,6 +36,7 @@ import seedu.address.logic.commands.MarksCommand;
 import seedu.address.logic.commands.RemoveAssignmentCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.StudentIdentifier;
+import seedu.address.logic.commands.UnenrollCommand;
 import seedu.address.logic.commands.UnmarkAttendanceCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.classcode.ClassCode;
@@ -177,6 +178,13 @@ public class AddressBookParserTest {
         EnrollCommand command = (EnrollCommand) parser.parseCommand(EnrollCommand.COMMAND_WORD + " "
                 + INDEX_FIRST_PERSON.getOneBased() + " " + PREFIX_CLASS_CODE + VALID_CLASS_CODE_CS2103T_T10);
         assertEquals(new EnrollCommand(INDEX_FIRST_PERSON, new ClassCode(VALID_CLASS_CODE_CS2103T_T10)), command);
+    }
+
+    @Test
+    public void parseCommand_unenroll() throws Exception {
+        UnenrollCommand command = (UnenrollCommand) parser.parseCommand(UnenrollCommand.COMMAND_WORD + " "
+                + INDEX_FIRST_PERSON.getOneBased() + " " + PREFIX_CLASS_CODE + VALID_CLASS_CODE_CS2103T_T10);
+        assertEquals(new UnenrollCommand(INDEX_FIRST_PERSON, new ClassCode(VALID_CLASS_CODE_CS2103T_T10)), command);
     }
 
     @Test
