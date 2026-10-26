@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_DATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.MatriculationNumber;
@@ -32,6 +34,7 @@ public class ParserUtilTest {
     private static final String VALID_NAME = "Rachel Walker";
     private static final String VALID_MATRICULATION_NUMBER = "A1234567A";
     private static final String VALID_ATTENDANCE_DATE = "07-10-2026";
+    private static final String VALID_CLASS_CODE = "CS2103T-T10";
     private static final String VALID_EMAIL = "rachel@example.com";
     private static final String VALID_TAG_1 = "friend";
     private static final String VALID_TAG_2 = "neighbour";
@@ -211,6 +214,58 @@ public class ParserUtilTest {
             assertThrows(ParseException.class, AttendanceDate.MESSAGE_CONSTRAINTS, ()
                     -> ParserUtil.parseOptionalAttendanceDate(arguments));
         }
+    }
+
+    @Test
+    public void parseClassCode_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseClassCode(null));
+    }
+
+    @Test
+    public void parseClassCode_validValue_returnsClassCode() throws Exception {
+        for (String classCode : List.of("CS1010-T1", "ABC1234XY-ABCDE", VALID_CLASS_CODE)) {
+            assertEquals(new ClassCode(classCode), ParserUtil.parseClassCode(classCode));
+        }
+    }
+
+    @Test
+    public void parseClassCode_lowerCaseWithWhitespace_returnsTrimmedClassCode() throws Exception {
+        assertEquals(new ClassCode(VALID_CLASS_CODE), ParserUtil.parseClassCode("  cs2103t-t10  "));
+    }
+
+    @Test
+    public void parseClassCode_invalidValue_throwsParseException() {
+        for (String classCode : List.of("", "CS2103T", "CS2103T-", "-T10", "CS2103T-T10-X",
+                "C2103-T1", "CS2103T-ABCDEF", "CS2103T T10")) {
+            assertThrows(ParseException.class, ClassCode.MESSAGE_CONSTRAINTS, ()
+                    -> ParserUtil.parseClassCode(classCode));
+        }
+    }
+
+    @Test
+    public void parseOptionalClassCode_nullMultimap_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseOptionalClassCode(null));
+    }
+
+    @Test
+    public void parseOptionalClassCode_absentClassCode_returnsEmptyOptional() throws Exception {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" 1", PREFIX_CLASS_CODE);
+        assertEquals(Optional.empty(), ParserUtil.parseOptionalClassCode(arguments));
+    }
+
+    @Test
+    public void parseOptionalClassCode_validClassCode_returnsClassCode() throws Exception {
+        for (String input : List.of(" 1 c/CS2103T-T10", " 1 c/ CS2103T-T10 ")) {
+            ArgumentMultimap arguments = ArgumentTokenizer.tokenize(input, PREFIX_CLASS_CODE);
+            assertEquals(Optional.of(new ClassCode(VALID_CLASS_CODE)), ParserUtil.parseOptionalClassCode(arguments));
+        }
+    }
+
+    @Test
+    public void parseOptionalClassCode_emptyClassCode_throwsParseException() {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" 1 c/", PREFIX_CLASS_CODE);
+        assertThrows(ParseException.class, ClassCode.MESSAGE_CONSTRAINTS, ()
+                -> ParserUtil.parseOptionalClassCode(arguments));
     }
 
     @Test
