@@ -10,7 +10,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.classcode.ClassCode;
 
 /**
- * Parses input arguments and creates a new EnrollCommand object
+ * Parses input arguments and creates a new UnenrollCommand object
  */
 public class UnenrollCommandParser implements Parser<UnenrollCommand> {
 

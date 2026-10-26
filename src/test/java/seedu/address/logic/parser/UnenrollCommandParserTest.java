@@ -45,6 +45,7 @@ public class UnenrollCommandParserTest {
     @Test
     public void parse_invalidClassCode_failure() {
         assertParseFailure(parser, " 1 " + PREFIX_CLASS_CODE + "CS2103T", ClassCode.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " 1 " + PREFIX_CLASS_CODE, ClassCode.MESSAGE_CONSTRAINTS);
     }
 
     @Test

@@ -38,10 +38,6 @@ public class UnenrollCommandTest {
 
     private final ClassCode classCode = new ClassCode(VALID_CLASS_CODE_CS2103T_T10);
 
-    private final Person studentWithClass = new Person(new Name("Alice"), new MatriculationNumber("A1234567A"),
-            new Email("e0123456@u.nus.edu"), new HashSet<>(), new Attendance(new HashSet<>()),
-            Collections.singleton(classCode));
-
     @Test
     public void constructor_nullIndex_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new UnenrollCommand(null));
@@ -56,12 +52,16 @@ public class UnenrollCommandTest {
     @Test
     public void execute_validIndexWithClass_unenrollsStudent() {
         Person student = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person enrolledTwice = new PersonBuilder(student)
+                .withClassCodes(VALID_CLASS_CODE_CS2103T_T10, VALID_CLASS_CODE_CS3230_T01).build();
         Person enrolled = new PersonBuilder(student).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
         Model newModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        newModel.setPerson(student, enrolled);
+        newModel.setPerson(student, enrolledTwice);
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(student, enrolled);
 
         assertCommandSuccess(new UnenrollCommand(INDEX_FIRST_PERSON, classCode), newModel,
-                String.format(UnenrollCommand.MESSAGE_SUCCESS, student.getName(), classCode), model);
+                String.format(UnenrollCommand.MESSAGE_SUCCESS, student.getName(), classCode), expectedModel);
     }
 
     @Test
@@ -111,6 +111,9 @@ public class UnenrollCommandTest {
         assertFalse(second.equals(null));
         assertFalse(second.equals(1));
         assertFalse(second.equals(new UnenrollCommand(INDEX_SECOND_PERSON)));
+
+        assertFalse(second.equals(first));
+        assertFalse(first.equals(second));
     }
 
     @Test

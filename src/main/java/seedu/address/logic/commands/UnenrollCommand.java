@@ -19,8 +19,8 @@ import seedu.address.model.person.Person;
  */
 public class UnenrollCommand extends Command {
     public static final String COMMAND_WORD = "unenroll";
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Unenrolls a student in a class. If no class is "
-            + "specified, student is unenrolled in all classes.\n"
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Unenrolls a student from a class. If no class is "
+            + "specified, student is unenrolled from all classes.\n"
             + "Parameters: INDEX (must be a positive integer) [" + PREFIX_CLASS_CODE + "MODULE-CLASS]\n"
             + "Example: " + COMMAND_WORD + " 1 " + PREFIX_CLASS_CODE + "CS2103T-T10";
 
@@ -66,23 +66,15 @@ public class UnenrollCommand extends Command {
             if (!student.isEnrolledIn(classCode)) {
                 throw new CommandException(String.format(MESSAGE_MISSING_CLASS, classCode));
             }
-            model.setPerson(student, createUnenrolledStudent(student, classCode));
+            model.setPerson(student, student.withoutClassCode(classCode));
             return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), classCode));
         } else {
             if (!student.isEnrolled()) {
-                throw new CommandException(String.format(MESSAGE_MISSING_CLASS_ALL, student.getName()));
+                throw new CommandException(MESSAGE_MISSING_CLASS_ALL);
             }
             model.setPerson(student, student.withoutClassCodes());
             return new CommandResult(String.format(MESSAGE_SUCCESS_ALL, student.getName()));
         }
-    }
-
-    /**
-     * Creates a student with the given class code removed, preserving the student's other details.
-     * Precondition: The student must be enrolled in the given class.
-     */
-    private static Person createUnenrolledStudent(Person student, ClassCode classCode) {
-        return student.withoutClassCode(classCode);
     }
 
     @Override
@@ -101,9 +93,7 @@ public class UnenrollCommand extends Command {
             return otherUnenrollCommand.unenrollAll && index.equals(otherUnenrollCommand.index);
         }
 
-        return index.equals(otherUnenrollCommand.index)
-                && ((unenrollAll && otherUnenrollCommand.unenrollAll)
-                || classCode.equals(otherUnenrollCommand.classCode));
+        return index.equals(otherUnenrollCommand.index) && classCode.equals(otherUnenrollCommand.classCode);
     }
 
     @Override

@@ -380,20 +380,20 @@ Unenrolls a student from a class or all classes.
 
 Format: `unenroll INDEX [c/MODULE-CLASS]`
 
-* Unenrolls the student at the specified `INDEX` in the class `CLASS` of the module `MODULE`.
+* Unenrolls the student at the specified `INDEX` from the class `CLASS` of the module `MODULE`.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
 * `MODULE` and `CLASS` are joined by a hyphen, e.g. `CS2103T-T10`.
 * `MODULE` is a module code: 2 to 3 letters, followed by 4 digits and an optional suffix of up to 2 letters (e.g. `CS2103T`), with no spaces.
 * `CLASS` is a class group: 1 to 5 letters or digits (e.g. `T10`), with no spaces or symbols.
-* Class codes are not case-sensitive: `cs2103t-t10` is saved as `CS2103T-T10`.
-* Unenrolling a student in a class they are not in shows an error and changes nothing.
+* Class codes are not case-sensitive: `cs2103t-t10` matches `CS2103T-T10`.
+* Unenrolling a student from a class they are not enrolled in shows an error and changes nothing.
 * Unenrolling a student without classes from all classes shows an error and changes nothing.
 * Only one `c/` can be given per command.
 
 Examples:
-* `unenroll 1 c/CS2103T-T10` unenrolls the 1st student in the displayed list in class `T10` of module `CS2103T`.
-* `unenroll 2 ` unenrolls the 2nd student from all classes.
+* `unenroll 1 c/CS2103T-T10` unenrolls the 1st student in the displayed list from class `T10` of module `CS2103T`.
+* `unenroll 2` unenrolls the 2nd student from all classes.
 
 ### Clearing all entries: `clear`
 
