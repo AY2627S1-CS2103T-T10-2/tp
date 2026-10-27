@@ -78,9 +78,8 @@ public class UnenrollCommandTest {
 
     @Test
     public void execute_notEnrolledWithoutClass_throwsCommandException() {
-        Person student = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         assertCommandFailure(new UnenrollCommand(INDEX_FIRST_PERSON), model,
-                String.format(MESSAGE_MISSING_CLASS_ALL, student.getName()));
+                MESSAGE_MISSING_CLASS_ALL);
     }
 
     @Test

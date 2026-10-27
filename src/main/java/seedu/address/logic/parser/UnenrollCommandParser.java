@@ -33,11 +33,10 @@ public class UnenrollCommandParser implements Parser<UnenrollCommand> {
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_CLASS_CODE);
 
-        String classCode;
         if (argMultimap.getValue(PREFIX_CLASS_CODE).isEmpty()) {
             return new UnenrollCommand(index);
         }
-        classCode = argMultimap.getValue(PREFIX_CLASS_CODE).get().trim();
+        String classCode = argMultimap.getValue(PREFIX_CLASS_CODE).get().trim();
         if (!ClassCode.isValidClassCode(classCode)) {
             throw new ParseException(ClassCode.MESSAGE_CONSTRAINTS);
         }

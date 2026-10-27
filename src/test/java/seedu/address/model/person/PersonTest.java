@@ -185,7 +185,7 @@ public class PersonTest {
         Person alice = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
         Person aliceWithout2103T = new PersonBuilder(ALICE).build();
         Person modifiedAlice = alice.withoutClassCodes();
-        assertEquals(modifiedAlice, aliceWithout2103T);
+        assertEquals(aliceWithout2103T, modifiedAlice);
     }
 
     @Test
