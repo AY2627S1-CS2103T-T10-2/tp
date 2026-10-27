@@ -775,13 +775,13 @@ Use case ends.
 
 **Extensions**
 
-* 1a. Tutor omits the class code, and the student is enrolled in at least one class.
+* 1a. Tutor omits the class code but indicates unenrollment from all classes, and the student is enrolled in at least one class.
 
   * 1a1. TAssist removes all the student's class enrolments and confirms the removal.
 
   Use case ends.
 
-* 1b. The index is missing or malformed, the supplied class code is invalid, or more than one class code is supplied.
+* 1b. The index is missing or malformed, the supplied class code is invalid, more than one class code is supplied, neither class code nor unenrollment from all classes is indicated, or unenrollment from all classes is indicated more than once.
 
   * 1b1. TAssist explains the invalid input and leaves the student's enrolments unchanged.
 

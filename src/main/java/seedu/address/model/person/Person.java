@@ -1,5 +1,6 @@
 package seedu.address.model.person;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Collections;
@@ -93,7 +94,7 @@ public class Person {
      * @return True if the {@link Person} is enrolled in the class specified by {@link ClassCode}
      */
     public boolean isEnrolledIn(ClassCode classCode) {
-        requireAllNonNull(classCode);
+        requireNonNull(classCode);
         return classCodes.contains(classCode);
     }
 
@@ -116,6 +117,17 @@ public class Person {
         assert updatedClassCodes.contains(classCode);
 
         updatedClassCodes.remove(classCode);
+        return new Person(name, matriculationNumber, email, tags, attendance, updatedClassCodes);
+    }
+
+    /**
+     * Creates a copy of the Person with the specified classCode.
+     * @param classCode the specified class to enroll in.
+     */
+    public Person withClassCode(ClassCode classCode) {
+        requireNonNull(classCode);
+        Set<ClassCode> updatedClassCodes = new HashSet<>(classCodes);
+        updatedClassCodes.add(classCode);
         return new Person(name, matriculationNumber, email, tags, attendance, updatedClassCodes);
     }
 

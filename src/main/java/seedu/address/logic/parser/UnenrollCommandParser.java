@@ -47,6 +47,9 @@ public class UnenrollCommandParser implements Parser<UnenrollCommand> {
 
         // ClassCode absent -> All present
         if (argMultimap.getValue(PREFIX_CLASS_CODE).isEmpty()) {
+            if (!argMultimap.getValue(PREFIX_ALL).get().isEmpty()) {
+                throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, UnenrollCommand.MESSAGE_USAGE));
+            }
             return new UnenrollCommand(index);
         }
 

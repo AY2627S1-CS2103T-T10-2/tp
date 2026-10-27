@@ -195,6 +195,20 @@ public class PersonTest {
     }
 
     @Test
+    public void withClassCode_validClassCode() {
+        Person alice = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
+        Person expectedAlice = new PersonBuilder(ALICE)
+                .withClassCodes(VALID_CLASS_CODE_CS2103T_T10, VALID_CLASS_CODE_CS3230_T01).build();
+        assertEquals(expectedAlice, alice.withClassCode(new ClassCode(VALID_CLASS_CODE_CS3230_T01)));
+    }
+
+    @Test
+    public void withClassCode_nullClassCode_throwsNullPointerException() {
+        Person alice = new PersonBuilder(ALICE).build();
+        assertThrows(NullPointerException.class, () -> alice.withClassCode(null));
+    }
+
+    @Test
     public void equals_differentClassCodes_returnsFalse() {
         Person withClass = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
         Person withOtherClass = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS3230_T01).build();
