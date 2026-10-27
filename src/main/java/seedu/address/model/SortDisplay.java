@@ -14,7 +14,7 @@ import seedu.address.model.person.Person;
 public final class SortDisplay {
     public static final SortDisplay NONE = new SortDisplay(Optional.empty(), Optional.empty());
     public static final SortDisplay ATTENDANCE = createWithDetail(
-            person -> "Attendance dates: " + person.getAttendance().getRecords().size());
+            person -> "Attendance records: " + person.getAttendance().getRecords().size());
 
     private final Optional<Function<Person, String>> detailFormatter;
     private final Optional<AssignmentId> assignmentId;

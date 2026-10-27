@@ -20,6 +20,12 @@ import seedu.address.model.person.Person;
 public class StudentDetailsWindow extends UiPart<Stage> {
 
     private static final String FXML = "StudentDetailsWindow.fxml";
+    private static final String ATTENDANCE_SUMMARY_SINGLE = "1 record";
+    private static final String ATTENDANCE_SUMMARY_MULTIPLE = "%d records";
+    private static final String ATTENDANCE_EMPTY = "None recorded";
+    private static final String ATTENDANCE_SEPARATOR = "  •  ";
+    private static final String ATTENDANCE_STATUS = "Present";
+    private static final String ATTENDANCE_STYLE_CLASS = "attendance-date";
 
     private static final Logger logger = LogsCenter.getLogger(StudentDetailsWindow.class);
 
@@ -81,23 +87,33 @@ public class StudentDetailsWindow extends UiPart<Stage> {
             }
         }
 
-        attendanceDates.getChildren().clear();
-        int count = person.getAttendance().getRecords().size();
-        attendanceSummary.setText(count == 1 ? "1 recorded date" : count + " recorded dates");
-        if (count == 0) {
-            attendanceDates.getChildren().add(new Label("None recorded"));
-        } else {
-            person.getAttendance().getRecords().forEach(record -> {
-                Label dateLabel = new Label(record.getDate() + "  •  Present");
-                dateLabel.getStyleClass().add("attendance-date");
-                attendanceDates.getChildren().add(dateLabel);
-            });
-        }
+        updateAttendance(person);
 
         getRoot().setTitle("Student details — " + person.getName());
         getRoot().show();
         getRoot().setIconified(false);
         getRoot().toFront();
         getRoot().requestFocus();
+    }
+
+    /**
+     * Updates the attendance count and lists each record's date and class.
+     */
+    private void updateAttendance(Person person) {
+        attendanceDates.getChildren().clear();
+        int count = person.getAttendance().getRecords().size();
+        attendanceSummary.setText(count == 1 ? ATTENDANCE_SUMMARY_SINGLE
+                : String.format(ATTENDANCE_SUMMARY_MULTIPLE, count));
+        if (count == 0) {
+            attendanceDates.getChildren().add(new Label(ATTENDANCE_EMPTY));
+            return;
+        }
+
+        person.getAttendance().getRecords().forEach(record -> {
+            Label recordLabel = new Label(record.getDate() + ATTENDANCE_SEPARATOR + record.getClassCode()
+                    + ATTENDANCE_SEPARATOR + ATTENDANCE_STATUS);
+            recordLabel.getStyleClass().add(ATTENDANCE_STYLE_CLASS);
+            attendanceDates.getChildren().add(recordLabel);
+        });
     }
 }

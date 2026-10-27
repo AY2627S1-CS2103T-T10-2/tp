@@ -127,7 +127,7 @@ public class SortCommandTest {
     }
 
     @Test
-    public void execute_attendanceSort_ordersByRecordedDateCount() throws Exception {
+    public void execute_attendanceSort_ordersByRecordCount() throws Exception {
         Person attendedAlice = new PersonBuilder(ALICE_LOWERCASE).withAttendance("CS2103T-T10", "01-10-2026").build();
         Person attendedCharlie = new PersonBuilder(CHARLIE)
                 .withAttendance("CS2103T-T10", "01-10-2026", "02-10-2026").build();
@@ -139,8 +139,8 @@ public class SortCommandTest {
 
         new SortCommand(ATTENDANCE, DESC).execute(model);
         assertEquals(List.of(attendedCharlie, attendedAlice, BOB, ZOE), model.getFilteredPersonList());
-        assertEquals("Attendance dates: 0", model.sortDisplayProperty().getValue().getDetailFor(BOB).orElseThrow());
-        assertEquals("Attendance dates: 2",
+        assertEquals("Attendance records: 0", model.sortDisplayProperty().getValue().getDetailFor(BOB).orElseThrow());
+        assertEquals("Attendance records: 2",
                 model.sortDisplayProperty().getValue().getDetailFor(attendedCharlie).orElseThrow());
     }
 
@@ -171,7 +171,7 @@ public class SortCommandTest {
         model.setPerson(BOB, attendedBob);
 
         assertEquals(attendedBob, model.getFilteredPersonList().getFirst());
-        assertEquals("Attendance dates: 1",
+        assertEquals("Attendance records: 1",
                 model.sortDisplayProperty().getValue().getDetailFor(attendedBob).orElseThrow());
     }
 
@@ -200,7 +200,7 @@ public class SortCommandTest {
         new SortCommand(ATTENDANCE, DESC).execute(model);
         assertCommandFailure(new SortCommand(assignmentId, ASC), model, Gradebook.MESSAGE_UNKNOWN_ASSIGNMENT);
         assertEquals(List.of(ALICE_LOWERCASE, BOB, CHARLIE, ZOE), model.getFilteredPersonList());
-        assertEquals("Attendance dates: 0", model.sortDisplayProperty().getValue().getDetailFor(BOB).orElseThrow());
+        assertEquals("Attendance records: 0", model.sortDisplayProperty().getValue().getDetailFor(BOB).orElseThrow());
     }
 
     @Test

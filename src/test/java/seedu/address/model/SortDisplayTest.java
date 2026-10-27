@@ -17,11 +17,14 @@ public class SortDisplayTest {
     }
 
     @Test
-    public void getDetailFor_attendance_formatsRecordedDateCount() {
+    public void getDetailFor_attendance_formatsRecordCount() {
+        Person onceAttendedAlice = new PersonBuilder(ALICE)
+                .withAttendance("CS2103T-T10", "01-10-2026").build();
         Person attendedAlice = new PersonBuilder(ALICE)
                 .withAttendance("CS2103T-T10", "01-10-2026", "02-10-2026").build();
 
-        assertEquals("Attendance dates: 2", SortDisplay.ATTENDANCE.getDetailFor(attendedAlice).orElseThrow());
-        assertEquals("Attendance dates: 0", SortDisplay.ATTENDANCE.getDetailFor(ALICE).orElseThrow());
+        assertEquals("Attendance records: 0", SortDisplay.ATTENDANCE.getDetailFor(ALICE).orElseThrow());
+        assertEquals("Attendance records: 1", SortDisplay.ATTENDANCE.getDetailFor(onceAttendedAlice).orElseThrow());
+        assertEquals("Attendance records: 2", SortDisplay.ATTENDANCE.getDetailFor(attendedAlice).orElseThrow());
     }
 }
