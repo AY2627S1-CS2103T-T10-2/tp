@@ -89,6 +89,13 @@ public class Person {
     }
 
     /**
+     * Returns true if the person is enrolled in the given class code.
+     */
+    public boolean isEnrolledInClass(ClassCode classCode) {
+        return classCodes.contains(classCode);
+    }
+
+    /**
      * Returns true if both persons have the same name.
      * This defines a weaker notion of equality between two persons.
      */

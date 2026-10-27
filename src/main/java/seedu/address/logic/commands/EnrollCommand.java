@@ -6,7 +6,9 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -28,6 +30,8 @@ public class EnrollCommand extends Command {
     public static final String MESSAGE_DUPLICATE_CLASS =
             "Student is already enrolled in class %1$s.";
 
+    private static final Logger logger = LogsCenter.getLogger(EnrollCommand.class);
+
     private final Index index;
     private final ClassCode classCode;
 
@@ -42,17 +46,24 @@ public class EnrollCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
+        logger.fine("Executing enroll: index=" + index.getOneBased() + ", classCode=" + classCode);
         Person student;
         List<Person> lastShownList = model.getFilteredPersonList();
 
         if (index.getZeroBased() >= lastShownList.size()) {
+            logger.info("Enroll rejected: index " + index.getOneBased()
+                    + " out of bounds (list size " + lastShownList.size() + ")");
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
         student = lastShownList.get(index.getZeroBased());
-        if (student.getClassCodes().contains(classCode)) {
+        assert student != null : "Student should not be null after index check";
+        if (student.isEnrolledInClass(classCode)) {
+            logger.info("Enroll rejected: " + student.getName() + " already in " + classCode);
             throw new CommandException(String.format(MESSAGE_DUPLICATE_CLASS, classCode));
         }
         model.setPerson(student, createEnrolledStudent(student, classCode));
+        logger.info("Enrolled " + student.getName() + " in " + classCode);
+
         return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), classCode));
     }
 
