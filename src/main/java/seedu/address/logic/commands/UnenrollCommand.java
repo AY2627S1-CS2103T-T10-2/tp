@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
 
 import java.util.List;
+import java.util.Optional;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
@@ -14,7 +15,7 @@ import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.Person;
 
 /**
- * Unenrolls a student in a class. The student must exist in the class.
+ * Unenrolls a student from a class. The student must exist in the class.
  * If no class is specified, the student is unenrolled from all classes.
  */
 public class UnenrollCommand extends Command {
@@ -24,57 +25,72 @@ public class UnenrollCommand extends Command {
             + "Parameters: INDEX (must be a positive integer) [" + PREFIX_CLASS_CODE + "MODULE-CLASS]\n"
             + "Example: " + COMMAND_WORD + " 1 " + PREFIX_CLASS_CODE + "CS2103T-T10";
 
-    public static final String MESSAGE_SUCCESS = "Unenrolled student %1$s in class %2$s.";
-    public static final String MESSAGE_SUCCESS_ALL = "Unenrolled student %1$s in all classes.";
+    public static final String MESSAGE_SUCCESS = "Unenrolled student %1$s from class %2$s.";
+    public static final String MESSAGE_SUCCESS_ALL = "Unenrolled student %1$s from all classes.";
     public static final String MESSAGE_MISSING_CLASS =
             "Student is not enrolled in class %1$s.";
     public static final String MESSAGE_MISSING_CLASS_ALL = "Student is not enrolled in any class.";
 
     private final Index index;
-    private final ClassCode classCode;
-    private final boolean unenrollAll;
+    private final Optional<ClassCode> classCode;
 
     /**
-     * Creates an UnenrollCommand to unenroll the specified {@code Person} in all classes.
+     * Creates an UnenrollCommand to unenroll the specified {@code Person} from all classes.
      */
     public UnenrollCommand(Index index) {
         this.index = requireNonNull(index);
-        this.classCode = null;
-        this.unenrollAll = true;
+        this.classCode = Optional.empty();
     }
 
     /**
-     * Creates an UnenrollCommand to unenroll the specified {@code Person} in the specified {@code ClassCode}
+     * Creates an UnenrollCommand to unenroll the specified {@code Person} from the specified {@code ClassCode}
      */
     public UnenrollCommand(Index index, ClassCode classCode) {
         this.index = requireNonNull(index);
-        this.classCode = requireNonNull(classCode);
-        this.unenrollAll = false;
+        this.classCode = Optional.of(classCode); // Optional throws on null.
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Person student;
         List<Person> lastShownList = model.getFilteredPersonList();
 
         if (index.getZeroBased() >= lastShownList.size()) {
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
-        student = lastShownList.get(index.getZeroBased());
-        if (!unenrollAll) {
-            if (!student.isEnrolledIn(classCode)) {
-                throw new CommandException(String.format(MESSAGE_MISSING_CLASS, classCode));
-            }
-            model.setPerson(student, student.withoutClassCode(classCode));
-            return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), classCode));
-        } else {
-            if (!student.isEnrolled()) {
-                throw new CommandException(MESSAGE_MISSING_CLASS_ALL);
-            }
-            model.setPerson(student, student.withoutClassCodes());
-            return new CommandResult(String.format(MESSAGE_SUCCESS_ALL, student.getName()));
+
+        Person student = lastShownList.get(index.getZeroBased());
+        if (classCode.isPresent()) {
+            return unenrollFromClass(model, student, classCode.orElseThrow());
         }
+        return unenrollFromAllClasses(model, student);
+    }
+
+    /**
+     * Unenrolls the student from the specified class.
+     *
+     * @throws CommandException if the student is not enrolled in the class.
+     */
+    private CommandResult unenrollFromClass(Model model, Person student, ClassCode targetClassCode)
+            throws CommandException {
+        if (!student.isEnrolledIn(targetClassCode)) {
+            throw new CommandException(String.format(MESSAGE_MISSING_CLASS, targetClassCode));
+        }
+        model.setPerson(student, student.withoutClassCode(targetClassCode));
+        return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), targetClassCode));
+    }
+
+    /**
+     * Unenrolls the student from all classes.
+     *
+     * @throws CommandException if the student is not enrolled in any class.
+     */
+    private CommandResult unenrollFromAllClasses(Model model, Person student) throws CommandException {
+        if (!student.isEnrolled()) {
+            throw new CommandException(MESSAGE_MISSING_CLASS_ALL);
+        }
+        model.setPerson(student, student.withoutClassCodes());
+        return new CommandResult(String.format(MESSAGE_SUCCESS_ALL, student.getName()));
     }
 
     @Override
@@ -88,11 +104,6 @@ public class UnenrollCommand extends Command {
             return false;
         }
 
-        // unenrollAll is True
-        if (unenrollAll) {
-            return otherUnenrollCommand.unenrollAll && index.equals(otherUnenrollCommand.index);
-        }
-
         return index.equals(otherUnenrollCommand.index) && classCode.equals(otherUnenrollCommand.classCode);
     }
 
@@ -100,7 +111,7 @@ public class UnenrollCommand extends Command {
     public String toString() {
         return new ToStringBuilder(this)
                 .add("index", index)
-                .add("classCode", classCode)
+                .add("classCode", classCode.orElse(null))
                 .toString();
     }
 

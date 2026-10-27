@@ -12,6 +12,7 @@ import static seedu.address.logic.commands.UnenrollCommand.MESSAGE_MISSING_CLASS
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
+import static seedu.address.testutil.TypicalIndexes.INDEX_THIRD_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import org.junit.jupiter.api.Test;
@@ -91,29 +92,54 @@ public class UnenrollCommandTest {
 
     @Test
     public void equals() {
-        UnenrollCommand first = new UnenrollCommand(INDEX_FIRST_PERSON, classCode);
-        assertTrue(first.equals(first));
-        assertTrue(first.equals(new UnenrollCommand(INDEX_FIRST_PERSON, new ClassCode("cs2103t-t10"))));
-        assertFalse(first.equals(null));
-        assertFalse(first.equals(1));
-        assertFalse(first.equals(new UnenrollCommand(INDEX_SECOND_PERSON, classCode)));
-        assertFalse(first.equals(new UnenrollCommand(INDEX_FIRST_PERSON, new ClassCode("CS3230-T01"))));
+        // Target-object partitions: unenroll from one class / unenroll from all classes.
+        UnenrollCommand withClass = new UnenrollCommand(INDEX_SECOND_PERSON, classCode);
+        UnenrollCommand allClasses = new UnenrollCommand(INDEX_SECOND_PERSON);
 
-        UnenrollCommand second = new UnenrollCommand(INDEX_FIRST_PERSON);
-        assertTrue(second.equals(second));
-        assertFalse(second.equals(null));
-        assertFalse(second.equals(1));
-        assertFalse(second.equals(new UnenrollCommand(INDEX_SECOND_PERSON)));
+        // EP: same object -> true.
+        assertTrue(withClass.equals(withClass));
+        assertTrue(allClasses.equals(allClasses));
 
-        assertFalse(second.equals(first));
-        assertFalse(first.equals(second));
+        // EP: distinct objects with equal values -> true (class codes are case-insensitive).
+        assertTrue(withClass.equals(new UnenrollCommand(Index.fromOneBased(2), new ClassCode("cs2103t-t10"))));
+        assertTrue(allClasses.equals(new UnenrollCommand(Index.fromOneBased(2))));
+
+        // EP: null -> false.
+        assertFalse(withClass.equals(null));
+        assertFalse(allClasses.equals(null));
+
+        // EP: different type -> false.
+        assertFalse(withClass.equals(1));
+        assertFalse(allClasses.equals(1));
+
+        // EP: different index -> false.
+        assertFalse(withClass.equals(new UnenrollCommand(INDEX_FIRST_PERSON, classCode)));
+        assertFalse(withClass.equals(new UnenrollCommand(INDEX_THIRD_PERSON, classCode)));
+        assertFalse(allClasses.equals(new UnenrollCommand(INDEX_FIRST_PERSON)));
+        assertFalse(allClasses.equals(new UnenrollCommand(INDEX_THIRD_PERSON)));
+
+        // EP: same index and mode, different class code -> false.
+        assertFalse(withClass.equals(new UnenrollCommand(INDEX_SECOND_PERSON,
+                new ClassCode(VALID_CLASS_CODE_CS3230_T01))));
+
+        // EP: same index, different modes -> false in both directions.
+        assertFalse(withClass.equals(allClasses));
+        assertFalse(allClasses.equals(withClass));
     }
 
     @Test
     public void toStringMethod() {
         UnenrollCommand unenrollCommand = new UnenrollCommand(INDEX_FIRST_PERSON, classCode);
         String expected = UnenrollCommand.class.getCanonicalName()
-                + "{index=seedu.address.commons.core.index.Index{zeroBasedIndex=0}, classCode=CS2103T-T10}";
+                + "{index=" + INDEX_FIRST_PERSON + ", classCode=" + classCode + "}";
+        assertEquals(expected, unenrollCommand.toString());
+    }
+
+    @Test
+    public void toStringMethod_withoutClassCode() {
+        UnenrollCommand unenrollCommand = new UnenrollCommand(INDEX_FIRST_PERSON);
+        String expected = UnenrollCommand.class.getCanonicalName()
+                + "{index=" + INDEX_FIRST_PERSON + ", classCode=null}";
         assertEquals(expected, unenrollCommand.toString());
     }
 }

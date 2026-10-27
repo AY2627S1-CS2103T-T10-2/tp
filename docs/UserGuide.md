@@ -380,7 +380,8 @@ Unenrolls a student from a class or all classes.
 
 Format: `unenroll INDEX [c/MODULE-CLASS]`
 
-* Unenrolls the student at the specified `INDEX` from the class `CLASS` of the module `MODULE`.
+* If `c/MODULE-CLASS` is provided, unenrolls the student at the specified `INDEX` from that class.
+* If `c/MODULE-CLASS` is omitted, unenrolls the student at the specified `INDEX` from all classes.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
 * `MODULE` and `CLASS` are joined by a hyphen, e.g. `CS2103T-T10`.
@@ -388,7 +389,7 @@ Format: `unenroll INDEX [c/MODULE-CLASS]`
 * `CLASS` is a class group: 1 to 5 letters or digits (e.g. `T10`), with no spaces or symbols.
 * Class codes are not case-sensitive: `cs2103t-t10` matches `CS2103T-T10`.
 * Unenrolling a student from a class they are not enrolled in shows an error and changes nothing.
-* Unenrolling a student without classes from all classes shows an error and changes nothing.
+* If the student is not enrolled in any classes, `unenroll INDEX` shows an error and changes nothing.
 * Only one `c/` can be given per command.
 
 Examples:

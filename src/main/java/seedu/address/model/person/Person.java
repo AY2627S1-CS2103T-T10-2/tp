@@ -108,7 +108,7 @@ public class Person {
     /**
      * Creates a copy of the Person without the specified classCode.
      * Preconditions: the Person is enrolled in the given class.
-     * @param classCode the specified class to unenroll in.
+     * @param classCode the specified class to unenroll from.
      */
     public Person withoutClassCode(ClassCode classCode) {
         Set<ClassCode> updatedClassCodes = new HashSet<>(classCodes);

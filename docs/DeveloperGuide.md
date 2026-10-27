@@ -375,7 +375,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 These use cases describe the current program's behavior. For all use cases, the **System** is TAssist, the **Actor** is a university Computer Science tutor, and **MSS** means Main Success Scenario. Unless stated otherwise, TAssist is running and startup has completed without a restoration error. Restoration failures are covered by UC07.
 
-**Common extension (UC01–UC06, UC08–UC13):** If TAssist cannot save the records after processing a request, it reports the save failure instead of confirming success. Any changes already made to student information, assignment marks, or the displayed list remain. The main success scenarios assume saving succeeds.
+**Common extension (UC01–UC06, UC08–UC14):** If TAssist cannot save the records after processing a request, it reports the save failure instead of confirming success. Any changes already made to student information, assignment marks, or the displayed list remain. The main success scenarios assume saving succeeds.
 
 #### UC01: Add a student
 
@@ -761,6 +761,47 @@ With no field or direction supplied, TAssist uses name ascending. Students witho
 * 2a. No students are currently displayed.
 
   * 2a1. TAssist confirms the sort; the displayed list remains empty.
+
+  Use case ends.
+
+#### UC14: Unenroll a student from a class
+
+**MSS**
+
+1. Tutor requests to unenroll a student using their displayed index, supplying one class code that includes the module and group.
+2. TAssist removes the student's enrolment in that class and confirms the removal.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. Tutor omits the class code, and the student is enrolled in at least one class.
+
+  * 1a1. TAssist removes all the student's class enrolments and confirms the removal.
+
+  Use case ends.
+
+* 1b. The index is missing or malformed, the supplied class code is invalid, or more than one class code is supplied.
+
+  * 1b1. TAssist explains the invalid input and leaves the student's enrolments unchanged.
+
+  Use case resumes at step 1.
+
+* 1c. The index exceeds the size of the currently displayed list, including when the list is empty.
+
+  * 1c1. TAssist reports that the displayed student index is invalid and changes no records.
+
+  Use case resumes at step 1.
+
+* 1d. The student is not enrolled in the specified class.
+
+  * 1d1. TAssist reports this and leaves the student's enrolments unchanged.
+
+  Use case ends.
+
+* 1e. Tutor omits the class code, but the student is not enrolled in any classes.
+
+  * 1e1. TAssist reports that the student has no class enrolments to remove and changes no records.
 
   Use case ends.
 
