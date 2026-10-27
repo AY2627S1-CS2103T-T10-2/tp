@@ -82,13 +82,13 @@ public class StudentDetailsWindow extends UiPart<Stage> {
         }
 
         attendanceDates.getChildren().clear();
-        int count = person.getAttendance().getDates().size();
+        int count = person.getAttendance().getRecords().size();
         attendanceSummary.setText(count == 1 ? "1 recorded date" : count + " recorded dates");
         if (count == 0) {
             attendanceDates.getChildren().add(new Label("None recorded"));
         } else {
-            person.getAttendance().getDates().forEach(date -> {
-                Label dateLabel = new Label(date + "  •  Present");
+            person.getAttendance().getRecords().forEach(record -> {
+                Label dateLabel = new Label(record.getDate() + "  •  Present");
                 dateLabel.getStyleClass().add("attendance-date");
                 attendanceDates.getChildren().add(dateLabel);
             });

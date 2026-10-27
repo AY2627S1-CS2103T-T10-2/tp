@@ -1,0 +1,12 @@
+{
+  "persons": [
+    {
+      "name": "Alice Pauline",
+      "matriculationNumber": "A1234567A",
+      "email": "alice@example.com",
+      "tags": [],
+      "classCodes": ["CS2103T-T10"],
+      "attendance": ["07-10-2026"]
+    }
+  ]
+}

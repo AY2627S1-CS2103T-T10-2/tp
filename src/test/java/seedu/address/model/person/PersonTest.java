@@ -89,7 +89,7 @@ public class PersonTest {
 
     @Test
     public void attendance_changesDataButNotIdentity() {
-        Person recordedAlice = new PersonBuilder(ALICE).withAttendance("07-10-2026").build();
+        Person recordedAlice = new PersonBuilder(ALICE).withAttendance("CS2103T-T10", "07-10-2026").build();
         assertEquals(Attendance.empty(), ALICE.getAttendance());
         assertTrue(ALICE.isSamePerson(recordedAlice));
         assertFalse(ALICE.equals(recordedAlice));

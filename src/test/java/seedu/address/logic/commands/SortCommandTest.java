@@ -128,8 +128,9 @@ public class SortCommandTest {
 
     @Test
     public void execute_attendanceSort_ordersByRecordedDateCount() throws Exception {
-        Person attendedAlice = new PersonBuilder(ALICE_LOWERCASE).withAttendance("01-10-2026").build();
-        Person attendedCharlie = new PersonBuilder(CHARLIE).withAttendance("01-10-2026", "02-10-2026").build();
+        Person attendedAlice = new PersonBuilder(ALICE_LOWERCASE).withAttendance("CS2103T-T10", "01-10-2026").build();
+        Person attendedCharlie = new PersonBuilder(CHARLIE)
+                .withAttendance("CS2103T-T10", "01-10-2026", "02-10-2026").build();
         model.setPerson(ALICE_LOWERCASE, attendedAlice);
         model.setPerson(CHARLIE, attendedCharlie);
 
@@ -165,7 +166,7 @@ public class SortCommandTest {
     @Test
     public void execute_attendanceUpdatedAfterSort_updatesOrder() throws Exception {
         new SortCommand(ATTENDANCE, DESC).execute(model);
-        Person attendedBob = new PersonBuilder(BOB).withAttendance("01-10-2026").build();
+        Person attendedBob = new PersonBuilder(BOB).withAttendance("CS2103T-T10", "01-10-2026").build();
 
         model.setPerson(BOB, attendedBob);
 
