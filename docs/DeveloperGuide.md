@@ -933,7 +933,7 @@ testers are expected to do more *exploratory* testing.
    1. Test case: `attendance unmark 1 c/CS2103T-T10 d/07-10-2026`<br>
       Expected: The status message shows `Unmarked attendance for NAME in CS2103T-T10 on 07-10-2026`. `view 1` no longer lists that record.
 
-   1. Test case: repeat `attendance unmark 1 d/07-10-2026`<br>
+   1. Test case: `attendance unmark 1 d/07-10-2026`<br>
       Expected: Nothing changes. The status message shows `No attendance recorded for NAME on 07-10-2026.`
 
 1. Identifying a student outside the displayed list
