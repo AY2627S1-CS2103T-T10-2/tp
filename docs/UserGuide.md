@@ -157,7 +157,7 @@ Examples:
 
 ### Viewing a student's details: `view`
 
-Opens a separate student details window showing particulars, enrolled classes and modules, and recorded attendance dates.
+Opens a separate student details window showing particulars, enrolled classes and modules, and attendance records.
 
 Format: `view INDEX`
 
@@ -165,8 +165,8 @@ Format: `view INDEX`
 * Details are organised into Particulars, Classes and modules, and Attendance sections.
 * Classes are listed by module code and class group. Students without classes show `No classes enrolled`.
 * Running `view` again updates the same window to the selected student. Press `Esc` to close the window.
-* Attendance dates are listed from newest to oldest. If no dates have been recorded, the Attendance section shows `None recorded`.
-* Attendance is currently recorded for the student overall. Attendance by class or module and marks are planned for future updates.
+* Attendance records show the date and class, ordered from newest to oldest, then by class code for records on the same date. If there are no attendance records, the Attendance section shows `None recorded`.
+* Marks are planned for future updates.
 
 Example: `view 1` displays the first student in the current list.
 
@@ -195,7 +195,7 @@ Examples:
 
 ### Recording an assignment mark: `mark`
 
-Records a student's numeric mark for work already assigned to them. Entering another mark for the same student and assignment updates the previous value. Use `mark` (singular) to record or update a score; `marks` (plural) only displays results. Use `attendance` to record attendance dates.
+Records a student's numeric mark for work already assigned to them. Entering another mark for the same student and assignment updates the previous value. Use `mark` (singular) to record or update a score; `marks` (plural) only displays results. Use `attendance` to record attendance.
 
 Format: `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`
 
@@ -266,15 +266,15 @@ Examples:
 
 ### Sorting displayed students: `sort`
 
-Sorts only the students currently shown, by name, matriculation number, email address, recorded attendance count, or a specific assignment mark.
+Sorts only the students currently shown, by name, matriculation number, email address, attendance record count, or a specific assignment mark.
 
 Format: `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MODULE:CODE [asc|desc]`
 
 * `FIELD` is `name`, `matric`, `email`, or `attendance`. Field and direction keywords ignore letter case. The direction defaults to `asc`.
 * `sort` is shorthand for `sort name asc`.
 * Name and email comparisons are case-insensitive; for example, `alice` comes before `Bob`.
-* `attendance` compares how many dates have been recorded for each student. A student with no records has a count of `0`; this does not mean the student was absent.
-* An attendance sort shows `Attendance dates: N` on each student card. This line disappears when another sort is chosen or the view returns to name order.
+* `attendance` compares how many attendance records each student has, counting different classes on the same date separately. A student with no records has a count of `0`; this does not mean the student was absent.
+* An attendance sort shows `Attendance records: N` on each student card. This line disappears when another sort is chosen or the view returns to name order.
 * A mark sort requires an existing assignment ID, such as `CS2103T:A1`. Recorded marks sort numerically. Students with no recorded mark come last in both directions, whether they are `Unmarked` or `Not assigned`.
 * Each card shows the selected assignment ID and its mark out of the maximum, or `Unmarked` or `Not assigned`. A recorded zero appears as `0/MAX`.
 * Students with equal values are ordered by name, then matriculation number.
@@ -287,41 +287,47 @@ Examples:
 * `sort name desc` displays students in reverse alphabetical name order.
 * `sort matric` displays the current students by matriculation number, from lowest to highest.
 * `find Tan` followed by `sort email desc` sorts only the matching students by email address.
-* `sort attendance desc` shows students with the most recorded attendance dates first.
+* `sort attendance desc` shows students with the most attendance records first.
 * `sort mark id/CS2103T:A1 desc` shows the highest recorded marks for that assignment first, followed by students without a recorded mark.
 * `sort email asc` followed by `delete 1` deletes the student shown first after sorting.
 
 ### Marking attendance: `attendance`
 
-Marks the specified student present on the given date.
+Marks the specified student present in the given class on the given date.
 
-Format: `attendance INDEX [d/DATE]`
+Format: `attendance INDEX c/MODULE-CLASS [d/DATE]`
 or
-`attendance m/MATRICULATION_NUMBER [d/DATE]`
+`attendance m/MATRICULATION_NUMBER c/MODULE-CLASS [d/DATE]`
 
-* Marks the student at the specified `INDEX` or with the specified `MATRICULATION_NUMBER` present on `DATE`.
+* Marks the student at the specified `INDEX` or with the specified `MATRICULATION_NUMBER` present in `MODULE-CLASS` on `DATE`.
+* `c/MODULE-CLASS` is required. The student must be enrolled in that class using `enroll`. Class codes ignore letter case, as in `enroll`.
 * Specify the student by either `INDEX` or `MATRICULATION_NUMBER`, not both.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
 * The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
 * The matriculation number can identify a student who is not in the displayed list, for example after `find`.
 * `DATE` must be in `dd-MM-yyyy` format. If omitted, today's date is used.
-* Marking a date already recorded for that student shows an error and changes nothing.
+* Marking a student who is already recorded in that class on that date shows an error and changes nothing.
+* The same student can be marked in different classes on one date.
 
 Examples:
-* `attendance 1 d/07-10-2026` marks the 1st student in the displayed list present on `07-10-2026`.
-* `find Betsy` followed by `attendance 1` marks the 1st student in the results of the `find` command present on today's date.
-* `attendance m/A1234567X d/07-10-2026` marks the student whose matriculation number is `A1234567X` present on `07-10-2026`.
+* These examples assume the student is already enrolled in `CS2103T-T10` (see `enroll`).
+* `attendance 1 c/CS2103T-T10 d/07-10-2026` marks the 1st student in the displayed list present in `CS2103T-T10` on `07-10-2026`.
+* `find Betsy` followed by `attendance 1 c/CS2103T-T10` marks the 1st student in the results of the `find` command present in `CS2103T-T10` on today's date.
+* `attendance m/A1234567X c/CS2103T-T10 d/07-10-2026` marks the student whose matriculation number is `A1234567X` present in `CS2103T-T10` on `07-10-2026`.
 
 ### Unmarking attendance: `attendance unmark`
 
-Removes the specified student's attendance record for the given date.
+Removes the specified student's attendance record for a class on the given date.
 
-Format: `attendance unmark INDEX [d/DATE]`
+Format: `attendance unmark INDEX [c/MODULE-CLASS] [d/DATE]`
 or
-`attendance unmark m/MATRICULATION_NUMBER [d/DATE]`
+`attendance unmark m/MATRICULATION_NUMBER [c/MODULE-CLASS] [d/DATE]`
 
 * Removes the attendance record for the student at the specified `INDEX` or with the specified `MATRICULATION_NUMBER` on `DATE`.
+* `c/MODULE-CLASS` is optional when the student has exactly one attendance record on that date; that record is removed.
+* If several classes have records on that date, omitting `c/` shows an error naming the classes and changes nothing. Specify the class to remove its record.
+* With `c/MODULE-CLASS`, only the record for that class and date is removed. The student need not still be enrolled in that class. Class codes ignore letter case, as in `enroll`.
 * Specify the student by either `INDEX` or `MATRICULATION_NUMBER`, not both.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
@@ -329,11 +335,12 @@ or
 * The matriculation number can identify a student who is not in the displayed list, for example after `find`.
 * `DATE` must be in `dd-MM-yyyy` format. If omitted, today's date is used.
 * `unmark` is not case-sensitive.
-* Unmarking a date with no attendance recorded for that student shows an error and changes nothing.
+* Unmarking a date with no attendance recorded for that student, or specifying a class with no record on that date, shows an error and changes nothing.
 
 Examples:
-* `attendance unmark 1 d/07-10-2026` removes the attendance record for `07-10-2026` for the 1st student in the displayed list.
-* `attendance unmark m/A1234567X` removes the attendance record for today's date for the student whose matriculation number is `A1234567X`.
+* `attendance unmark 1 d/07-10-2026` removes the only attendance record for `07-10-2026` for the 1st student in the displayed list.
+* `attendance unmark 1 c/CS2103T-T10 d/07-10-2026` removes that student's record for `CS2103T-T10` on `07-10-2026`, leaving any records for other classes unchanged.
+* `attendance unmark m/A1234567X` removes the only attendance record for today's date for the student whose matriculation number is `A1234567X`.
 
 ### Filtering students by class/module: `filter`
 
@@ -397,6 +404,7 @@ TAssist data is saved automatically as a JSON file `[JAR file location]/data/add
 <box type="warning" seamless>
 
 **Caution:**
+Data files from earlier versions whose attendance records have no class cannot be read.<br>
 If TAssist cannot read or validate the saved student, attendance, or assignment records, it displays the failure reason and recovery instructions, disables the command box, and blocks all commands. The original data file remains unchanged, including when you close the app.<br>
 Close TAssist using the window's close button. Correct the data file, replace it with a valid backup, or delete it to start with sample student records. Then reopen TAssist. Commands remain blocked until you reopen the app, even if you correct the file while it is running.<br>
 If no data file exists, TAssist starts with sample student records and accepts commands. Back up your data file before editing it.<br>
@@ -428,8 +436,8 @@ _Details coming soon ..._
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME m/MATRICULATION_NUMBER e/EMAIL [t/TAG]... ` <br> e.g., `add n/James Ho m/A1234567A e/jamesho@example.com t/friend t/colleague`
-**Mark attendance** | `attendance INDEX [d/DATE]` or `attendance m/MATRICULATION_NUMBER [d/DATE]`<br> e.g., `attendance 1 d/07-10-2026`, `attendance m/A1234567X`
-**Unmark attendance** | `attendance unmark INDEX [d/DATE]` or `attendance unmark m/MATRICULATION_NUMBER [d/DATE]`<br> e.g., `attendance unmark 1 d/07-10-2026`
+**Mark attendance** | `attendance INDEX c/MODULE-CLASS [d/DATE]` or `attendance m/MATRICULATION_NUMBER c/MODULE-CLASS [d/DATE]`<br> e.g., `attendance 1 c/CS2103T-T10 d/07-10-2026`, `attendance m/A1234567X c/CS2103T-T10`
+**Unmark attendance** | `attendance unmark INDEX [c/MODULE-CLASS] [d/DATE]` or `attendance unmark m/MATRICULATION_NUMBER [c/MODULE-CLASS] [d/DATE]`<br> e.g., `attendance unmark 1 d/07-10-2026`, `attendance unmark 1 c/CS2103T-T10 d/07-10-2026`
 **Assignment** | `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`<br> e.g., `assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20`
 **Mark** | `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`<br> e.g., `mark m/A1234567A id/CS2103T:A1 mark/17.5`
 **Marks** | `marks id/MODULE:CODE`<br> e.g., `marks id/CS2103T:A1`
