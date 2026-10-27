@@ -3,7 +3,6 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -26,7 +25,7 @@ public class EnrollCommand extends Command {
             + "Parameters: INDEX (must be a positive integer) " + PREFIX_CLASS_CODE + "MODULE-CLASS\n"
             + "Example: " + COMMAND_WORD + " 1 " + PREFIX_CLASS_CODE + "CS2103T-T10";
 
-    public static final String MESSAGE_SUCCESS = "Enrolled student %1$s in class %2$s";
+    public static final String MESSAGE_SUCCESS = "Enrolled student %1$s in class %2$s.";
     public static final String MESSAGE_DUPLICATE_CLASS =
             "Student is already enrolled in class %1$s.";
 
@@ -57,24 +56,14 @@ public class EnrollCommand extends Command {
         }
         student = lastShownList.get(index.getZeroBased());
         assert student != null : "Student should not be null after index check";
-        if (student.isEnrolledInClass(classCode)) {
+        if (student.isEnrolledIn(classCode)) {
             logger.info("Enroll rejected: " + student.getName() + " already in " + classCode);
             throw new CommandException(String.format(MESSAGE_DUPLICATE_CLASS, classCode));
         }
-        model.setPerson(student, createEnrolledStudent(student, classCode));
+        model.setPerson(student, student.withClassCode(classCode));
         logger.info("Enrolled " + student.getName() + " in " + classCode);
 
         return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), classCode));
-    }
-
-    /**
-     * Creates a student with the given class code added, preserving the student's other details.
-     */
-    private static Person createEnrolledStudent(Person student, ClassCode classCode) {
-        Set<ClassCode> updatedClassCodes = new HashSet<>(student.getClassCodes());
-        updatedClassCodes.add(classCode);
-        return new Person(student.getName(), student.getMatriculationNumber(), student.getEmail(),
-                student.getTags(), student.getAttendance(), updatedClassCodes);
     }
 
     @Override
