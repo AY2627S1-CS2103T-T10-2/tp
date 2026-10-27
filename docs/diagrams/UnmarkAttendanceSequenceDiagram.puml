@@ -1,0 +1,44 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":UnmarkAttendanceCommand" as UnmarkAttendanceCommand LOGIC_COLOR
+participant ":StudentIdentifier" as StudentIdentifier LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+end box
+
+[-> UnmarkAttendanceCommand : execute(m)
+activate UnmarkAttendanceCommand
+
+UnmarkAttendanceCommand -> StudentIdentifier : resolve(m)
+activate StudentIdentifier
+
+StudentIdentifier --> UnmarkAttendanceCommand : s
+deactivate StudentIdentifier
+
+note over UnmarkAttendanceCommand
+Creates e, a copy of s
+without the date.
+end note
+
+UnmarkAttendanceCommand -> Model : setPerson(s, e)
+activate Model
+
+Model --> UnmarkAttendanceCommand
+deactivate Model
+
+create CommandResult
+UnmarkAttendanceCommand -> CommandResult
+activate CommandResult
+
+CommandResult --> UnmarkAttendanceCommand
+deactivate CommandResult
+
+[<-- UnmarkAttendanceCommand : r
+deactivate UnmarkAttendanceCommand
+@enduml

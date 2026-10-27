@@ -197,6 +197,23 @@ The `sort` command accepts `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MOD
 
 `SortDisplay` supplies the optional extra line on each student card. An attendance sort shows the recorded date count. A mark sort shows the assignment ID and each student's mark or missing status. `add`, `find`, and `list` restore name order and remove that line. Assignment, mark, or student detail changes reset an active mark sort so its display does not become stale.
 
+### Attendance feature
+
+The `attendance` command marks a student present on a date, and `attendance unmark` removes that record. Both identify the student by `INDEX` or `m/MATRICULATION_NUMBER` and take an optional `d/DATE`, which defaults to today.
+
+`AttendanceCommandParser` checks the first word of the arguments. If it is `unmark`, in any letter case, the parser builds an `UnmarkAttendanceCommand` from the remaining arguments; otherwise, it builds a `MarkAttendanceCommand` from all of them. One shared helper parses the student identifier and optional date for both commands, then passes them to the chosen command's constructor. This keeps the two forms' argument formats identical without a second parser class.
+
+The simplified sequence diagram below shows a successful run of `attendance unmark m/A1234567X` after parsing, assuming the student exists and has attendance recorded today. It omits date selection and the attendance check, which the steps below explain.
+
+<puml src="diagrams/UnmarkAttendanceSequenceDiagram.puml" alt="Execution of the attendance unmark command" />
+
+1. `StudentIdentifier#resolve` returns the student `s`, found by displayed index or matriculation number.
+2. The command uses today's date because none was given. If `s` has no attendance record on that date, it throws a `CommandException` and changes nothing.
+3. The command does not modify `s`. It creates a copy `e` whose `Attendance` no longer contains the date, using `Attendance#withoutDate`.
+4. `Model#setPerson` replaces `s` with `e`, and the command returns a `CommandResult` `r` with the success message.
+
+Marking follows the same flow, except that the copy gains the date instead of losing it.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -362,7 +379,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 These use cases describe the current program's behavior. For all use cases, the **System** is TAssist, the **Actor** is a university Computer Science tutor, and **MSS** means Main Success Scenario. Unless stated otherwise, TAssist is running and startup has completed without a restoration error. Restoration failures are covered by UC07.
 
-**Common extension (UC01–UC06, UC08–UC13):** If TAssist cannot save the records after processing a request, it reports the save failure instead of confirming success. Any changes already made to student information, assignment marks, or the displayed list remain. The main success scenarios assume saving succeeds.
+**Common extension (UC01–UC06, UC08–UC14):** If TAssist cannot save the records after processing a request, it reports the save failure instead of confirming success. Any changes already made to student information, assignment marks, or the displayed list remain. The main success scenarios assume saving succeeds.
 
 #### UC01: Add a student
 
@@ -748,6 +765,47 @@ With no field or direction supplied, TAssist uses name ascending. Students witho
 * 2a. No students are currently displayed.
 
   * 2a1. TAssist confirms the sort; the displayed list remains empty.
+
+  Use case ends.
+
+#### UC14: Unenroll a student from a class
+
+**MSS**
+
+1. Tutor requests to unenroll a student using their displayed index, supplying one class code that includes the module and group.
+2. TAssist removes the student's enrolment in that class and confirms the removal.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. Tutor omits the class code but indicates unenrollment from all classes, and the student is enrolled in at least one class.
+
+  * 1a1. TAssist removes all the student's class enrolments and confirms the removal.
+
+  Use case ends.
+
+* 1b. The index is missing or malformed, the supplied class code is invalid, more than one class code is supplied, neither class code nor unenrollment from all classes is indicated, or unenrollment from all classes is indicated more than once.
+
+  * 1b1. TAssist explains the invalid input and leaves the student's enrolments unchanged.
+
+  Use case resumes at step 1.
+
+* 1c. The index exceeds the size of the currently displayed list, including when the list is empty.
+
+  * 1c1. TAssist reports that the displayed student index is invalid and changes no records.
+
+  Use case resumes at step 1.
+
+* 1d. The student is not enrolled in the specified class.
+
+  * 1d1. TAssist reports this and leaves the student's enrolments unchanged.
+
+  Use case ends.
+
+* 1e. Tutor omits the class code but indicates unenrollment from all classes, and the student is not enrolled in any classes.
+
+  * 1e1. TAssist reports that the student has no class enrolments to remove and changes no records.
 
   Use case ends.
 

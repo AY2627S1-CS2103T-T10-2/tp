@@ -6,6 +6,7 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_CLASS_CODE_CS2103T_T10;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_CLASS_CODE_CS3230_T01;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ALL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -36,6 +37,7 @@ import seedu.address.logic.commands.MarksCommand;
 import seedu.address.logic.commands.RemoveAssignmentCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.StudentIdentifier;
+import seedu.address.logic.commands.UnenrollCommand;
 import seedu.address.logic.commands.UnmarkAttendanceCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.classcode.ClassCode;
@@ -177,6 +179,20 @@ public class AddressBookParserTest {
         EnrollCommand command = (EnrollCommand) parser.parseCommand(EnrollCommand.COMMAND_WORD + " "
                 + INDEX_FIRST_PERSON.getOneBased() + " " + PREFIX_CLASS_CODE + VALID_CLASS_CODE_CS2103T_T10);
         assertEquals(new EnrollCommand(INDEX_FIRST_PERSON, new ClassCode(VALID_CLASS_CODE_CS2103T_T10)), command);
+    }
+
+    @Test
+    public void parseCommand_unenroll() throws Exception {
+        UnenrollCommand command = (UnenrollCommand) parser.parseCommand(UnenrollCommand.COMMAND_WORD + " "
+                + INDEX_FIRST_PERSON.getOneBased() + " " + PREFIX_CLASS_CODE + VALID_CLASS_CODE_CS2103T_T10);
+        assertEquals(new UnenrollCommand(INDEX_FIRST_PERSON, new ClassCode(VALID_CLASS_CODE_CS2103T_T10)), command);
+    }
+
+    @Test
+    public void parseCommand_unenrollAll() throws Exception {
+        UnenrollCommand command = (UnenrollCommand) parser.parseCommand(UnenrollCommand.COMMAND_WORD + " "
+                + INDEX_FIRST_PERSON.getOneBased() + " " + PREFIX_ALL);
+        assertEquals(new UnenrollCommand(INDEX_FIRST_PERSON), command);
     }
 
     @Test
