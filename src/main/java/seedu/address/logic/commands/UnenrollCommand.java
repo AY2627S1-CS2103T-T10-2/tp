@@ -23,8 +23,8 @@ public class UnenrollCommand extends Command {
     public static final String COMMAND_WORD = "unenroll";
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Unenrolls a student from a class or from all classes.\n"
-            + "Parameters: INDEX (must be a positive integer) ("
-            + PREFIX_CLASS_CODE + "MODULE-CLASS | " + PREFIX_ALL + ")\n"
+            + "Parameters: INDEX (must be a positive integer) " + PREFIX_CLASS_CODE + "MODULE-CLASS\n"
+            + "Alternate Parameters: INDEX (must be a positive integer) " + PREFIX_ALL + "\n"
             + "Examples: " + COMMAND_WORD + " 1 " + PREFIX_CLASS_CODE + "CS2103T-T10\n"
             + "          " + COMMAND_WORD + " 1 " + PREFIX_ALL;
 

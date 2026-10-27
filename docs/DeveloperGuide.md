@@ -799,7 +799,7 @@ Use case ends.
 
   Use case ends.
 
-* 1e. Tutor omits the class code, but the student is not enrolled in any classes.
+* 1e. Tutor omits the class code but indicates unenrollment from all classes, but the student is not enrolled in any classes.
 
   * 1e1. TAssist reports that the student has no class enrolments to remove and changes no records.
 

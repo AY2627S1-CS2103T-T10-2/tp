@@ -73,4 +73,9 @@ public class UnenrollCommandParserTest {
         assertParseFailure(parser, " 1 " + PREFIX_CLASS_CODE + "CS2103T " + PREFIX_ALL,
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, UnenrollCommand.MESSAGE_USAGE));
     }
+
+    @Test
+    public void parse_invalidAllPrefix_failure() {
+        assertParseFailure(parser, " 1 " + PREFIX_ALL + VALID_CLASS_CODE_CS2103T_T10, INVALID_FORMAT);
+    }
 }
