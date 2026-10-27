@@ -137,6 +137,78 @@ public class PersonTest {
     }
 
     @Test
+    public void isEnrolledIn_containsClassCode_returnsTrue() {
+        Person alice = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
+        assertTrue(alice.isEnrolledIn(new ClassCode(VALID_CLASS_CODE_CS2103T_T10)));
+    }
+
+    @Test
+    public void isEnrolledIn_absentClassCode_returnsFalse() {
+        Person alice = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
+        assertFalse(alice.isEnrolledIn(new ClassCode(VALID_CLASS_CODE_CS3230_T01)));
+    }
+
+    @Test
+    public void isEnrolledIn_nullClassCode_throwsNullPointerException() {
+        Person alice = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
+        assertThrows(NullPointerException.class, () -> alice.isEnrolledIn(null));
+    }
+
+    @Test
+    public void isEnrolled_personHasClasses_returnsTrue() {
+        Person alice = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
+        assertTrue(alice.isEnrolled());
+    }
+
+    @Test
+    public void isEnrolled_personHasNoClasses_returnsFalse() {
+        Person bob = new PersonBuilder(BOB).build();
+        assertFalse(bob.isEnrolled());
+    }
+
+    @Test
+    public void withoutClassCode_personNotInGivenClass_throwsAssertionError() {
+        Person alice = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
+        assertThrows(AssertionError.class, () -> alice.withoutClassCode(new ClassCode(VALID_CLASS_CODE_CS3230_T01)));
+    }
+
+    @Test
+    public void withoutClassCode_personInGivenClass_returnsModifiedPerson() {
+        Person alice = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
+        Person modifiedAlice = alice.withoutClassCode(new ClassCode(VALID_CLASS_CODE_CS2103T_T10));
+        Person aliceWithout2103T = new PersonBuilder(ALICE).build();
+        assertEquals(aliceWithout2103T, modifiedAlice);
+    }
+
+    @Test
+    public void withoutClassCodes_personHasClasses_returnsModifiedPerson() {
+        Person alice = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
+        Person aliceWithout2103T = new PersonBuilder(ALICE).build();
+        Person modifiedAlice = alice.withoutClassCodes();
+        assertEquals(aliceWithout2103T, modifiedAlice);
+    }
+
+    @Test
+    public void withoutClassCodes_personWithoutClasses_throwsAssertionError() {
+        Person bob = new PersonBuilder(BOB).build();
+        assertThrows(AssertionError.class, bob::withoutClassCodes);
+    }
+
+    @Test
+    public void withClassCode_validClassCode() {
+        Person alice = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
+        Person expectedAlice = new PersonBuilder(ALICE)
+                .withClassCodes(VALID_CLASS_CODE_CS2103T_T10, VALID_CLASS_CODE_CS3230_T01).build();
+        assertEquals(expectedAlice, alice.withClassCode(new ClassCode(VALID_CLASS_CODE_CS3230_T01)));
+    }
+
+    @Test
+    public void withClassCode_nullClassCode_throwsNullPointerException() {
+        Person alice = new PersonBuilder(ALICE).build();
+        assertThrows(NullPointerException.class, () -> alice.withClassCode(null));
+    }
+
+    @Test
     public void equals_differentClassCodes_returnsFalse() {
         Person withClass = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
         Person withOtherClass = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS3230_T01).build();
