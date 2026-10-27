@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ALL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
 
 import java.util.List;
@@ -20,10 +21,12 @@ import seedu.address.model.person.Person;
  */
 public class UnenrollCommand extends Command {
     public static final String COMMAND_WORD = "unenroll";
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Unenrolls a student from a class. If no class is "
-            + "specified, student is unenrolled from all classes.\n"
-            + "Parameters: INDEX (must be a positive integer) [" + PREFIX_CLASS_CODE + "MODULE-CLASS]\n"
-            + "Example: " + COMMAND_WORD + " 1 " + PREFIX_CLASS_CODE + "CS2103T-T10";
+    public static final String MESSAGE_USAGE = COMMAND_WORD
+            + ": Unenrolls a student from a class or from all classes.\n"
+            + "Parameters: INDEX (must be a positive integer) ("
+            + PREFIX_CLASS_CODE + "MODULE-CLASS | " + PREFIX_ALL + ")\n"
+            + "Examples: " + COMMAND_WORD + " 1 " + PREFIX_CLASS_CODE + "CS2103T-T10\n"
+            + "          " + COMMAND_WORD + " 1 " + PREFIX_ALL;
 
     public static final String MESSAGE_SUCCESS = "Unenrolled student %1$s from class %2$s.";
     public static final String MESSAGE_SUCCESS_ALL = "Unenrolled student %1$s from all classes.";
