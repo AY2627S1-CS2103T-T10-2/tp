@@ -164,6 +164,24 @@ public class PersonTest {
     }
 
     @Test
+    public void isEnrolledIn_differentCase_returnsTrue() {
+        Person alice = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
+        assertTrue(alice.isEnrolledInClass(new ClassCode(VALID_CLASS_CODE_CS2103T_T10.toLowerCase())));
+    }
+
+    @Test
+    public void isEnrolledIn_sameModuleDifferentGroup_returnsFalse() {
+        Person alice = new PersonBuilder(ALICE).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
+        assertFalse(alice.isEnrolledInClass(new ClassCode("CS2103T-T11")));
+    }
+
+    @Test
+    public void isEnrolledIn_noClasses_returnsFalse() {
+        Person alice = new PersonBuilder(ALICE).withClassCodes().build();
+        assertFalse(alice.isEnrolledInClass(new ClassCode(VALID_CLASS_CODE_CS2103T_T10)));
+    }
+
+    @Test
     public void hashCode_sameClassCodes_sameHashCode() {
         Person first = new PersonBuilder(ALICE)
                 .withClassCodes(VALID_CLASS_CODE_CS2103T_T10, VALID_CLASS_CODE_CS3230_T01).build();
