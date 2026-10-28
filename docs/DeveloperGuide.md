@@ -193,6 +193,16 @@ The `sort` command accepts `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MOD
 
 `SortDisplay` supplies the optional extra line on each student card. An attendance sort shows the recorded date count. A mark sort shows the assignment ID and each student's mark or missing status. `add`, `find`, and `list` restore name order and remove that line. Assignment, mark, or student detail changes reset an active mark sort so its display does not become stale.
 
+### Keeping the student details window up to date
+
+`ViewCommand` returns the selected `Person` in its `CommandResult`. `MainWindow` creates one reusable `StudentDetailsWindow`, passing it `Logic#getPersonList()`, and calls `showStudent` to open or focus it. This list is an unmodifiable observable view of all students from `Model#getAddressBook()`, independent of the filtered and sorted list used by `PersonListPanel`.
+
+`StudentDetailsSelection` observes this full list and exposes the selected student through a read-only object property. Students are immutable: an edit, enrolment change, or attendance change replaces the old `Person` with a new one. When a list change replaces the selected student with one new student, the selection follows that replacement. This also handles edits to the matriculation number, without trying to look up the student by their old number or displayed index. Removing the selected student, including through `clear`, clears the selection. Changes to other students leave it unchanged.
+
+`StudentDetailsWindow` listens to the selection property. A replacement refreshes every section and the window title without changing visibility or keyboard focus; an empty selection hides the window. Closing the window, including with `Esc`, clears the selection so later edits do not reopen it. Filtering and sorting do not change the full student list, so they do not close the window or select a different student.
+
+`StudentDetailsSelectionTest` covers replacements, matriculation number edits followed by deletion, attendance and class changes, clearing, changes to other students, switching the selected student, and updates while the student is hidden by a filter. `LogicManagerTest` checks that the full list remains observable and cannot be modified through the `Logic` API.
+
 ### Attendance feature
 
 The `attendance` command marks a student present on a date, and `attendance unmark` removes that record. Both identify the student by `INDEX` or `m/MATRICULATION_NUMBER` and take an optional `d/DATE`, which defaults to today.
@@ -536,6 +546,8 @@ The default display order ignores case when comparing names. It does not change 
 
 1. Tutor requests to view a student's profile using the student's index in the currently displayed list.
 2. TAssist opens or updates a details window showing the selected student's name, matriculation number, email, tags, enrolled classes and attendance dates. Tags are sorted by their text, classes by module and class group, and attendance from most recent to oldest.
+
+While the window remains open, changes to the selected student refresh its contents automatically. Deleting that student or clearing all students closes the window. Searching, filtering, and sorting preserve the selected profile, even if the student is hidden from the displayed list.
 
 Use case ends.
 
@@ -925,6 +937,45 @@ testers are expected to do more *exploratory* testing.
 
    1. Record another mark using `mark m/A6789012U id/CS2103T:A1 mark/15`.<br>
       Expected: The list returns to name order and the assignment result line disappears. Running `sort mark id/CS2103T:A1 desc` again shows the student with 15 first.
+
+### Keeping an open student profile current
+
+1. Refreshing details after edits
+
+   1. Prerequisites: Use a test data folder with at least two students. The first student must have no attendance on 07-10-2026 and must not be enrolled in CS2103T-T10. Run `list`, then `view 1`. Keep the details window open and enter subsequent commands in the main window.
+
+   1. Run `edit 1 n/Aaron Updated m/A9999999Z e/aaron.updated@example.com t/updated`, using an unused matriculation number.<br>
+      Expected: The existing details window immediately shows the new name, matriculation number, email and tag, and its title uses the new name. It does not take keyboard focus from the main window.
+
+   1. Run `attendance m/A9999999Z d/07-10-2026`, followed by `attendance unmark m/A9999999Z d/07-10-2026`.<br>
+      Expected: The date appears and then disappears from the open window; the attendance count updates each time without another `view` command.
+
+   1. Locate Aaron's current displayed index, INDEX. Run `enroll INDEX c/CS2103T-T10`, followed by `unenroll INDEX c/CS2103T-T10`.<br>
+      Expected: The class appears and then disappears from the open window.
+
+1. Preserving the selected profile through list changes
+
+   1. With Aaron's profile still open, run `sort matric desc`, then `find` with a name keyword matching only another student.<br>
+      Expected: The details window continues to show Aaron, even while Aaron is absent from the displayed list.
+
+   1. Run `attendance m/A9999999Z d/07-10-2026`.<br>
+      Expected: Aaron's open profile shows the new attendance date while the student remains hidden from the list.
+
+   1. Edit a different student using their current displayed index.<br>
+      Expected: Aaron's details window stays open and continues to show Aaron.
+
+1. Closing the profile after deletion or clearing
+
+   1. Run `find m/A9999999Z`, then `delete 1`.<br>
+      Expected: Aaron is deleted and the details window closes, including after the earlier matriculation number edit.
+
+   1. Run `list`, then `view 1` for a remaining student, then `clear`.<br>
+      Expected: The student list becomes empty and the details window closes.
+
+1. Keeping a manually closed profile closed
+
+   1. Add a student, run `view 1`, then close the details window with `Esc` or its close button. Edit that student.<br>
+      Expected: The details window stays closed. Running `view 1` again opens it with the updated details.
 
 ### Deleting a student
 
