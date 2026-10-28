@@ -320,7 +320,7 @@ or
 * Without `INDEX` or `m/`, marks every student enrolled in `MODULE-CLASS`, including students not in the displayed list.
 * When marking a whole class, students already recorded for that class and date are skipped and named in the result; the others are still marked.
 * A class with no enrolled students shows an error and changes nothing.
-* To record absentees, mark the whole class, then use `attendance unmark` for each absent student.
+* To take attendance quickly, mark the whole class, then use `attendance unmark` for each absent student. Unmarking removes that student's record for the class and date; TAssist does not store absences.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
 * The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
