@@ -165,7 +165,7 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Assignment mark feature
 
-The `seedu.address.model.gradebook` package defines the data model for assignment marks. `AddressBook` owns a `Gradebook`, and `Model` exposes operations for assigning work, recording marks, and removing links or definitions. JSON storage saves and restores this data. The `assignment` command creates and attaches assignments, `mark` records or updates a student's score, `marks` displays the results for one assignment, and `removeassignment` removes one student's link or the entire shared assignment.
+The `seedu.address.model.gradebook` package defines the data model for assignment marks. `AddressBook` owns a `Gradebook`, and `Model` exposes operations for assigning work, recording marks, and removing links or definitions. JSON storage saves and restores this data. The `assignment` command creates and attaches assignments, `mark` records or updates a student's score, `marks` displays the results for one assignment, `view` includes the selected student's assignments and marks in their profile, and `removeassignment` removes one student's link or the entire shared assignment.
 
 <puml src="diagrams/GradebookDomainDiagram.puml" alt="Assignment mark domain model" />
 
@@ -181,11 +181,21 @@ JSON storage keeps shared definitions in `assignments` and each student's link t
 
 `AssignmentCommandParser` accepts a student's matriculation number and assignment ID, plus a name and maximum mark together when defining new work. `AssignmentCommand` resolves the student against all stored students, independently of the displayed list. For new work, it calls `Model#addAssignmentForStudent`, which validates and publishes the definition and student link as one change. For existing work, it calls `Model#assignStudent` using the stored definition. The gradebook rejects a duplicate ID or name in the module and prevents assigning the same work twice to one student. Neither command form records a mark.
 
-`MarkCommandParser` accepts a matriculation number, an assignment ID, and a nonnegative decimal score. `MarkCommand` checks that the student, shared definition, and student's assignment link exist before calling `Model#recordMark`. The gradebook rejects scores above the shared maximum. `recordMark` returns the previous optional value, allowing the command to distinguish the first recorded mark from an update; a previous zero is present and therefore produces the updated response. The command changes only that student's score. `edit` remains for student particulars, and `view` remains focused on profile details.
+`MarkCommandParser` accepts a matriculation number, an assignment ID, and a nonnegative decimal score. `MarkCommand` checks that the student, shared definition, and student's assignment link exist before calling `Model#recordMark`. The gradebook rejects scores above the shared maximum. `recordMark` returns the previous optional value, allowing the command to distinguish the first recorded mark from an update; a previous zero is present and therefore produces the updated response. The command changes only that student's score. `edit` remains for student particulars. The student profile also displays these marks, as described below.
 
 `MarksCommandParser` accepts one assignment ID. `MarksCommand` obtains a read-only gradebook snapshot and joins that assignment's student marks to current student names by matriculation number. It sorts rows by matriculation number, independently of the filtered and sorted student list, and formats each score against the shared maximum. A missing `Mark` is printed as `Unmarked`, while a recorded zero is printed as `0/MAX_MARK`. An assignment with no students prints `None assigned.`. This command does not change the model or the displayed student list.
 
 `RemoveAssignmentCommandParser` accepts an assignment ID and an optional matriculation number. With a student number, `RemoveAssignmentCommand` checks that the student and assignment exist, then calls `Model#unassignStudent`; the gradebook removes only that student's link and optional mark. Without a student number, it calls `Model#removeAssignment`, which removes the definition and all links and marks under that ID. Both operations leave `Person` objects and unrelated gradebook entries untouched. Removing a definition releases its ID and name for reuse. The changed address book is saved through the usual command flow, so the removal persists after reopening the app. There is no archive or separate assignment edit operation.
+
+### Student profile assignment marks
+
+`ViewCommand` resolves the displayed index against `Model#getFilteredPersonList()` and returns the selected `Person` in `CommandResult`. `MainWindow` reuses a `StudentDetailsWindow` and passes the selected person together with `Logic#getGradebook()`. `LogicManager` delegates this getter to `ReadOnlyAddressBook#getGradebook()`, giving the UI a fresh snapshot without exposing the stored gradebook to mutation.
+
+`StudentDetailsWindow#formatAssignmentRows` looks up assignments by the selected person's matriculation number using `ReadOnlyGradebook#getMarksForStudent()`. It sorts entries by the string form of the assignment ID, resolves each shared definition, and formats the ID, name, maximum mark, and optional score. Recorded scores use plain decimal notation as `Mark: SCORE/MAXIMUM`; a zero remains a recorded score, while an empty mark displays `Mark: Unmarked`. Unassigned definitions and other students' marks are excluded.
+
+The `assignments` container in `StudentDetailsWindow.fxml` holds the rows under Assignments and marks. Each call to `showStudent` clears the previous rows before displaying the selected student's results or `None assigned`. Labels wrap within the existing scrollable window. The window displays a snapshot; assignment and mark commands do not automatically refresh it. Running `view` again fetches the latest snapshot and rebuilds its contents.
+
+`StudentDetailsWindowTest` covers empty assignments, ordering, student isolation, decimal and zero scores, unmarked assignments, and updated or removed entries. `LogicManagerTest#getGradebook_afterMarkChanges_returnsFreshSnapshot` verifies that a later request reflects a mark update while the earlier snapshot stays unchanged.
 
 ### Sorting displayed students
 
@@ -341,7 +351,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *`  | tutor                                    | edit a student's details                                     | keep their information up to date without re-adding them        |
 | `* * *`  | tutor                                    | list all students                                            | see everyone under my care                                      |
 | `* * *`  | tutor                                    | search for a student by name                                 | find their information quickly                                  |
-| `* * *`  | tutor                                    | view a student's profile                                     | review their particulars, classes and attendance in one place   |
+| `* * *`  | tutor                                    | view a student's profile                                     | review their particulars, classes, assignment marks and attendance in one place   |
 | `* * *`  | tutor teaching multiple modules          | assign students to modules and class sections                | organise the classes I teach                                    |
 | `* * *`  | tutor teaching multiple modules          | filter students by class                                     | see all students from one class                                 |
 | `* * *`  | tutor                                    | record a student's attendance for a specific class session   | keep track of whether they attended class                       |
@@ -535,7 +545,7 @@ The default display order ignores case when comparing names. It does not change 
 **MSS**
 
 1. Tutor requests to view a student's profile using the student's index in the currently displayed list.
-2. TAssist opens or updates a details window showing the selected student's name, matriculation number, email, tags, enrolled classes and attendance dates. Tags are sorted by their text, classes by module and class group, and attendance from most recent to oldest.
+2. TAssist opens or updates a details window showing the selected student's name, matriculation number, email, tags, enrolled classes, assignment marks and attendance dates. Tags are sorted by their text, classes by module and class group, assignments by assignment ID, and attendance from most recent to oldest. Each assignment shows its ID, name, maximum mark, and recorded score or `Unmarked`. Only assignments attached to the selected student are shown.
 
 Use case ends.
 
@@ -559,9 +569,9 @@ Use case ends.
 
   Use case resumes at step 1.
 
-* 2a. The student has no tags or no recorded attendance.
+* 2a. The student has no tags, enrolled classes, assignments, or recorded attendance.
 
-  * 2a1. TAssist indicates that no tags or attendance have been recorded, as applicable, alongside the student's other details.
+  * 2a1. TAssist shows `No tags`, `No classes enrolled`, `None assigned`, or `None recorded` in the corresponding section, alongside the student's other details.
 
   Use case ends.
 
@@ -832,7 +842,7 @@ Compatibility, packaging and storage requirements follow the [CS2103T project co
 | Student particulars | The identifying and contact details held in a student record. The MVP stores name, matriculation number, and email address. |
 | Matriculation number | The student's unique identifier. In the MVP, it is case-insensitive and consists of `A`, seven digits, and a final letter. It identifies the student for deletion and for recording or removing attendance. |
 | Displayed index | A student's temporary position in the currently displayed list or search results. Profile viewing, deletion, and recording or removing attendance use this index; it is not a permanent identifier. |
-| Student profile | The view of one student's particulars, available class memberships, and attendance records. It displays stored memberships but does not assign students to classes. Later versions may also show assignment and grade information. |
+| Student profile | The view of one student's particulars, available class memberships, assignment marks, and attendance records. It displays stored memberships but does not assign students to classes. |
 | Module | A university course identified by a module code, such as CS2103T. |
 | Class / class section | A tutorial or lab group within a module. A class identifier is interpreted together with its module code. |
 | Class session | One occurrence of a tutorial or lab. This term is relevant to later class-aware attendance features; the MVP attendance command identifies an attendance record by student and date only. |
@@ -999,6 +1009,23 @@ testers are expected to do more *exploratory* testing.
    Expected: TAssist shows the assignment name and maximum, then every assigned student in matriculation number order. Recorded scores appear as `MARK/MAX_MARK`; students without a score appear as `Unmarked`.
 1. Run `find` so some assigned students are hidden, then enter `marks id/CS2103T:A1` again.<br>
    Expected: The marks result still contains all assigned students, and the current student list remains filtered.
+
+### Viewing marks in a student profile
+
+Prerequisites: Run `list` to restore name order. Have at least two students with no assignments, and note the first student's matriculation number as `MATRIC`. Substitute that number in the commands below. Ensure `CS2103T:A1` and `CS2103T:A2` do not already exist.
+
+1. Enter `assignment m/MATRIC id/CS2103T:A2 n/Profile Quiz max/20`, then `view 1`.<br>
+   Expected: Assignments and marks shows `CS2103T:A2 - Profile Quiz (out of 20)` and `Mark: Unmarked`.
+1. Enter `mark m/MATRIC id/CS2103T:A2 mark/0`, then `view 1` again.<br>
+   Expected: The same window now shows `Mark: 0/20`.
+1. Enter `mark m/MATRIC id/CS2103T:A2 mark/17.5`.<br>
+   Expected: The open details window keeps its previous snapshot. Entering `view 1` refreshes it to `Mark: 17.5/20`.
+1. Enter `assignment m/MATRIC id/CS2103T:A1 n/Profile Homework max/10`, then `view 1`.<br>
+   Expected: `CS2103T:A1` appears before `CS2103T:A2`, with `Mark: Unmarked`. The quiz still shows `Mark: 17.5/20`.
+1. Enter `view 2`.<br>
+   Expected: The reused window shows `None assigned`, with no rows left over from the previous student. It does not show the first student's marks.
+1. Enter `removeassignment id/CS2103T:A1 m/MATRIC` and `removeassignment id/CS2103T:A2 m/MATRIC`, then `view 1`.<br>
+   Expected: The section shows `None assigned`. Particulars, classes, attendance, and Escape to close still work.
 
 ### Removing assignments
 

@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -12,10 +13,12 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.classcode.ClassCode;
+import seedu.address.model.gradebook.Assignment;
+import seedu.address.model.gradebook.ReadOnlyGradebook;
 import seedu.address.model.person.Person;
 
 /**
- * A reusable window showing a student's particulars, enrolled classes and attendance history.
+ * A reusable window showing a student's particulars, enrolled classes, assignment marks and attendance history.
  */
 public class StudentDetailsWindow extends UiPart<Stage> {
 
@@ -33,6 +36,8 @@ public class StudentDetailsWindow extends UiPart<Stage> {
     private Label tags;
     @FXML
     private GridPane classes;
+    @FXML
+    private VBox assignments;
     @FXML
     private Label attendanceSummary;
     @FXML
@@ -55,7 +60,7 @@ public class StudentDetailsWindow extends UiPart<Stage> {
     /**
      * Updates all sections and opens or focuses the window for the selected student.
      */
-    public void showStudent(Person person) {
+    public void showStudent(Person person, ReadOnlyGradebook gradebook) {
         logger.fine("Showing details for student: " + person.getName());
         studentName.setText(person.getName().toString());
         matriculationNumber.setText(person.getMatriculationNumber().toString());
@@ -81,6 +86,19 @@ public class StudentDetailsWindow extends UiPart<Stage> {
             }
         }
 
+        assignments.getChildren().clear();
+        List<String> assignmentRows = formatAssignmentRows(person, gradebook);
+        if (assignmentRows.isEmpty()) {
+            assignments.getChildren().add(new Label("None assigned"));
+        } else {
+            for (String row : assignmentRows) {
+                Label assignmentLabel = new Label(row);
+                assignmentLabel.setWrapText(true);
+                assignmentLabel.setMaxWidth(Double.MAX_VALUE);
+                assignments.getChildren().add(assignmentLabel);
+            }
+        }
+
         attendanceDates.getChildren().clear();
         int count = person.getAttendance().getDates().size();
         attendanceSummary.setText(count == 1 ? "1 recorded date" : count + " recorded dates");
@@ -99,5 +117,21 @@ public class StudentDetailsWindow extends UiPart<Stage> {
         getRoot().setIconified(false);
         getRoot().toFront();
         getRoot().requestFocus();
+    }
+
+    /**
+     * Returns the selected student's assignments in ID order, preserving the distinction between zero and unmarked.
+     */
+    static List<String> formatAssignmentRows(Person person, ReadOnlyGradebook gradebook) {
+        return gradebook.getMarksForStudent(person.getMatriculationNumber()).entrySet().stream()
+                .sorted(Comparator.comparing(entry -> entry.getKey().toString()))
+                .map(entry -> {
+                    Assignment assignment = gradebook.findAssignment(entry.getKey()).orElseThrow();
+                    String result = entry.getValue()
+                            .map(mark -> mark + "/" + assignment.getMaxMark().toPlainString())
+                            .orElse("Unmarked");
+                    return assignment + "\nMark: " + result;
+                })
+                .toList();
     }
 }

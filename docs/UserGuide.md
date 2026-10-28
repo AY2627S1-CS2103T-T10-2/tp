@@ -157,16 +157,20 @@ Examples:
 
 ### Viewing a student's details: `view`
 
-Opens a separate student details window showing particulars, enrolled classes and modules, and recorded attendance dates.
+Opens a separate student details window showing particulars, enrolled classes and modules, assignment marks, and recorded attendance dates.
 
 Format: `view INDEX`
 
 * The index refers to the number shown in the displayed student list.
-* Details are organised into Particulars, Classes and modules, and Attendance sections.
+* Details are organised into Particulars, Classes and modules, Assignments and marks, and Attendance sections.
 * Classes are listed by module code and class group. Students without classes show `No classes enrolled`.
 * Running `view` again updates the same window to the selected student. Press `Esc` to close the window.
 * Attendance dates are listed from newest to oldest. If no dates have been recorded, the Attendance section shows `None recorded`.
-* Attendance is currently recorded for the student overall. Attendance by class or module and marks are planned for future updates.
+* The Assignments and marks section shows only assignments attached to the selected student, ordered by assignment ID. Each entry includes its ID, name, maximum mark, and score (for example, `Mark: 8.5/10`).
+* An assignment without a recorded score shows `Mark: Unmarked`. A recorded zero shows a score such as `Mark: 0/10`. If the student has no assignments, the section shows `None assigned`.
+* Run `view` again after adding or removing assignments or changing marks to refresh the details. The open window does not refresh automatically.
+* Use `marks id/MODULE:CODE` to see all students' results for one assignment.
+* Attendance is currently recorded for the student overall. Attendance by class or module is planned for a future update.
 
 Example: `view 1` displays the first student in the current list.
 
