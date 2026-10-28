@@ -36,6 +36,7 @@ public class RedoCommandTest {
     public void execute_availableHistory_returnsSuccessWithoutExiting() throws Exception {
         ModelManager model = new ModelManager();
         new AddCommand(ALICE).execute(model);
+        model.commitAddressBook();
         model.undoAddressBook();
 
         assertEquals(new CommandResult(RedoCommand.MESSAGE_SUCCESS), new RedoCommand().execute(model));

@@ -61,7 +61,6 @@ public class EnrollCommand extends Command {
         }
         model.setPerson(student, student.withClassCode(classCode));
         logger.info("Enrolled " + student.getName() + " in " + classCode);
-        model.commitAddressBook();
 
         return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), classCode));
     }

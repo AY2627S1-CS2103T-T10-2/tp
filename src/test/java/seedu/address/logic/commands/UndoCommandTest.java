@@ -37,6 +37,7 @@ public class UndoCommandTest {
     public void execute_availableHistory_returnsSuccessWithoutExiting() throws Exception {
         ModelManager model = new ModelManager();
         new AddCommand(ALICE).execute(model);
+        model.commitAddressBook();
 
         assertEquals(new CommandResult(UndoCommand.MESSAGE_SUCCESS), new UndoCommand().execute(model));
         assertEquals(new AddressBook(), model.getAddressBook());

@@ -70,6 +70,8 @@ public class LogicManager implements Logic {
         CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
         commandResult = command.execute(model);
+        // Unchanged data, including restored undo/redo states, does not add a history entry.
+        model.commitAddressBook();
 
         try {
             storage.saveAddressBook(model.getAddressBook());

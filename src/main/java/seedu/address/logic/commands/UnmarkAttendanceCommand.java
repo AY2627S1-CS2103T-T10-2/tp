@@ -57,7 +57,6 @@ public class UnmarkAttendanceCommand extends Command {
         AttendanceRecord record = findRecordToRemove(student, attendanceDate);
         model.setPerson(student, MarkAttendanceCommand.createStudentWithAttendance(student,
                 student.getAttendance().withoutRecord(record)));
-        model.commitAddressBook();
         return new CommandResult(String.format(MESSAGE_SUCCESS,
                 student.getName(), record.getClassCode(), attendanceDate));
     }

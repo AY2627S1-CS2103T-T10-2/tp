@@ -69,7 +69,6 @@ public class MarkCommand extends Command {
             throw new CommandException(ex.getMessage());
         }
         String messageFormat = previous.isPresent() ? MESSAGE_UPDATED : MESSAGE_RECORDED;
-        model.commitAddressBook();
         return new CommandResult(String.format(messageFormat, mark, assignment.getMaxMark().toPlainString(),
                 student, assignmentId));
     }

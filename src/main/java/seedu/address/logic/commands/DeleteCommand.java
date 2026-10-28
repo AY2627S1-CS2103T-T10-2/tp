@@ -100,8 +100,6 @@ public class DeleteCommand extends Command {
             deletedStudentDetails.add(Messages.format(student));
         }
 
-        model.commitAddressBook();
-
         if (studentsToDelete.size() == 1) {
             return new CommandResult(String.format(
                     MESSAGE_DELETE_PERSON_SUCCESS, deletedStudentDetails.toString()));

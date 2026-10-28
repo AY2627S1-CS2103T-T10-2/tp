@@ -79,7 +79,6 @@ public class AssignmentCommand extends Command {
         } catch (IllegalArgumentException ex) {
             throw new CommandException(ex.getMessage());
         }
-        model.commitAddressBook();
         return new CommandResult(String.format(MESSAGE_SUCCESS, assignmentId, student));
     }
 
