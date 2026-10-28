@@ -36,6 +36,9 @@ public class ModelManager implements Model {
     private final ReadOnlyIntegerWrapper addressBookRestoreCount =
             new ReadOnlyIntegerWrapper(0);
 
+    private Predicate<Person> filterPredicate = PREDICATE_SHOW_ALL_PERSONS;
+    private Predicate<Person> findPredicate = PREDICATE_SHOW_ALL_PERSONS;
+
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
      */
@@ -100,7 +103,7 @@ public class ModelManager implements Model {
     @Override
     public void addPerson(Person person) {
         versionedAddressBook.addPerson(person);
-        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        resetFilteredPersonList();
         sortPersons(COMPARATOR_NAME_ASC);
     }
 
@@ -185,7 +188,34 @@ public class ModelManager implements Model {
     @Override
     public void updateFilteredPersonList(Predicate<Person> predicate) {
         requireNonNull(predicate);
-        filteredPersons.setPredicate(predicate);
+        filterPredicate = predicate;
+        findPredicate = PREDICATE_SHOW_ALL_PERSONS;
+        applyPredicates();
+    }
+
+    @Override
+    public void resetFilteredPersonList() {
+        filterPredicate = PREDICATE_SHOW_ALL_PERSONS;
+        findPredicate = PREDICATE_SHOW_ALL_PERSONS;
+        applyPredicates();
+    }
+
+    @Override
+    public void updateFilterPredicate(Predicate<Person> predicate) {
+        requireNonNull(predicate);
+        filterPredicate = predicate;
+        applyPredicates();
+    }
+
+    @Override
+    public void updateFindPredicate(Predicate<Person> predicate) {
+        requireNonNull(predicate);
+        findPredicate = predicate;
+        applyPredicates();
+    }
+
+    private void applyPredicates() {
+        filteredPersons.setPredicate(filterPredicate.and(findPredicate));
     }
 
     //=========== AddressBook History ========================================================================

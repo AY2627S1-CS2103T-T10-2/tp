@@ -2,14 +2,13 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
-import seedu.address.model.person.Person;
+import seedu.address.model.person.FindPredicate;
 
 /**
  * Finds and lists students that match the supplied predicate.
@@ -27,16 +26,19 @@ public class FindCommand extends Command {
 
     private static final Logger logger = LogsCenter.getLogger(FindCommand.class);
 
-    private final Predicate<Person> predicate;
+    private final FindPredicate predicate;
 
-    public FindCommand(Predicate<Person> predicate) {
+    public FindCommand(FindPredicate predicate) {
         this.predicate = predicate;
     }
 
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.updateFilteredPersonList(predicate);
+        if (predicate.ignoresActiveFilter()) {
+            model.resetFilteredPersonList();
+        }
+        model.updateFindPredicate(predicate);
         model.sortPersons(Model.COMPARATOR_NAME_ASC);
 
         int resultCount = model.getFilteredPersonList().size();

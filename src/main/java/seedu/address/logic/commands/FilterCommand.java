@@ -41,7 +41,7 @@ public class FilterCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.updateFilteredPersonList(predicate);
+        model.updateFilterPredicate(predicate);
         int personListSize = model.getFilteredPersonList().size();
         logger.fine("Filter used: " + predicate.toString() + "\nFilter matched " + personListSize + " student(s).");
         return new CommandResult(

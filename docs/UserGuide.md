@@ -133,6 +133,7 @@ Format: `find KEYWORD [MORE_KEYWORDS]...`
 * Both partial and full words match.
 * Students matching at least one keyword are returned.
 * This form searches names only.
+* This search layers upon filters performed by the `filter` command.
 
 Examples:
 
