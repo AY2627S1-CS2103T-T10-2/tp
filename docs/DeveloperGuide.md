@@ -356,6 +356,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | tutor                                    | view attendance statistics for a class                       | monitor participation trends                                    |
 | `* *`    | tutor                                    | record a student's class participation                       | grade their participation                                       |
 | `* *`    | tutor                                    | undo my last action                                          | reverse mistakes                                                |
+| `* *`    | tutor                                    | redo an undone action                                        | recover from an accidental undo                                 |
 | `* *`    | tutor                                    | have my filters persist across searches                      | avoid retyping the same filters                                 |
 | `*`      | tutor who has finished teaching a class  | delete students in batches                                   | remove a whole class at once                                    |
 | `*`      | tutor teaching a new class               | import students from a file with one command                 | avoid adding them one by one                                    |
