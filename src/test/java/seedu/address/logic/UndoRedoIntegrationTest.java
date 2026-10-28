@@ -6,8 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -20,6 +22,13 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.SortDisplay;
+import seedu.address.model.classcode.ClassCode;
+import seedu.address.model.gradebook.AssignmentId;
+import seedu.address.model.gradebook.Mark;
+import seedu.address.model.person.AttendanceDate;
+import seedu.address.model.person.AttendanceRecord;
+import seedu.address.model.person.MatriculationNumber;
+import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -81,6 +90,43 @@ public class UndoRedoIntegrationTest {
         assertTrue(parser.parseCommand("redo") instanceof RedoCommand);
         assertTrue(parser.parseCommand("undo ignored") instanceof UndoCommand);
         assertTrue(parser.parseCommand("redo ignored") instanceof RedoCommand);
+    }
+
+    @Test
+    public void execute_deleteStudentWithAttendanceAndMark_undoRestoresBoth() throws Exception {
+        ModelManager model = new ModelManager();
+        Logic logic = createLogic(model);
+        MatriculationNumber studentId = new MatriculationNumber("A1234567A");
+        AssignmentId assignmentId = new AssignmentId("CS2103T:A1");
+        AttendanceRecord attendance = new AttendanceRecord(new AttendanceDate("07-10-2026"),
+                new ClassCode("CS2103T-T10"));
+        Mark mark = new Mark(new BigDecimal("17"));
+
+        logic.execute("add n/Amy m/A1234567A e/amy@example.com");
+        logic.execute("enroll 1 c/CS2103T-T10");
+        logic.execute("attendance m/A1234567A c/CS2103T-T10 d/07-10-2026");
+        logic.execute("assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20");
+        logic.execute("mark m/A1234567A id/CS2103T:A1 mark/17");
+        Person student = model.getAddressBook().getPersonList().get(0);
+        assertEquals(List.of(attendance), student.getAttendance().getRecords());
+        assertEquals(Optional.of(mark), model.getAddressBook().getGradebook()
+                .getMarksForStudent(studentId).get(assignmentId));
+        AddressBook beforeDelete = new AddressBook(model.getAddressBook());
+
+        logic.execute("delete m/A1234567A");
+
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertTrue(model.getAddressBook().getGradebook().getMarksForStudent(studentId).isEmpty());
+        assertTrue(model.getAddressBook().getGradebook().findAssignment(assignmentId).isPresent());
+
+        logic.execute("undo");
+
+        assertEquals(List.of(student), model.getAddressBook().getPersonList());
+        assertEquals(List.of(attendance), model.getAddressBook().getPersonList().get(0)
+                .getAttendance().getRecords());
+        assertEquals(Optional.of(mark), model.getAddressBook().getGradebook()
+                .getMarksForStudent(studentId).get(assignmentId));
+        assertEquals(beforeDelete, model.getAddressBook());
     }
 
     @Test
