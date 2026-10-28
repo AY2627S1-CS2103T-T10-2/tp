@@ -32,6 +32,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.MarkAttendanceCommand;
+import seedu.address.logic.commands.MarkClassAttendanceCommand;
 import seedu.address.logic.commands.MarkCommand;
 import seedu.address.logic.commands.MarksCommand;
 import seedu.address.logic.commands.RemoveAssignmentCommand;
@@ -108,6 +109,9 @@ public class AddressBookParserTest {
                 new ClassCode("CS2103T-T10"),
                 Optional.empty()),
                 parser.parseCommand("attendance m/A1234567X c/CS2103T-T10"));
+        assertEquals(new MarkClassAttendanceCommand(new ClassCode("CS2103T-T10"),
+                Optional.of(new AttendanceDate("07-10-2026"))),
+                parser.parseCommand("attendance c/CS2103T-T10 d/07-10-2026"));
     }
 
     @Test
