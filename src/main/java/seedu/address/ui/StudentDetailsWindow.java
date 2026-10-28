@@ -114,7 +114,7 @@ public class StudentDetailsWindow extends UiPart<Stage> {
         getRoot().requestFocus();
     }
 
-        /**
+    /**
      * Returns the selected student's assignments in ID order, preserving the distinction between zero and unmarked.
      */
     static List<String> formatAssignmentRows(Person person, ReadOnlyGradebook gradebook) {

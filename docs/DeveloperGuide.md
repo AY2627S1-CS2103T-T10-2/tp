@@ -201,7 +201,7 @@ JSON storage keeps shared definitions in `assignments` and each student's link t
 
 The `assignments` container in `StudentDetailsWindow.fxml` holds the rows under Assignments and marks. Each call to `showStudent` clears the previous rows before displaying the selected student's results or `None assigned`. Labels wrap within the existing scrollable window. The window displays a snapshot; assignment and mark commands do not automatically refresh it. Running `view` again fetches the latest snapshot and rebuilds its contents.
 
-`StudentDetailsWindowTest` covers empty assignments, ordering, student isolation, decimal and zero scores, unmarked assignments, and updated or removed entries. `LogicManagerTest#getGradebook_afterMarkChanges_returnsFreshSnapshot` verifies that a later request reflects a mark update while the earlier snapshot stays unchanged.
+`StudentDetailsWindowTest` covers empty assignments, ordering, student isolation, decimal and zero scores, unmarked assignments, and updated or removed entries. It also opens one JavaFX details window and switches between students to verify that displayed scores and assignment rows are replaced, including the `None assigned` state and switching back to the original student. The test initializes JavaFX and performs window operations on its application thread; Linux CI runs under Xvfb to provide a display. `LogicManagerTest#getGradebook_afterMarkChanges_returnsFreshSnapshot` verifies that a later request reflects a mark update while the earlier snapshot stays unchanged.
 
 ### Sorting displayed students
 
