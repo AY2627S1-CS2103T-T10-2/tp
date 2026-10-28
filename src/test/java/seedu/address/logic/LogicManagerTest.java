@@ -337,5 +337,8 @@ public class LogicManagerTest {
         ModelManager expectedModel = new ModelManager();
         expectedModel.addPerson(expectedPerson);
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+        assertTrue(model.canUndoAddressBook());
+        model.undoAddressBook();
+        assertEquals(new ModelManager().getAddressBook(), model.getAddressBook());
     }
 }

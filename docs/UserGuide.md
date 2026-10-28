@@ -244,7 +244,7 @@ Format for all students: `removeassignment id/MODULE:CODE`
 * With `m/`, only that student's assignment link and recorded mark are removed. The shared assignment stays available for other students and can be assigned to this student again.
 * Without `m/`, the assignment definition and every student's link and mark for it are removed. You can then create a new assignment using the same ID or name.
 * Neither form deletes or edits student details, other assignments, or their marks. The student is found by matriculation number even if hidden from the current list.
-* An unknown assignment or student, or an assignment not attached to the specified student, gives an error without changing records. A successful removal is saved in TAssist's data file; there is no assignment archive or undo command.
+* An unknown assignment or student, or an assignment not attached to the specified student, gives an error without changing records. A successful removal is saved in TAssist's data file and can be undone during the current session using `undo`. There is no separate assignment archive.
 
 Examples:
 * `removeassignment id/CS2103T:A1 m/A1234567X`
@@ -311,21 +311,27 @@ Examples:
 
 ### Marking attendance: `attendance`
 
-Marks the specified student present in the given class on the given date.
+Marks the specified student, or every student enrolled in a class, present in the given class on the given date.
 
 Format: `attendance INDEX c/MODULE-CLASS [d/DATE]`
 or
 `attendance m/MATRICULATION_NUMBER c/MODULE-CLASS [d/DATE]`
+or
+`attendance c/MODULE-CLASS [d/DATE]`
 
 * Marks the student at the specified `INDEX` or with the specified `MATRICULATION_NUMBER` present in `MODULE-CLASS` on `DATE`.
 * `c/MODULE-CLASS` is required. The student must be enrolled in that class using `enroll`. Class codes ignore letter case, as in `enroll`.
-* Specify the student by either `INDEX` or `MATRICULATION_NUMBER`, not both.
+* For a single student, specify either `INDEX` or `MATRICULATION_NUMBER`, not both.
+* Without `INDEX` or `m/`, marks every student enrolled in `MODULE-CLASS`, including students not in the displayed list.
+* When marking a whole class, students already recorded for that class and date are skipped and named in the result; the others are still marked.
+* A class with no enrolled students shows an error and changes nothing.
+* To take attendance quickly, mark the whole class, then use `attendance unmark` for each absent student. Unmarking removes that student's record for the class and date; TAssist does not store absences.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
 * The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
 * The matriculation number can identify a student who is not in the displayed list, for example after `find`.
 * `DATE` must be in `dd-MM-yyyy` format. If omitted, today's date is used.
-* Marking a student who is already recorded in that class on that date shows an error and changes nothing.
+* When marking a single student, an existing record for that class and date shows an error and changes nothing.
 * The same student can be marked in different classes on one date.
 
 Examples:
@@ -333,6 +339,7 @@ Examples:
 * `attendance 1 c/CS2103T-T10 d/07-10-2026` marks the 1st student in the displayed list present in `CS2103T-T10` on `07-10-2026`.
 * `find Betsy` followed by `attendance 1 c/CS2103T-T10` marks the 1st student in the results of the `find` command present in `CS2103T-T10` on today's date.
 * `attendance m/A1234567X c/CS2103T-T10 d/07-10-2026` marks the student whose matriculation number is `A1234567X` present in `CS2103T-T10` on `07-10-2026`.
+* `attendance c/CS2103T-T10 d/07-10-2026` marks every student enrolled in `CS2103T-T10` present on `07-10-2026`.
 
 ### Unmarking attendance: `attendance unmark`
 
@@ -431,6 +438,35 @@ Clears all entries from the address book.
 
 Format: `clear`
 
+### Undoing a change: `undo`
+
+Restores the records from before the most recent change.
+
+Format: `undo`
+
+* Supports changes to students, enrollment, attendance, assignments and marks, including `delete`, `clear`, and both forms of `removeassignment`.
+* You can repeat `undo` to restore earlier changes in the current session. History starts when TAssist launches and is discarded when it closes.
+* Commands that only change the displayed list, unsuccessful commands that leave records unchanged, and commands that make no change to records do not add history entries.
+* A successful undo shows all students sorted by name in ascending order, clears extra sort details, and closes the student details window. It saves the restored records to the data file.
+* If there is no earlier change, TAssist reports `No commands to undo.` and leaves records and the displayed list unchanged.
+* If saving fails after a change or restoration, the in-memory change still takes effect and remains in history; follow the error message before retrying the command.
+
+Example: run `delete 1`, then `undo` to restore the deleted student and their assignment links and marks.
+
+### Redoing a change: `redo`
+
+Reapplies the most recently undone change.
+
+Format: `redo`
+
+* You can repeat `redo` until all undone changes have been reapplied.
+* A new change to records after `undo` discards the remaining redo history. Commands that only change the display, failed commands that leave records unchanged, and commands that make no change to records preserve redo history.
+* Successful redo resets the displayed list and closes student details in the same way as undo, then saves the restored records.
+* If there is no change to redo, TAssist reports `No commands to redo.` and leaves records and the displayed list unchanged.
+* Extra parameters after `undo` or `redo` are ignored, as with `clear`.
+
+Example: run `delete 1`, `undo`, then `redo` to delete the same student again.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -480,13 +516,15 @@ _Details coming soon ..._
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME m/MATRICULATION_NUMBER e/EMAIL [t/TAG]... ` <br> e.g., `add n/James Ho m/A1234567A e/jamesho@example.com t/friend t/colleague`
-**Mark attendance** | `attendance INDEX c/MODULE-CLASS [d/DATE]` or `attendance m/MATRICULATION_NUMBER c/MODULE-CLASS [d/DATE]`<br> e.g., `attendance 1 c/CS2103T-T10 d/07-10-2026`, `attendance m/A1234567X c/CS2103T-T10`
+**Mark attendance** | `attendance INDEX c/MODULE-CLASS [d/DATE]` or `attendance m/MATRICULATION_NUMBER c/MODULE-CLASS [d/DATE]` or `attendance c/MODULE-CLASS [d/DATE]`<br> e.g., `attendance 1 c/CS2103T-T10 d/07-10-2026`, `attendance m/A1234567X c/CS2103T-T10`, `attendance c/CS2103T-T10 d/07-10-2026`
 **Unmark attendance** | `attendance unmark INDEX [c/MODULE-CLASS] [d/DATE]` or `attendance unmark m/MATRICULATION_NUMBER [c/MODULE-CLASS] [d/DATE]`<br> e.g., `attendance unmark 1 d/07-10-2026`, `attendance unmark 1 c/CS2103T-T10 d/07-10-2026`
 **Assignment** | `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`<br> e.g., `assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20`
 **Mark** | `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`<br> e.g., `mark m/A1234567A id/CS2103T:A1 mark/17.5`
 **Marks** | `marks id/MODULE:CODE`<br> e.g., `marks id/CS2103T:A1`
 **Remove assignment** | `removeassignment id/MODULE:CODE [m/MATRICULATION_NUMBER]`<br> e.g., `removeassignment id/CS2103T:A1 m/A1234567A`
 **Clear**  | `clear`
+**Undo** | `undo`
+**Redo** | `redo`
 **Delete** | `delete INDEX` or `delete m/MATRICULATION_NUMBER`<br> e.g., `delete 3`, `delete m/A1234567X`
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Enroll** | `enroll INDEX c/MODULE-CLASS` <br> e.g., `enroll 1 c/CS2103T-T10`
