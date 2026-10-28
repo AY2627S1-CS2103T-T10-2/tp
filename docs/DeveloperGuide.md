@@ -94,6 +94,10 @@ The sequence diagram below illustrates the interactions within the `Logic` compo
 
 <puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `delete 1` Command" />
 
+For `delete 1`, `DeleteCommandParser` parses the displayed index into a `StudentIdentifier` named `targetStudent` and passes it to `DeleteCommand(targetStudent)`.
+During `execute(m)`, where `m` is the `Model` instance, `DeleteCommand` calls `targetStudent.resolve(m)` to obtain the target `Person`, stored in `personToDelete`.
+It then calls `m.deletePerson(personToDelete)` and returns a `CommandResult` containing the deletion success message.
+
 <box type="info" seamless>
 
 **Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, the lifeline continues till the end of diagram.
@@ -197,6 +201,16 @@ The `sort` command accepts `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MOD
 
 `SortDisplay` supplies the optional extra line on each student card. An attendance sort shows the record count. A mark sort shows the assignment ID and each student's mark or missing status. `add`, `find`, and `list` restore name order and remove that line. Assignment, mark, or student detail changes reset an active mark sort so its display does not become stale.
 
+### Keeping the student details window up to date
+
+`ViewCommand` returns the selected `Person` in its `CommandResult`. `MainWindow` creates one reusable `StudentDetailsWindow`, passing it `Logic#getPersonList()`, and calls `showStudent` to open or focus it. This list is an unmodifiable observable view of all students from `Model#getAddressBook()`, independent of the filtered and sorted list used by `PersonListPanel`.
+
+`StudentDetailsSelection` observes this full list and exposes the selected student through a read-only object property. Students are immutable: an edit, enrolment change, or attendance change replaces the old `Person` with a new one. When a list change replaces the selected student with one new student, the selection follows that replacement. This also handles edits to the matriculation number, without trying to look up the student by their old number or displayed index. Removing the selected student, including through `clear`, clears the selection. Changes to other students leave it unchanged.
+
+`StudentDetailsWindow` listens to the selection property. A replacement refreshes every section and the window title without changing visibility or keyboard focus; an empty selection hides the window. Closing the window, including with `Esc`, clears the selection so later edits do not reopen it. Filtering and sorting do not change the full student list, so they do not close the window or select a different student.
+
+`StudentDetailsSelectionTest` covers replacements, matriculation number edits followed by deletion, attendance and class changes, clearing, changes to other students, switching the selected student, and updates while the student is hidden by a filter. `LogicManagerTest` checks that the full list remains observable and cannot be modified through the `Logic` API.
+
 ### Attendance feature
 
 The `attendance` command marks a student or a whole class present at a class session, and `attendance unmark` removes an individual student's record. Each `AttendanceRecord` contains an `AttendanceDate` and a `ClassCode`; the same student may have records for different classes on one date, but not two records for the same class and date. Single-student mark and unmark requests identify the student by `INDEX` or `m/MATRICULATION_NUMBER`. All forms take an optional `d/DATE`, which defaults to today. Mark requires `c/MODULE-CLASS`; unmark accepts an optional `[c/MODULE-CLASS]`.
@@ -223,6 +237,41 @@ Design considerations:
 * Whole-class marking skips students already recorded for the class and date instead of rejecting the entire request. This lets tutors mark the remaining students even when some records already exist, and safely repeat the command.
 * Records keep their class code independently of current enrollment, so unenrolling a student, from one class or with `all/`, keeps their attendance history. Unmarking with `c/` and loading saved data do not require a record's class to be a current enrollment.
 * Date-only attendance entries from earlier versions are rejected rather than migrated, because they do not identify the class attended. TAssist reports the load error, blocks commands and leaves the file unchanged until the user fixes or removes it.
+
+
+### Viewing class attendance statistics
+
+The attendance statistics feature allows tutors to check how many students attended a class on a given date, compared with the number of students currently enrolled in that class.
+
+#### Command parsing
+
+The feature is implemented as a `stats` subcommand under the existing `attendance` command.
+
+`AddressBookParser` continues to delegate attendance-related commands to `AttendanceCommandParser`. The parser identifies the `stats` subcommand and creates a `ViewAttendanceStatsCommand`.
+
+The command requires a class code and date. The parser reuses `ParserUtil` to validate the class code and attendance date, and rejects missing arguments, student identifiers and repeated prefixes.
+
+#### Calculating attendance statistics
+
+`ViewAttendanceStatsCommand` reads the complete student list through `Model.getAddressBook().getPersonList()`, rather than the filtered list currently shown in the UI.
+
+It first identifies students currently enrolled in the specified class. The size of this group gives the total number of enrolled students.
+
+The command then creates an `AttendanceRecord` using the requested class code and date. For each enrolled student, it checks whether the student's `Attendance` contains that record.
+
+The number of matching students gives the attended count. Since attendance records are unique for each student, class and date, a student is counted at most once.
+
+The command returns both counts through `CommandResult`.
+
+#### Design decisions
+
+* The statistics are calculated from existing attendance records, so no additional fields or storage format changes are needed.
+* The command is read-only and does not modify students, attendance records, or the displayed list.
+* Both the class and date are required to identify a particular attendance session.
+* The total uses current enrollment rather than historical enrollment, since the application does not store enrollment history for each date.
+* Students who are no longer enrolled are excluded from both counts, even if they still have historical attendance records.
+* A missing attendance record is not treated as confirmed absence. It simply does not contribute to the attended count.
+* An empty class produces zero for both counts, avoiding division by zero or unnecessary errors.
 
 ### Undo/redo feature
 
@@ -316,6 +365,74 @@ The following activity diagram summarizes what happens when a user executes a ne
   * Cons: We must ensure that the implementation of each individual command is correct.
 
 _{more aspects and alternatives to be added}_
+
+### Class participation
+
+The participation feature records a student's points for a class on a
+particular date. Participation is stored separately from attendance.
+
+#### Data model
+
+`ParticipationPoints` represents a non-negative whole-number score.
+
+`ParticipationRecord` contains a class code, date and score. Two records
+refer to the same session when their class and date match. Their full
+equality comparison also includes the score.
+
+Each `Person` owns an immutable `ParticipationHistory`. The history
+contains at most one record per class and date. Adding a record for an
+existing session replaces its score rather than adding the scores or
+creating another record.
+
+History updates return a new history. `Person.withParticipationHistory`
+creates an updated student while preserving the other fields.
+
+#### Command execution
+
+`AddressBookParser` delegates participation arguments to
+`ParticipationCommandParser`, which selects the set, view or remove
+operation.
+
+The parser reuses `ParserUtil` for student identifiers, class codes and
+calendar-date validation. Points are validated by `ParticipationPoints`.
+Missing, repeated and invalid arguments are rejected before command
+execution.
+
+`ParticipationCommand` resolves the student through `StudentIdentifier`,
+checks enrollment, creates the updated history and replaces the student
+through the model.
+
+`ViewParticipationCommand` sorts a copy of the records for display without
+changing the stored history.
+
+`RemoveParticipationCommand` checks that the requested record exists
+before updating the student. Viewing and removing historical records do
+not require current enrollment.
+
+#### Persistence and preservation
+
+`JsonAdaptedPerson` stores participation records through
+`JsonAdaptedParticipationRecord`. Participation dates use ISO date strings
+in storage; command input uses `dd-MM-yyyy`.
+
+A missing or null participation list is read as an empty history for
+compatibility with older student files. Null records, invalid record
+fields and duplicate class-date sessions are rejected.
+
+The student-copy paths used for basic edits, attendance marking and
+enrollment changes preserve the participation history.
+
+#### Design decisions
+
+* A score replaces the previous value for the same student, class and date.
+  Repeating a command therefore does not accidentally accumulate points.
+* Zero points and an absent record have different meanings. Removing a
+  record is a separate operation.
+* Participation does not automatically change attendance.
+* Class and date identify a session; multiple sessions of the same class
+  on one date are outside this version's scope.
+* Scores have no configurable module-specific maximum. The supported
+  whole-number range is determined by the integer representation.
 
 ### \[Proposed\] Data archiving
 
@@ -570,6 +687,8 @@ The default display order ignores case when comparing names. It does not change 
 
 1. Tutor requests to view a student's profile using the student's index in the currently displayed list.
 2. TAssist opens or updates a details window showing the selected student's name, matriculation number, email, tags, enrolled classes and attendance records with their dates and classes. Tags are sorted by their text, classes by module and class group, and attendance by date from most recent to oldest, then by class code in ascending order within a date.
+
+While the window remains open, changes to the selected student refresh its contents automatically. Deleting that student or clearing all students closes the window. Searching, filtering, and sorting preserve the selected profile, even if the student is hidden from the displayed list.
 
 Use case ends.
 
@@ -839,6 +958,60 @@ Use case ends.
 
   Use case ends.
 
+### UC15: Record class participation points
+
+**Actor:** Tutor
+
+**Main success scenario**
+
+1. The tutor requests to record participation points for a student,
+   specifying the class, date and score.
+2. TAssist records the score, replacing the previous score for the same
+   class and date if one exists, and confirms the update.
+
+Use case ends.
+
+**Extensions**
+
+1a. Required input is missing, repeated or invalid.
+
+    1a1. TAssist explains the input error without changing student data.
+
+    Use case resumes at step 1.
+
+1b. The student cannot be found or is not enrolled in the specified class.
+
+    1b1. TAssist explains the problem without changing student data.
+
+    Use case resumes at step 1.
+
+### UC16: View attendance statistics for a class
+
+**Actor:** Tutor
+
+**Main success scenario**
+
+1. The tutor requests attendance statistics for a class on a specified date.
+2. TAssist finds all students currently enrolled in that class.
+3. TAssist counts enrolled students with an attendance record for that class and date.
+4. TAssist displays the attended count and total enrolled count.
+
+Use case ends.
+
+**Extensions**
+
+1a. The class code or date is missing or invalid.
+
+    1a1. TAssist displays an error message explaining the required input.
+
+    Use case resumes at step 1.
+
+2a. No students are currently enrolled in the class.
+
+    2a1. TAssist displays 0 students attended and 0 total students.
+
+    Use case ends.
+
 ### Non-Functional Requirements
 
 Compatibility, packaging and storage requirements follow the [CS2103T project constraints](https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-constraints.html). Performance targets assume a computer with at least 8 GB RAM running Java 25.
@@ -962,6 +1135,67 @@ testers are expected to do more *exploratory* testing.
    1. Record another mark using `mark m/A6789012U id/CS2103T:A1 mark/15`.<br>
       Expected: The list returns to name order and the assignment result line disappears. Running `sort mark id/CS2103T:A1 desc` again shows the student with 15 first.
 
+### Keeping an open student profile current
+
+Run the following scenarios in order in a test data folder. Keep the details window open and enter commands in the main window unless instructed otherwise.
+
+1. Refreshing details after edits
+
+   1. Prerequisites: Have at least two students. The first student must not be enrolled in CS2103T-T10 and must have no attendance records for that class. Ensure A9999999Z is unused. Run `list`, then `view 1`.
+
+   2. Run `edit 1 n/Aaron Updated m/A9999999Z e/aaron.updated@example.com t/updated`.<br>
+      Expected: The existing details window immediately shows the new name, matriculation number, email and tag, and its title uses the new name. It does not take keyboard focus from the main window.
+
+   3. Run `find m/A9999999Z`, then `enroll 1 c/CS2103T-T10`.<br>
+      Expected: Aaron is the only displayed student. The class immediately appears in the open details window.
+
+   4. Run `attendance m/A9999999Z c/CS2103T-T10 d/07-10-2026`.<br>
+      Expected: An attendance record for 07-10-2026 and CS2103T-T10 appears in the open window, and the attendance count increases without another `view` command.
+
+   5. Run `attendance unmark m/A9999999Z c/CS2103T-T10 d/07-10-2026`.<br>
+      Expected: The attendance record disappears and the attendance count decreases immediately.
+
+   6. Run `unenroll 1 c/CS2103T-T10`.<br>
+      Expected: The class disappears from the open details window.
+
+   7. Run `enroll 1 c/CS2103T-T10` again.<br>
+      Expected: The class reappears. Leave Aaron enrolled for the next scenario.
+
+2. Preserving the selected profile through list changes
+
+   1. With Aaron's profile still open, run `list`, then `sort matric desc`.<br>
+      Expected: The list is sorted, and the details window continues to show Aaron.
+
+   2. Run `find` with a name keyword matching only another student.<br>
+      Expected: The details window continues to show Aaron, even while Aaron is absent from the displayed list.
+
+   3. Run `attendance m/A9999999Z c/CS2103T-T10 d/07-10-2026`.<br>
+      Expected: Aaron's open profile shows the new attendance record and updated count while the student remains hidden from the list.
+
+   4. Edit a different student using their current displayed index.<br>
+      Expected: Aaron's details window stays open and continues to show Aaron.
+
+3. Closing the profile after deletion or clearing
+
+   1. Run `find m/A9999999Z`, then `delete 1`.<br>
+      Expected: Aaron is deleted and the details window closes, including after the earlier matriculation number edit.
+
+   2. Run `list`, then `view 1` for a remaining student, then `clear`.<br>
+      Expected: The student list becomes empty and the details window closes.
+
+4. Keeping a manually closed profile closed
+
+   1. Run `add n/Profile Test m/A9999999Z e/profile.test@example.com`, then `view 1`.
+
+   2. Close the details window with `Esc`, then run `edit 1 n/Profile Updated`.<br>
+      Expected: The details window stays closed.
+
+   3. Run `view 1` again.<br>
+      Expected: The window opens with the updated name and title.
+
+   4. Close the window with its close button, then run `edit 1 n/Profile Final`.<br>
+      Expected: The details window stays closed. Running `view 1` again opens it with the latest name and title.
+
 ### Deleting a student
 
 1. Deleting a student while all students are being shown
@@ -1033,6 +1267,113 @@ testers are expected to do more *exploratory* testing.
 
    1. Test case: `attendance c/CS2103T-T99`<br>
       Expected: The status message shows `No students are enrolled in CS2103T-T99.` No attendance records change.
+
+### Recording class participation
+
+Use test data for the cases below, as some steps change student details or remove participation records.
+
+Replace `MATRIC` with the chosen test student's matriculation number, without the angle brackets or any other placeholder text. `NAME` refers to that student's current name. Run commands one at a time.
+
+1. Recording and updating participation points
+   1. Prerequisites: Run `list` with at least one student in the list. Use the first student as the test student and note their matriculation number using `view 1`. Enroll them using `enroll 1 c/CS2103T-T10` if they are not already enrolled. The student must have no participation record for CS2103T-T10 on 28-10-2026.
+   2. Test case: `participation 1 c/CS2103T-T10 d/28-10-2026 p/2`, followed by `participation view m/MATRIC`.<br>
+      Expected: The status message confirms that 2 points were recorded. The history contains `CS2103T-T10 | 28-10-2026 | 2 point(s)`. Attendance and other student details are unchanged.
+   3. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3`, followed by `participation view m/MATRIC`.<br>
+      Expected: The existing score is replaced. There is one record for that class and date with 3 points, not 5. Other participation records are unchanged.
+   4. Test case: Repeat `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3`, then view the history again.<br>
+      Expected: The score remains 3 and no duplicate record is created.
+
+2. Viewing a student outside the displayed list
+   1. Prerequisites: Have at least two students with distinguishable names. The chosen test student must have a participation record. Run `participation view m/MATRIC` to note their history, then use `find` with a keyword that matches another student only, so the chosen student is not displayed.
+   2. Test case: `participation view m/MATRIC`.<br>
+      Expected: The chosen student's participation history is shown in the command result panel, even though they are not in the displayed list. Entries are ordered by class code and then date. The displayed student list and stored data are unchanged.
+
+3. Rejecting invalid or incomplete input
+   1. Prerequisites: The chosen student is enrolled in CS2103T-T10. Run `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3`, then `participation view m/MATRIC` to note the existing records. After each rejected command below, view the history again to check that it is unchanged.
+   2. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/-1`.<br>
+      Expected: The status message explains the valid points format and range. The existing score remains 3, and no other participation records change.
+   3. Test case: Repeat the previous command with each of these point values: `p/2.5`, `p/two`, `p/2147483648`, and an empty `p/`.<br>
+      Expected: Each command is rejected without changing any participation records.
+   4. Test case: `participation m/MATRIC c/CS2103T-T10 d/31-02-2026 p/2`.<br>
+      Expected: The status message explains that a valid calendar date in dd-MM-yyyy format is required. No record is added or changed.
+   5. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026`.<br>
+      Expected: The status message asks for points using `p/POINTS`. The existing history is unchanged.
+   6. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/2 p/3`.<br>
+      Expected: The repeated prefix is rejected. Neither value is applied, and the existing history is unchanged.
+
+4. Rejecting a class the student is not enrolled in
+   1. Prerequisites: The chosen student is enrolled in CS2103T-T10 but not CS2103T-T11. Note the student's current participation history.
+   2. Test case: `participation m/MATRIC c/CS2103T-T11 d/28-10-2026 p/2`.<br>
+      Expected: The status message shows `NAME is not enrolled in CS2103T-T11. Enroll the student in this class first.` No student data is changed.
+
+5. Preserving participation after edits, attendance changes and restart
+   1. Prerequisites: Run `list` and use the first student as the test student. Note their matriculation number using `view 1`. Ensure this student is enrolled in CS2103T-T10. Run `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3` to set up the participation record. The student must have no attendance record for that class on 29-10-2026.
+   2. Test case: `edit 1 n/Participation Test Student`, followed by `participation view m/MATRIC`.<br>
+      Expected: The student's name changes, but the participation record still contains 3 points for CS2103T-T10 on 28-10-2026. Other participation records are unchanged.
+   3. Test case: `attendance m/MATRIC c/CS2103T-T10 d/29-10-2026`, followed by `participation view m/MATRIC`.<br>
+      Expected: Attendance is recorded successfully. The participation history is unchanged.
+   4. Test case: Close and reopen TAssist, then run `participation view m/MATRIC`.<br>
+      Expected: The updated student name and participation history are retained, including the score of 3 for CS2103T-T10 on 28-10-2026.
+
+6. Distinguishing zero points from removing a record
+   1. Prerequisites: The chosen student is enrolled in CS2103T-T10. Run `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3` and `participation m/MATRIC c/CS2103T-T10 d/29-10-2026 p/1`. View the history to confirm both records.
+   2. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/0`, followed by `participation view m/MATRIC`.<br>
+      Expected: The 28-10-2026 record remains in the history with 0 points. The 29-10-2026 record still has 1 point.
+   3. Test case: `participation remove m/MATRIC c/CS2103T-T10 d/28-10-2026`, followed by `participation view m/MATRIC`.<br>
+      Expected: Only the 28-10-2026 participation record is removed. The 29-10-2026 record, attendance and other student details remain unchanged.
+   4. Test case: Repeat `participation remove m/MATRIC c/CS2103T-T10 d/28-10-2026`, then view the history again.<br>
+      Expected: The status message reports that no participation record exists for that student, class and date. No further data changes occur.
+
+### Viewing class attendance statistics
+
+Use test data for the cases below, as some steps change student enrollment and attendance records.
+
+1. Viewing statistics when some students attended
+  1. Prerequisites: Run `list` with at least three students. Enroll the first three students in CS2103T-T10 using `enroll 1 c/CS2103T-T10`, `enroll 2 c/CS2103T-T10`, and `enroll 3 c/CS2103T-T10`, skipping any students who are already enrolled. Ensure the students have no attendance records for CS2103T-T10 on 28-10-2026.
+  2. Test case: `attendance 1 c/CS2103T-T10 d/28-10-2026`, followed by `attendance 2 c/CS2103T-T10 d/28-10-2026`.\
+     Expected: Attendance is recorded for the first two students.
+  3. Test case: `attendance stats c/CS2103T-T10 d/28-10-2026`\
+     Expected: The result shows 2 students attended. The total equals the number of students currently enrolled in CS2103T-T10, including any students who were already enrolled before testing. No student data is changed.
+
+2. Viewing statistics when no attendance is recorded
+  1. Prerequisites: At least one student is enrolled in CS2103T-T10. No student currently enrolled in this class has an attendance record for 30-10-2026.
+  2. Test case: `attendance stats c/CS2103T-T10 d/30-10-2026`\
+     Expected: The result shows 0 students attended. The total still includes every student currently enrolled in CS2103T-T10.
+
+3. Viewing statistics for a class without enrolled students
+  1. Prerequisites: Ensure no students are enrolled in CS2103T-T99.
+  2. Test case: `attendance stats c/CS2103T-T99 d/28-10-2026`\
+     Expected: The result shows 0 students attended and 0 total students. No error occurs and no student data is changed.
+
+4. Checking that statistics are independent of the displayed list
+  1. Prerequisites: Have at least two students enrolled in CS2103T-T10 with attendance recorded on 28-10-2026. Run `attendance stats c/CS2103T-T10 d/28-10-2026` and note both counts.
+  2. Test case: Run `find` using a keyword that displays only one of those students. Then run `attendance stats c/CS2103T-T10 d/28-10-2026`.\
+     Expected: Both counts are unchanged. Statistics include students who are not currently displayed, and the filtered list remains unchanged.
+
+5. Rejecting invalid or incomplete input
+  1. Prerequisites: Run `attendance stats c/CS2103T-T10 d/28-10-2026` and note the result.
+  2. Test case: `attendance stats c/CS2103T-T10`\
+     Expected: The command is rejected because the date is missing. No data is changed.
+  3. Test case: `attendance stats d/28-10-2026`\
+     Expected: The command is rejected because the class code is missing.
+  4. Test case: `attendance stats c/CS2103T-T10 d/31-02-2026`\
+     Expected: The command is rejected because the date is not a valid calendar date.
+  5. Test case: `attendance stats c/CS2103T-T10 c/CS2103T-T11 d/28-10-2026`\
+     Expected: The repeated class prefix is rejected.
+  6. Test case: `attendance stats 1 c/CS2103T-T10 d/28-10-2026`\
+     Expected: The command is rejected because statistics are requested for a class, not an individual student.
+  7. Run `attendance stats c/CS2103T-T10 d/28-10-2026` again.\
+     Expected: The original statistics are unchanged after the invalid commands.
+
+6. Checking different dates and classes
+  1. Prerequisites: Enroll the first student in CS2103T-T10 and CS2103T-T11. Ensure the student has no attendance records for those classes on 29-10-2026.
+  2. Test case: `attendance 1 c/CS2103T-T11 d/29-10-2026`, followed by `attendance stats c/CS2103T-T10 d/29-10-2026`.\
+     Expected: The attendance record for CS2103T-T11 is not counted towards CS2103T-T10.
+  3. Test case: `attendance stats c/CS2103T-T11 d/29-10-2026`\
+     Expected: The first student's attendance is included in the attended count for CS2103T-T11.
+  4. Test case: `attendance stats c/CS2103T-T11 d/30-10-2026`\
+     Expected: The attendance recorded on 29-10-2026 is not counted for 30-10-2026.
+
 
 ### Assigning work to a student
 
