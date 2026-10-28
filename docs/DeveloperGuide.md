@@ -944,34 +944,21 @@ Use case ends.
 
   Use case ends.
 
-<<<<<<< HEAD
 ### UC15: Record class participation points
-=======
-
-### UC16: View attendance statistics for a class
->>>>>>> upstream/master
 
 **Actor:** Tutor
 
 **Main success scenario**
 
-<<<<<<< HEAD
 1. The tutor requests to record participation points for a student,
    specifying the class, date and score.
 2. TAssist records the score, replacing the previous score for the same
    class and date if one exists, and confirms the update.
-=======
-1. The tutor requests attendance statistics for a class on a specified date.
-2. TAssist finds all students currently enrolled in that class.
-3. TAssist counts the enrolled students who have an attendance record for that class and date.
-4. TAssist displays the attended count and total enrolled count.
->>>>>>> upstream/master
 
 Use case ends.
 
 **Extensions**
 
-<<<<<<< HEAD
 1a. Required input is missing, repeated or invalid.
 
     1a1. TAssist explains the input error without changing student data.
@@ -983,7 +970,22 @@ Use case ends.
     1b1. TAssist explains the problem without changing student data.
 
     Use case resumes at step 1.
-=======
+
+### UC16: View attendance statistics for a class
+
+**Actor:** Tutor
+
+**Main success scenario**
+
+1. The tutor requests attendance statistics for a class on a specified date.
+2. TAssist finds all students currently enrolled in that class.
+3. TAssist counts enrolled students with an attendance record for that class and date.
+4. TAssist displays the attended count and total enrolled count.
+
+Use case ends.
+
+**Extensions**
+
 1a. The class code or date is missing or invalid.
 
     1a1. TAssist displays an error message explaining the required input.
@@ -995,8 +997,6 @@ Use case ends.
     2a1. TAssist displays 0 students attended and 0 total students.
 
     Use case ends.
-
->>>>>>> upstream/master
 
 ### Non-Functional Requirements
 
@@ -1191,7 +1191,6 @@ testers are expected to do more *exploratory* testing.
    1. Test case: `attendance c/CS2103T-T99`<br>
       Expected: The status message shows `No students are enrolled in CS2103T-T99.` No attendance records change.
 
-<<<<<<< HEAD
 ### Recording class participation
 
 Use test data for the cases below, as some steps change student details or remove participation records.
@@ -1247,7 +1246,7 @@ Replace `MATRIC` with the chosen test student's matriculation number, without th
       Expected: Only the 28-10-2026 participation record is removed. The 29-10-2026 record, attendance and other student details remain unchanged.
    4. Test case: Repeat `participation remove m/MATRIC c/CS2103T-T10 d/28-10-2026`, then view the history again.<br>
       Expected: The status message reports that no participation record exists for that student, class and date. No further data changes occur.
-=======
+
 ### Viewing class attendance statistics
 
 Use test data for the cases below, as some steps change student enrollment and attendance records.
@@ -1297,7 +1296,7 @@ Use test data for the cases below, as some steps change student enrollment and a
      Expected: The first student's attendance is included in the attended count for CS2103T-T11.
   4. Test case: `attendance stats c/CS2103T-T11 d/30-10-2026`\
      Expected: The attendance recorded on 29-10-2026 is not counted for 30-10-2026.
->>>>>>> upstream/master
+
 
 ### Assigning work to a student
 

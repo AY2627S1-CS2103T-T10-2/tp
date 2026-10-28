@@ -362,7 +362,6 @@ Examples:
 * `attendance unmark 1 c/CS2103T-T10 d/07-10-2026` removes that student's record for `CS2103T-T10` on `07-10-2026`, leaving any records for other classes unchanged.
 * `attendance unmark m/A1234567X` removes the only attendance record for today's date for the student whose matriculation number is `A1234567X`.
 
-<<<<<<< HEAD
 ### Recording class participation: `participation`
 
 Records participation points for a student in a particular class on a given
@@ -450,7 +449,6 @@ preserved.
 Example:
 
 * `participation remove m/A1234567X c/CS2103T-T10 d/28-10-2026`
-=======
 
 ### Viewing attendance statistics for a class: `attendance stats`
 
@@ -482,7 +480,7 @@ Total students: 12
 ```
 
 The statistics reflect the current enrollment and stored attendance records. They do not represent a historical enrollment snapshot.
->>>>>>> upstream/master
+
 
 ### Filtering students by class/module: `filter`
 
