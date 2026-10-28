@@ -88,6 +88,7 @@ public class EditCommand extends Command {
     /**
      * Creates and returns a {@code Person} with the details of {@code personToEdit}
      * edited with {@code editPersonDescriptor}.
+     * Attendance, enrolled classes and participation history are preserved.
      */
     private static Person createEditedPerson(Person personToEdit, EditPersonDescriptor editPersonDescriptor) {
         assert personToEdit != null;
@@ -99,7 +100,8 @@ public class EditCommand extends Command {
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
         return new Person(updatedName, updatedMatriculationNumber, updatedEmail, updatedTags,
-                personToEdit.getAttendance(), personToEdit.getClassCodes());
+                personToEdit.getAttendance(), personToEdit.getClassCodes(),
+                personToEdit.getParticipationHistory());
     }
 
     @Override

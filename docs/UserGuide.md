@@ -355,6 +355,94 @@ Examples:
 * `attendance unmark 1 c/CS2103T-T10 d/07-10-2026` removes that student's record for `CS2103T-T10` on `07-10-2026`, leaving any records for other classes unchanged.
 * `attendance unmark m/A1234567X` removes the only attendance record for today's date for the student whose matriculation number is `A1234567X`.
 
+### Recording class participation: `participation`
+
+Records participation points for a student in a particular class on a given
+date. Tutors decide how many points to award; TAssist stores the records
+for later reference when grading.
+
+Participation is separate from attendance. Recording participation does not
+automatically mark the student present.
+
+#### Recording or updating points
+
+Format: `participation INDEX c/MODULE-CLASS d/DATE p/POINTS`
+
+or
+
+`participation m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE p/POINTS`
+
+* Specify either one displayed index or one matriculation number, not both.
+* An index refers to the currently displayed student list. A matriculation
+  number identifies a student in the full stored list.
+* The student must be enrolled in the specified class.
+* The class, date and points are required.
+* The date must be a valid calendar date in `dd-MM-yyyy` format,
+  with a year from 0001 to 9999.
+* Points must contain digits only and be between `0` and `2147483647`,
+  inclusive. Negative numbers and fractional points are not accepted.
+* There is no configurable maximum score per module.
+* One record is stored per student, class and date. Multiple sessions
+  of the same class on the same date are not distinguished.
+* Entering points for an existing record replaces its previous score.
+  It does not add the new points to the old score.
+* A score of `0` is a recorded score, not a missing or deleted record.
+* Do not repeat prefixes within a command.
+* Participation records are saved and remain available after restarting
+  the application.
+
+Examples, assuming the student is enrolled in `CS2103T-T10`:
+
+* `participation 1 c/CS2103T-T10 d/28-10-2026 p/2`
+  records 2 points for the first displayed student.
+* `participation m/A1234567X c/CS2103T-T10 d/28-10-2026 p/3`
+  sets the specified student's score for that class and date to 3.
+  If the previous score was 2, the new score is 3, not 5.
+
+#### Viewing participation history
+
+Format: `participation view INDEX`
+
+or
+
+`participation view m/MATRICULATION_NUMBER`
+
+Shows the student's participation records in the command result panel,
+ordered by class code and then by date. Each entry shows the class, date
+and recorded points. An empty history produces a message saying that
+no participation records were found.
+
+Examples:
+
+* `participation view 1`
+* `participation view m/A1234567X`
+
+Viewing records does not change student data or require current enrollment
+in the recorded classes.
+
+#### Removing an incorrect record
+
+Format: `participation remove INDEX c/MODULE-CLASS d/DATE`
+
+or
+
+`participation remove m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE`
+
+Removes only the participation record for the specified student, class and
+date. Other participation records, attendance and student details are
+preserved.
+
+* The class and date are required. Do not supply `p/`.
+* If the record does not exist, an error is shown without changing the data.
+* Historical records can still be viewed and removed after the student
+  is unenrolled from the class.
+* Setting points to `0` does not remove a record. Use this subcommand
+  to remove it.
+
+Example:
+
+* `participation remove m/A1234567X c/CS2103T-T10 d/28-10-2026`
+
 ### Filtering students by class/module: `filter`
 
 Filters students enrolled in any of the given modules or classes.
@@ -481,7 +569,10 @@ Action     | Format, Examples
 **Marks** | `marks id/MODULE:CODE`<br> e.g., `marks id/CS2103T:A1`
 **Remove assignment** | `removeassignment id/MODULE:CODE [m/MATRICULATION_NUMBER]`<br> e.g., `removeassignment id/CS2103T:A1 m/A1234567A`
 **Clear**  | `clear`
-**Delete** | `delete INDEX` or `delete m/MATRICULATION_NUMBER`<br> e.g., `delete 3`, `delete m/A1234567X`
+**Delete** | `delete INDEX [MORE_INDICES]...`<br>or `delete m/MATRICULATION_NUMBER`<br>Examples: `delete 1`, `delete 1 3`, `delete m/A1234567X` |
+**Record/update participation** | `participation INDEX c/MODULE-CLASS d/DATE p/POINTS`<br>or `participation m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE p/POINTS`<br>Example: `participation 1 c/CS2103T-T10 d/28-10-2026 p/2` |
+**View participation** | `participation view INDEX`<br>or `participation view m/MATRICULATION_NUMBER`<br>Example: `participation view 1` |
+**Remove participation record** | `participation remove INDEX c/MODULE-CLASS d/DATE`<br>or `participation remove m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE`<br>Example: `participation remove 1 c/CS2103T-T10 d/28-10-2026` |
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Enroll** | `enroll INDEX c/MODULE-CLASS` <br> e.g., `enroll 1 c/CS2103T-T10`
 **Unenroll** | `unenroll INDEX c/MODULE-CLASS` or `unenroll INDEX all/` <br> e.g., `unenroll 1 c/CS2103T-T10`, `unenroll 1 all/`

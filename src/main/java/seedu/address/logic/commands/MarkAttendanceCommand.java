@@ -15,8 +15,8 @@ import seedu.address.model.person.AttendanceRecord;
 import seedu.address.model.person.Person;
 
 /**
- * Marks the student identified by displayed index or matriculation number present in the given class on the given date,
- * or today if no date is given.
+ * Marks the student identified by displayed index or matriculation number present in the given class
+ * on the given date, or today if no date is given.
  */
 public class MarkAttendanceCommand extends Command {
 
@@ -91,7 +91,7 @@ public class MarkAttendanceCommand extends Command {
      */
     static Person createStudentWithAttendance(Person student, Attendance attendance) {
         return new Person(student.getName(), student.getMatriculationNumber(), student.getEmail(),
-                student.getTags(), attendance, student.getClassCodes());
+                student.getTags(), attendance, student.getClassCodes(), student.getParticipationHistory());
     }
 
     @Override
