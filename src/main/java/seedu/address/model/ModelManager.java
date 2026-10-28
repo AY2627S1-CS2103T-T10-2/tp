@@ -175,7 +175,7 @@ public class ModelManager implements Model {
 
     /**
      * Returns an unmodifiable view of the list of {@code Person} backed by the internal list of
-     * {@code addressBook}
+     * {@code versionedAddressBook}
      */
     @Override
     public ObservableList<Person> getFilteredPersonList() {
@@ -187,6 +187,8 @@ public class ModelManager implements Model {
         requireNonNull(predicate);
         filteredPersons.setPredicate(predicate);
     }
+
+    //=========== AddressBook History ========================================================================
 
     @Override
     public void undoAddressBook() {

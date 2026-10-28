@@ -130,11 +130,19 @@ public interface Model {
 
     /**
      * Reverses the most recent change to the address book.
+     * On success, clears the person list filter and resets sorting to {@link #COMPARATOR_NAME_ASC}
+     * with no extra sort detail displayed.
+     *
+     * @throws IllegalStateException if undo is unavailable.
      */
     void undoAddressBook();
 
     /**
      * Reapplies the most recently undone change.
+     * On success, clears the person list filter and resets sorting to {@link #COMPARATOR_NAME_ASC}
+     * with no extra sort detail displayed.
+     *
+     * @throws IllegalStateException if redo is unavailable.
      */
     void redoAddressBook();
 

@@ -172,9 +172,7 @@ public class MainWindow extends UiPart<Stage> {
                 (int) primaryStage.getX(), (int) primaryStage.getY());
         logic.setGuiSettings(guiSettings);
         helpWindow.hide();
-        if (studentDetailsWindow != null) {
-            studentDetailsWindow.getRoot().hide();
-        }
+        closeStudentDetailsWindow();
         primaryStage.hide();
     }
 
