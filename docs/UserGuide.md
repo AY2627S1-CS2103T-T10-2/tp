@@ -406,6 +406,7 @@ Format: `filter KEYWORD [MORE_KEYWORDS]`
 
 * The search is case-insensitive; for example, `cs2103t` matches `CS2103T`.
 * Each `filter` command searches the entire address book and replaces the previous filter.
+* This command layers on filters performed by `find`.
 * `KEYWORD` must be either a `MODULE` or `CLASS`.
 * `MODULE` is a module code: 2 to 3 letters, followed by 4 digits and an optional suffix of up to 2 letters (e.g. `CS2103T`), with no spaces.
 * `CLASS` is a full class code in the format `MODULE-GROUP` (e.g. `CS2103T-T10`). `GROUP` contains 1 to 5 letters or digits, with no spaces or symbols.

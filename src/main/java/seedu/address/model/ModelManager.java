@@ -233,7 +233,7 @@ public class ModelManager implements Model {
     }
 
     private void resetDisplayAfterRestoration() {
-        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        resetFilteredPersonList();
         sortPersons(COMPARATOR_NAME_ASC);
 
         addressBookRestoreCount.set(addressBookRestoreCount.get() + 1);
