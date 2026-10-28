@@ -23,7 +23,7 @@ deactivate StudentIdentifier
 
 note over UnmarkAttendanceCommand
 Creates e, a copy of s
-without the date.
+without the record.
 end note
 
 UnmarkAttendanceCommand -> Model : setPerson(s, e)

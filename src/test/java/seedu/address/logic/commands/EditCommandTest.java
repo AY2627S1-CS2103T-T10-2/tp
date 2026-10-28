@@ -64,7 +64,8 @@ public class EditCommandTest {
     @Test
     public void execute_personWithAttendance_preservesAttendance() {
         Person original = model.getFilteredPersonList().get(0);
-        Person recordedPerson = new PersonBuilder(original).withAttendance("16-09-2026", "07-10-2026").build();
+        Person recordedPerson = new PersonBuilder(original)
+                .withAttendance("CS2103T-T10", "16-09-2026", "07-10-2026").build();
         model.setPerson(original, recordedPerson);
         Person editedPerson = new PersonBuilder(recordedPerson).withMatriculationNumber(VALID_MATRICULATION_NUMBER_BOB)
                 .build();
@@ -175,6 +176,7 @@ public class EditCommandTest {
      * Edit filtered list where index is larger than size of filtered list,
      * but smaller than size of address book
      */
+
     @Test
     public void execute_invalidPersonIndexFilteredList_failure() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);

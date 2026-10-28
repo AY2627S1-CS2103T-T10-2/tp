@@ -99,22 +99,25 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_attendance() throws Exception {
-        assertEquals(new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.empty()),
-                parser.parseCommand("attendance 1"));
-        assertEquals(new MarkAttendanceCommand(INDEX_FIRST_PERSON, Optional.of(new AttendanceDate("07-10-2026"))),
-                parser.parseCommand("attendance 1 d/07-10-2026"));
+        assertEquals(new MarkAttendanceCommand(INDEX_FIRST_PERSON, new ClassCode("CS2103T-T10"), Optional.empty()),
+                parser.parseCommand("attendance 1 c/CS2103T-T10"));
+        assertEquals(new MarkAttendanceCommand(INDEX_FIRST_PERSON, new ClassCode("CS2103T-T10"),
+                Optional.of(new AttendanceDate("07-10-2026"))),
+                parser.parseCommand("attendance 1 c/CS2103T-T10 d/07-10-2026"));
         assertEquals(new MarkAttendanceCommand(new StudentIdentifier(new MatriculationNumber("A1234567X")),
+                new ClassCode("CS2103T-T10"),
                 Optional.empty()),
-                parser.parseCommand("attendance m/A1234567X"));
+                parser.parseCommand("attendance m/A1234567X c/CS2103T-T10"));
     }
 
     @Test
     public void parseCommand_unmarkAttendance() throws Exception {
-        assertEquals(new UnmarkAttendanceCommand(new StudentIdentifier(INDEX_FIRST_PERSON), Optional.empty()),
+        assertEquals(new UnmarkAttendanceCommand(new StudentIdentifier(INDEX_FIRST_PERSON), Optional.empty(),
+                Optional.empty()),
                 parser.parseCommand("attendance unmark 1"));
         assertEquals(new UnmarkAttendanceCommand(new StudentIdentifier(new MatriculationNumber("A1234567X")),
-                Optional.of(new AttendanceDate("07-10-2026"))),
-                parser.parseCommand("attendance unmark m/A1234567X d/07-10-2026"));
+                Optional.of(new ClassCode("CS2103T-T10")), Optional.of(new AttendanceDate("07-10-2026"))),
+                parser.parseCommand("attendance unmark m/A1234567X c/CS2103T-T10 d/07-10-2026"));
         assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("Attendance unmark 1"));
     }
 

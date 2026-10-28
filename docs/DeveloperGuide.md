@@ -121,14 +121,16 @@ How the parsing works:
 
 <puml src="diagrams/ModelClassDiagram.puml" width="450" />
 
+This diagram is simplified: it omits some value classes, such as `AttendanceDate`.
+
 
 The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores shared assignment definitions and student marks in a `Gradebook` owned by `AddressBook`. Gradebook mutations are exposed through the `Model` API, while reads use a snapshot.
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
-* displays the filtered students through a sorted view. Name order is the default; `add`, `find`, and `list` restore it after a sort. `SortCommand` selects a comparator for name, matriculation number, email, recorded attendance count, or one assignment's marks, and may reverse its primary comparison. Equal values use name and matriculation number as tie-breakers. Sorting changes only the view, not the stored student order.
-* exposes the active sort's optional card detail through an observable `SortDisplay`. The UI refreshes student cards when this changes. Attendance sorting shows each student's recorded date count; mark sorting shows the selected assignment's result or missing status. Gradebook changes, student edits, and data restoration reset an active mark sort to name order so the saved comparison snapshot does not become stale.
+* displays the filtered students through a sorted view. Name order is the default; `add`, `find`, and `list` restore it after a sort. `SortCommand` selects a comparator for name, matriculation number, email, attendance record count, or one assignment's marks, and may reverse its primary comparison. Equal values use name and matriculation number as tie-breakers. Sorting changes only the view, not the stored student order.
+* exposes the active sort's optional card detail through an observable `SortDisplay`. The UI refreshes student cards when this changes. Attendance sorting shows each student's record count; mark sorting shows the selected assignment's result or missing status. Gradebook changes, student edits, and data restoration reset an active mark sort to name order so the saved comparison snapshot does not become stale.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -191,24 +193,29 @@ JSON storage keeps shared definitions in `assignments` and each student's link t
 
 The `sort` command accepts `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MODULE:CODE [asc|desc]`. `SortCommandParser` ignores letter case for field and direction keywords, and reports the assignment ID constraints for an invalid ID. `SortCommand` sorts the displayed students without changing their stored order. Name and email comparisons ignore case, and an empty attendance history counts as zero. Recorded marks come before `Unmarked` and `Not assigned` in either direction; ties use name and then matriculation number.
 
-`SortDisplay` supplies the optional extra line on each student card. An attendance sort shows the recorded date count. A mark sort shows the assignment ID and each student's mark or missing status. `add`, `find`, and `list` restore name order and remove that line. Assignment, mark, or student detail changes reset an active mark sort so its display does not become stale.
+`SortDisplay` supplies the optional extra line on each student card. An attendance sort shows the record count. A mark sort shows the assignment ID and each student's mark or missing status. `add`, `find`, and `list` restore name order and remove that line. Assignment, mark, or student detail changes reset an active mark sort so its display does not become stale.
 
 ### Attendance feature
 
-The `attendance` command marks a student present on a date, and `attendance unmark` removes that record. Both identify the student by `INDEX` or `m/MATRICULATION_NUMBER` and take an optional `d/DATE`, which defaults to today.
+The `attendance` command marks a student present at a class session, and `attendance unmark` removes that record. Each `AttendanceRecord` contains an `AttendanceDate` and a `ClassCode`; the same student may have records for different classes on one date, but not two records for the same class and date. Both commands identify the student by `INDEX` or `m/MATRICULATION_NUMBER` and take an optional `d/DATE`, which defaults to today. Mark requires `c/MODULE-CLASS`; unmark accepts an optional `[c/MODULE-CLASS]`.
 
-`AttendanceCommandParser` checks the first word of the arguments. If it is `unmark`, in any letter case, the parser builds an `UnmarkAttendanceCommand` from the remaining arguments; otherwise, it builds a `MarkAttendanceCommand` from all of them. One shared helper parses the student identifier and optional date for both commands, then passes them to the chosen command's constructor. This keeps the two forms' argument formats identical without a second parser class.
+`AttendanceCommandParser` checks the first word of the arguments. If it is `unmark`, in any letter case, it calls `parseUnmark` with the remaining arguments; otherwise, it calls `parseMark` with all of them. Both use `tokenizeAttendanceArguments` to tokenize `m/`, `c/` and `d/` and reject duplicate prefixes. Each then parses the student identifier, class code and optional date, in that order, before constructing its command. `parseMark` requires a class code, while `parseUnmark` leaves it optional. Duplicate-prefix errors take priority over identifier errors, then class code errors, then date errors.
 
-The simplified sequence diagram below shows a successful run of `attendance unmark m/A1234567X` after parsing, assuming the student exists and has attendance recorded today. It omits date selection and the attendance check, which the steps below explain.
+The simplified sequence diagram below shows a successful run of `attendance unmark m/A1234567X` after parsing, assuming the student exists and has exactly one attendance record today. It omits date selection and choosing which record to remove, which the steps below explain.
 
 <puml src="diagrams/UnmarkAttendanceSequenceDiagram.puml" alt="Execution of the attendance unmark command" />
 
 1. `StudentIdentifier#resolve` returns the student `s`, found by displayed index or matriculation number.
-2. The command uses today's date because none was given. If `s` has no attendance record on that date, it throws a `CommandException` and changes nothing.
-3. The command does not modify `s`. It creates a copy `e` whose `Attendance` no longer contains the date, using `Attendance#withoutDate`.
+2. The command uses today's date because none was given. With `c/`, it chooses the record matching that class and date, or throws a `CommandException` if none exists. Without `c/`, it chooses the only record on that date. An empty history for that date produces an error; several records produce an error naming their classes in ascending order and requesting `c/MODULE-CLASS`. Every error leaves the student unchanged. Unmark checks existing records, not current enrollment.
+3. The command does not modify `s`. It creates a copy `e` whose `Attendance` no longer contains the chosen record, using `Attendance#withoutRecord`.
 4. `Model#setPerson` replaces `s` with `e`, and the command returns a `CommandResult` `r` with the success message.
 
-Marking follows the same flow, except that the copy gains the date instead of losing it.
+Marking resolves the student first, then checks that the student has enrolled classes, is enrolled in the given class, and has no record for that class and date, in that order. Class code comparison ignores letter case, as in `enroll`. The copy gains the record using `Attendance#withRecord`. Both success messages name the student, class and date, including when unmark infers the class.
+
+Design considerations:
+
+* Records keep their class code independently of current enrollment, so unenrolling a student, from one class or with `all/`, keeps their attendance history. Unmarking with `c/` and loading saved data do not require a record's class to be a current enrollment.
+* Date-only attendance entries from earlier versions are rejected rather than migrated, because they do not identify the class attended. TAssist reports the load error, blocks commands and leaves the file unchanged until the user fixes or removes it.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -458,8 +465,8 @@ Matching considers all students and ignores case. A student matches if any suppl
 
 **MSS**
 
-1. Tutor requests to record a student's attendance, identifying the student by their displayed index or matriculation number, and supplying a date. The matriculation number can identify a student excluded from the current search results.
-2. TAssist records the student as present on that date and confirms the student's name and attendance date.
+1. Tutor requests to record a student's attendance, identifying the student by their displayed index or matriculation number, and supplying a class and date. The matriculation number can identify a student excluded from the current search results.
+2. TAssist records the student as present in that class on that date and confirms the student's name, class and attendance date.
 
 Use case ends.
 
@@ -483,13 +490,13 @@ Use case ends.
 
   Use case resumes at step 1.
 
-* 1d. Attendance has already been recorded for that student on that date.
+* 1d. Attendance has already been recorded for that student in the same class on that date.
 
   * 1d1. TAssist reports the existing record without adding a duplicate.
 
   Use case ends.
 
-* 1e. The student identifier is missing or malformed, both an index and a matriculation number are supplied, or the matriculation number or date is supplied more than once.
+* 1e. The student identifier is missing or malformed, both an index and a matriculation number are supplied, or the matriculation number, class or date is supplied more than once.
 
   * 1e1. TAssist explains the invalid input without adding an attendance record.
 
@@ -501,7 +508,19 @@ Use case ends.
 
   Use case resumes at step 1.
 
-Removing an attendance record (unmarking) follows the same interaction, with these differences: in step 2, TAssist removes the student's record for that date instead of adding one; extension 1d does not apply; instead, if no attendance is recorded for that student on that date, TAssist reports this and leaves the student's records unchanged (use case ends).
+* 1g. The class is missing or invalid.
+
+  * 1g1. TAssist requests a class or explains the class code requirements without adding an attendance record.
+
+  Use case resumes at step 1.
+
+* 1h. The student is not enrolled in any class or is not enrolled in the supplied class.
+
+  * 1h1. TAssist reports the enrollment problem without adding an attendance record. If the student has no classes, it asks the tutor to enroll them first.
+
+  Use case resumes at step 1.
+
+Removing an attendance record (unmarking) follows the same interaction, with these differences: in step 2, TAssist removes the student's record for the given class and date instead of adding one. The class is optional when exactly one record exists on that date. With several records on that date and no class supplied, TAssist reports an error naming the classes and asks the tutor to specify one; no records change (use case resumes at step 1). Extensions 1d and 1h do not apply, and 1g applies only to an invalid supplied class: the record's class need not be a current enrollment. If no record matches the given class and date, or no records exist on that date when the class is omitted, TAssist reports this and leaves the student's records unchanged (use case ends). Success confirms the removed record's class even when inferred.
 
 #### UC05: List all students
 
@@ -535,7 +554,7 @@ The default display order ignores case when comparing names. It does not change 
 **MSS**
 
 1. Tutor requests to view a student's profile using the student's index in the currently displayed list.
-2. TAssist opens or updates a details window showing the selected student's name, matriculation number, email, tags, enrolled classes and attendance dates. Tags are sorted by their text, classes by module and class group, and attendance from most recent to oldest.
+2. TAssist opens or updates a details window showing the selected student's name, matriculation number, email, tags, enrolled classes and attendance records with their dates and classes. Tags are sorted by their text, classes by module and class group, and attendance by date from most recent to oldest, then by class code in ascending order within a date.
 
 Use case ends.
 
@@ -835,8 +854,8 @@ Compatibility, packaging and storage requirements follow the [CS2103T project co
 | Student profile | The view of one student's particulars, available class memberships, and attendance records. It displays stored memberships but does not assign students to classes. Later versions may also show assignment and grade information. |
 | Module | A university course identified by a module code, such as CS2103T. |
 | Class / class section | A tutorial or lab group within a module. A class identifier is interpreted together with its module code. |
-| Class session | One occurrence of a tutorial or lab. This term is relevant to later class-aware attendance features; the MVP attendance command identifies an attendance record by student and date only. |
-| Attendance record | In the MVP, a record that a student was present on a particular calendar date. The same student cannot have two records for the same date. No record does not mean the student was absent. |
+| Class session | One occurrence of a tutorial or lab, identified by its class code and date. |
+| Attendance record | A record that a student was present at a class session; at most one per student, class and date. No record does not mean the student was absent. |
 | Assignment | An assessed piece of work with a module-scoped ID, a name, and a maximum mark shared by assigned students. |
 | Assignment mark | A student's numeric score for an assigned piece of work. An unrecorded mark is not a zero mark. |
 | Grade | An academic result used for comparison, such as an assignment mark. Sorting by grades must identify which assessment result is being compared; marks from different assignments are not interchangeable. |
@@ -901,13 +920,13 @@ testers are expected to do more *exploratory* testing.
    1. Run `list`.<br>
       Expected: Students return to alphabetical name order.
 
-1. Sorting by recorded attendance count
+1. Sorting by attendance record count
 
    1. In a fresh data folder with the original sample students, run `sort attendance desc`.<br>
-      Expected: Every student card shows `Attendance dates: 0`, and students remain in name order.
+      Expected: Every student card shows `Attendance records: 0`, and students remain in name order.
 
-   1. Run `attendance m/A6789012U d/07-10-2026`.<br>
-      Expected: Roy Balakrishnan moves to the first position and shows `Attendance dates: 1`.
+   1. Run `enroll 6 c/CS2103T-T10` to enroll Roy Balakrishnan, then `attendance m/A6789012U c/CS2103T-T10 d/07-10-2026`.<br>
+      Expected: Roy Balakrishnan moves to the first position and shows `Attendance records: 1`.
 
    1. Run `list`.<br>
       Expected: Students return to name order and the attendance count line disappears.
@@ -947,26 +966,46 @@ testers are expected to do more *exploratory* testing.
 
 1. Marking and unmarking attendance
 
-   1. Prerequisites: List all students using the `list` command. The first student has no attendance recorded on 07-10-2026.
+   1. Prerequisites: List all students using the `list` command, then run `enroll 1 c/CS2103T-T10`. The first student has no attendance recorded on 07-10-2026.
 
-   1. Test case: `attendance 1 d/07-10-2026`<br>
-      Expected: The status message shows `Marked attendance for NAME on 07-10-2026`, where NAME is the first student's name. `view 1` lists 07-10-2026.
+   1. Test case: `attendance 1 c/CS2103T-T10 d/07-10-2026`<br>
+      Expected: The status message shows `Marked attendance for NAME in CS2103T-T10 on 07-10-2026`, where NAME is the first student's name. `view 1` lists the date and class.
+
+   1. Test case: `attendance unmark 1 c/CS2103T-T10 d/07-10-2026`<br>
+      Expected: The status message shows `Unmarked attendance for NAME in CS2103T-T10 on 07-10-2026`. `view 1` no longer lists that record.
 
    1. Test case: `attendance unmark 1 d/07-10-2026`<br>
-      Expected: The status message shows `Unmarked attendance for NAME on 07-10-2026`. `view 1` no longer lists 07-10-2026.
-
-   1. Test case: repeat `attendance unmark 1 d/07-10-2026`<br>
       Expected: Nothing changes. The status message shows `No attendance recorded for NAME on 07-10-2026.`
 
 1. Identifying a student outside the displayed list
 
-   1. Prerequisites: Note the second student's matriculation number (MATRIC) using `view 2`. Then use `find` with a keyword that matches the first student only, so the second student is not displayed.
+   1. Prerequisites: Run `list` and `enroll 2 c/CS2103T-T10`. Note the second student's matriculation number (MATRIC) using `view 2`; that student has no attendance recorded on 07-10-2026. Then use `find` with a keyword that matches the first student only, so the second student is not displayed.
 
-   1. Test case: `attendance m/MATRIC d/07-10-2026`<br>
+   1. Test case: `attendance m/MATRIC c/CS2103T-T10 d/07-10-2026`<br>
       Expected: Attendance is recorded for the second student, although they are not in the displayed list.
 
-   1. Test case: `attendance unmark m/MATRIC d/07-10-2026`<br>
+   1. Test case: `attendance unmark m/MATRIC c/CS2103T-T10 d/07-10-2026`<br>
       Expected: The record is removed. The status message names the second student.
+
+1. Rejecting a class the student is not enrolled in
+
+   1. Prerequisites: Run `list`. The first student is enrolled in CS2103T-T10 but not CS2103T-T11.
+
+   1. Test case: `attendance 1 c/CS2103T-T11 d/07-10-2026`<br>
+      Expected: The status message shows `NAME is not enrolled in CS2103T-T11.` No attendance record is added.
+
+1. Removing one of two classes on the same date
+
+   1. Prerequisites: Run `enroll 1 c/CS2103T-T11`. The first student has no attendance recorded on 07-10-2026.
+
+   1. Test case: `attendance 1 c/CS2103T-T10 d/07-10-2026`, then `attendance 1 c/CS2103T-T11 d/07-10-2026`<br>
+      Expected: Both succeed. `view 1` shows `2 records`, with CS2103T-T10 before CS2103T-T11 for that date.
+
+   1. Test case: `attendance unmark 1 d/07-10-2026`<br>
+      Expected: The status message shows `NAME has attendance recorded in more than one class on 07-10-2026: CS2103T-T10, CS2103T-T11. Specify the class with c/MODULE-CLASS.` Both records remain.
+
+   1. Test case: `attendance unmark 1 c/CS2103T-T11 d/07-10-2026`, then `attendance unmark 1 d/07-10-2026`<br>
+      Expected: The first command removes only the CS2103T-T11 record. The second infers CS2103T-T10 and shows `Unmarked attendance for NAME in CS2103T-T10 on 07-10-2026`. Neither record remains.
 
 ### Assigning work to a student
 
@@ -1025,8 +1064,9 @@ testers are expected to do more *exploratory* testing.
       and press Enter.<br>
       Expected: The command box does not accept input or execute a command. The failure message remains
       visible; scroll the result display to read the full recovery instructions if necessary.
-   1. Repeat with valid JSON containing an invalid student email, an invalid attendance date
-      (e.g., `31-02-2026`), a repeated attendance date, or an assignment mark above its maximum.<br>
+   1. Repeat with valid JSON containing an invalid student email, an invalid attendance record date
+      (e.g., `31-02-2026`), a duplicate attendance record for the same class and date, a date-only attendance entry
+      (e.g., `"attendance": ["07-10-2026"]`), or an assignment mark above its maximum.<br>
       Expected: The same command block and file preservation apply, with the corresponding validation error.
    1. Close TAssist, correct the file or replace it with the valid backup, and reopen TAssist.<br>
       Expected: The saved student and attendance records are restored, the command box is enabled,
