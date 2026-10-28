@@ -3,7 +3,9 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
@@ -23,6 +25,8 @@ public class FindCommand extends Command {
             + "Examples: " + COMMAND_WORD + " alice bob charlie; "
             + COMMAND_WORD + " m/A1234567X";
 
+    private static final Logger logger = LogsCenter.getLogger(FindCommand.class);
+
     private final Predicate<Person> predicate;
 
     public FindCommand(Predicate<Person> predicate) {
@@ -34,8 +38,12 @@ public class FindCommand extends Command {
         requireNonNull(model);
         model.updateFilteredPersonList(predicate);
         model.sortPersons(Model.COMPARATOR_NAME_ASC);
+
+        int resultCount = model.getFilteredPersonList().size();
+        logger.fine("Applied find predicate " + predicate + "; matched " + resultCount + " student(s).");
+
         return new CommandResult(
-                String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, model.getFilteredPersonList().size()));
+                String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, resultCount));
     }
 
     @Override
