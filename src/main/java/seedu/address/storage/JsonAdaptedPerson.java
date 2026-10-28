@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.Attendance;
-import seedu.address.model.person.AttendanceDate;
+import seedu.address.model.person.AttendanceRecord;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.Name;
@@ -30,7 +30,7 @@ class JsonAdaptedPerson {
     private final String matriculationNumber;
     private final String email;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
-    private final List<String> attendance = new ArrayList<>();
+    private final List<JsonAdaptedAttendanceRecord> attendance = new ArrayList<>();
     private final List<JsonAdaptedClassCode> classCodes = new ArrayList<>();
 
     /**
@@ -40,8 +40,11 @@ class JsonAdaptedPerson {
         this(name, phone, email, tags, null);
     }
 
+    /**
+     * Constructs an adapted person with attendance records and no class codes.
+     */
     public JsonAdaptedPerson(String name, String matriculationNumber, String email,
-            List<JsonAdaptedTag> tags, List<String> attendance) {
+            List<JsonAdaptedTag> tags, List<JsonAdaptedAttendanceRecord> attendance) {
         this(name, matriculationNumber, email, tags, attendance, null);
     }
 
@@ -53,7 +56,7 @@ class JsonAdaptedPerson {
             @JsonProperty("matriculationNumber") String matriculationNumber,
             @JsonProperty("email") String email,
             @JsonProperty("tags") List<JsonAdaptedTag> tags,
-            @JsonProperty("attendance") List<String> attendance,
+            @JsonProperty("attendance") List<JsonAdaptedAttendanceRecord> attendance,
             @JsonProperty("classCodes") List<JsonAdaptedClassCode> classCodes) {
         this.name = name;
         this.matriculationNumber = matriculationNumber;
@@ -79,8 +82,8 @@ class JsonAdaptedPerson {
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
-        attendance.addAll(source.getAttendance().getDates().stream()
-                .map(AttendanceDate::toString)
+        attendance.addAll(source.getAttendance().getRecords().stream()
+                .map(JsonAdaptedAttendanceRecord::new)
                 .collect(Collectors.toList()));
         classCodes.addAll(source.getClassCodes().stream()
                 .map(JsonAdaptedClassCode::new)
@@ -134,19 +137,19 @@ class JsonAdaptedPerson {
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
         final Set<ClassCode> modelClassCodes = new HashSet<>(personClassCodes);
-        final List<AttendanceDate> modelDates = new ArrayList<>();
-        final Set<AttendanceDate> uniqueDates = new HashSet<>();
-        for (String date : attendance) {
-            if (date == null || !AttendanceDate.isValidAttendanceDate(date)) {
-                throw new IllegalValueException(AttendanceDate.MESSAGE_CONSTRAINTS);
+        final List<AttendanceRecord> modelRecords = new ArrayList<>();
+        final Set<AttendanceRecord> uniqueRecords = new HashSet<>();
+        for (JsonAdaptedAttendanceRecord record : attendance) {
+            if (record == null) {
+                throw new IllegalValueException("Student attendance records must not be null.");
             }
-            AttendanceDate modelDate = new AttendanceDate(date);
-            if (!uniqueDates.add(modelDate)) {
-                throw new IllegalValueException(Attendance.MESSAGE_DUPLICATE_DATE);
+            AttendanceRecord modelRecord = record.toModelType();
+            if (!uniqueRecords.add(modelRecord)) {
+                throw new IllegalValueException(Attendance.MESSAGE_DUPLICATE_RECORD);
             }
-            modelDates.add(modelDate);
+            modelRecords.add(modelRecord);
         }
-        final Attendance modelAttendance = new Attendance(modelDates);
+        final Attendance modelAttendance = new Attendance(modelRecords);
         return new Person(modelName, modelMatriculationNumber, modelEmail, modelTags, modelAttendance, modelClassCodes);
     }
 

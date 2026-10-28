@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_DATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
 
@@ -13,6 +14,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.MatriculationNumber;
@@ -111,6 +113,37 @@ public class ParserUtil {
             return Optional.empty();
         }
         return Optional.of(parseAttendanceDate(date.get()));
+    }
+
+    /**
+     * Parses a {@code String classCode} into a {@code ClassCode}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code classCode} is invalid.
+     */
+    public static ClassCode parseClassCode(String classCode) throws ParseException {
+        requireNonNull(classCode);
+        String trimmedClassCode = classCode.trim();
+        if (!ClassCode.isValidClassCode(trimmedClassCode)) {
+            throw new ParseException(ClassCode.MESSAGE_CONSTRAINTS);
+        }
+        return new ClassCode(trimmedClassCode);
+    }
+
+    /**
+     * Parses the optional class code after c/ in {@code argMultimap}.
+     * Returns an empty {@code Optional} if c/ is absent.
+     * Duplicate-prefix checking is the caller's responsibility.
+     *
+     * @throws ParseException if the given class code is invalid.
+     */
+    public static Optional<ClassCode> parseOptionalClassCode(ArgumentMultimap argMultimap) throws ParseException {
+        requireNonNull(argMultimap);
+        Optional<String> classCode = argMultimap.getValue(PREFIX_CLASS_CODE);
+        if (classCode.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(parseClassCode(classCode.get()));
     }
 
     /**
