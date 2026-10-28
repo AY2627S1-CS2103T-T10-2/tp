@@ -199,6 +199,7 @@ public class MarkClassAttendanceCommandTest {
         assertFalse(command.equals(new MarkClassAttendanceCommand(CLASS_T10, Optional.empty())));
         assertFalse(command.equals(null));
         assertFalse(command.equals(1));
+        assertFalse(command.equals(new MarkAttendanceCommand(INDEX_FIRST_PERSON, CLASS_T10, Optional.of(DATE))));
     }
 
     @Test
