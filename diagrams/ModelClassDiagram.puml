@@ -20,6 +20,7 @@ Class Email
 Class Name
 Class MatriculationNumber
 Class Attendance
+Class AttendanceRecord
 Class Tag
 Class ClassCode
 
@@ -49,6 +50,8 @@ Person *--> Email
 Person *--> "*" Tag
 Person *--> "*" ClassCode
 Person *--> Attendance
+Attendance *--> "*" AttendanceRecord
+AttendanceRecord --> "1" ClassCode
 
 Person -[hidden]up--> I
 UniquePersonList -[hidden]right-> I
