@@ -1,5 +1,6 @@
 package seedu.address.logic.parser;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_DATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.MarkAttendanceCommand;
+import seedu.address.logic.commands.MarkClassAttendanceCommand;
 import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.commands.UnmarkAttendanceCommand;
 import seedu.address.model.classcode.ClassCode;
@@ -199,9 +201,53 @@ public class AttendanceCommandParserTest {
 
     @Test
     public void parse_markClassWithoutIdentifier_throwsIdentifierError() {
-        assertParseFailure(parser, " c/CS2103T-T10", MESSAGE_MISSING_IDENTIFIER);
         assertParseFailure(parser, "a c/bad", ParserUtil.MESSAGE_INVALID_INDEX);
         assertParseFailure(parser, " m/bad c/bad d/bad", MatriculationNumber.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_wholeClass_returnsMarkClassAttendanceCommand() {
+        MarkClassAttendanceCommand expectedCommand = new MarkClassAttendanceCommand(CLASS_T10, Optional.empty());
+        assertParseSuccess(parser, " c/CS2103T-T10", expectedCommand);
+        assertParseSuccess(parser, "   c/CS2103T-T10   ", expectedCommand);
+    }
+
+    @Test
+    public void parse_wholeClassWithDate_returnsMarkClassAttendanceCommand() {
+        MarkClassAttendanceCommand expectedCommand =
+                new MarkClassAttendanceCommand(CLASS_T10, Optional.of(VALID_DATE));
+        assertParseSuccess(parser, " c/cs2103t-t10 d/07-10-2026", expectedCommand);
+        assertParseSuccess(parser, " d/07-10-2026 c/CS2103T-T10", expectedCommand);
+    }
+
+    @Test
+    public void parse_wholeClassInvalidClass_throwsClassConstraintsBeforeDate() {
+        assertParseFailure(parser, " c/", ClassCode.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " c/CS2103T", ClassCode.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " c/bad d/bad", ClassCode.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_wholeClassInvalidDate_throwsDateConstraints() {
+        assertParseFailure(parser, " c/CS2103T-T10 d/32-01-2026", AttendanceDate.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_wholeClassDuplicatePrefixes_throwsDuplicatePrefixError() {
+        assertParseFailure(parser, " c/CS2103T-T10 c/CS2103T-T11",
+                "Multiple values specified for the following single-valued field(s): c/");
+        assertParseFailure(parser, " c/CS2103T-T10 d/07-10-2026 d/08-10-2026",
+                "Multiple values specified for the following single-valued field(s): d/");
+    }
+
+    @Test
+    public void parse_unmarkWholeClass_throwsMissingIdentifierError() {
+        assertParseFailure(parser, "unmark c/CS2103T-T10", MESSAGE_UNMARK_MISSING_IDENTIFIER);
+    }
+
+    @Test
+    public void messageUsage_wholeClassForm_isIncluded() {
+        assertTrue(MarkAttendanceCommand.MESSAGE_USAGE.contains("c/MODULE-CLASS [d/DATE] for a whole class"));
     }
 
     @Test

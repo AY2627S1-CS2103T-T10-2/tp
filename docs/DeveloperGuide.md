@@ -197,9 +197,13 @@ The `sort` command accepts `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MOD
 
 ### Attendance feature
 
-The `attendance` command marks a student present at a class session, and `attendance unmark` removes that record. Each `AttendanceRecord` contains an `AttendanceDate` and a `ClassCode`; the same student may have records for different classes on one date, but not two records for the same class and date. Both commands identify the student by `INDEX` or `m/MATRICULATION_NUMBER` and take an optional `d/DATE`, which defaults to today. Mark requires `c/MODULE-CLASS`; unmark accepts an optional `[c/MODULE-CLASS]`.
+The `attendance` command marks a student or a whole class present at a class session, and `attendance unmark` removes an individual student's record. Each `AttendanceRecord` contains an `AttendanceDate` and a `ClassCode`; the same student may have records for different classes on one date, but not two records for the same class and date. Single-student mark and unmark requests identify the student by `INDEX` or `m/MATRICULATION_NUMBER`. All forms take an optional `d/DATE`, which defaults to today. Mark requires `c/MODULE-CLASS`; unmark accepts an optional `[c/MODULE-CLASS]`.
 
-`AttendanceCommandParser` checks the first word of the arguments. If it is `unmark`, in any letter case, it calls `parseUnmark` with the remaining arguments; otherwise, it calls `parseMark` with all of them. Both use `tokenizeAttendanceArguments` to tokenize `m/`, `c/` and `d/` and reject duplicate prefixes. Each then parses the student identifier, class code and optional date, in that order, before constructing its command. `parseMark` requires a class code, while `parseUnmark` leaves it optional. Duplicate-prefix errors take priority over identifier errors, then class code errors, then date errors.
+`MarkAttendanceCommand`, `MarkClassAttendanceCommand` and `UnmarkAttendanceCommand` extend the abstract `AttendanceCommand`, which holds the command word, the optional date (defaulting to today), equality that requires the same command type and date, and the helper that copies a student with new attendance.
+
+`AttendanceCommandParser` checks the first word of the arguments. If it is `unmark`, in any letter case, it calls `parseUnmark` with the remaining arguments; otherwise, it tokenizes the arguments before choosing the mark form. Both paths use `tokenizeAttendanceArguments` to tokenize `m/`, `c/` and `d/` and reject duplicate prefixes. Single-student requests then parse the student identifier, class code and optional date, in that order, before constructing their command. `parseMark` requires a class code, while `parseUnmark` leaves it optional. Duplicate-prefix errors take priority over identifier errors, then class code errors, then date errors.
+
+For marking, an empty preamble with no `m/` and a present `c/` selects `parseMarkClass`, which parses the class code and optional date and constructs `MarkClassAttendanceCommand`; all other arguments go to `parseMark`. The whole-class command collects enrolled students from all students in TAssist, including those outside the displayed list. It reports an error without changing anything if none are enrolled. Otherwise, it skips students already recorded for that class and date, reuses `AttendanceCommand#createStudentWithAttendance` to create each updated student, and calls `Model#setPerson` once per marked student. The result reports the marked count and names any skipped students.
 
 The simplified sequence diagram below shows a successful run of `attendance unmark m/A1234567X` after parsing, assuming the student exists and has exactly one attendance record today. It omits date selection and choosing which record to remove, which the steps below explain.
 
@@ -210,24 +214,29 @@ The simplified sequence diagram below shows a successful run of `attendance unma
 3. The command does not modify `s`. It creates a copy `e` whose `Attendance` no longer contains the chosen record, using `Attendance#withoutRecord`.
 4. `Model#setPerson` replaces `s` with `e`, and the command returns a `CommandResult` `r` with the success message.
 
-Marking resolves the student first, then checks that the student has enrolled classes, is enrolled in the given class, and has no record for that class and date, in that order. Class code comparison ignores letter case, as in `enroll`. The copy gains the record using `Attendance#withRecord`. Both success messages name the student, class and date, including when unmark infers the class.
+Single-student marking resolves the student first, then checks that the student has enrolled classes, is enrolled in the given class, and has no record for that class and date, in that order. Class code comparison ignores letter case, as in `enroll`. The copy gains the record using `Attendance#withRecord`. Single-student mark and unmark success messages name the student, class and date, including when unmark infers the class.
 
 Design considerations:
 
+* Whole-class marking skips students already recorded for the class and date instead of rejecting the entire request. This lets tutors mark the remaining students even when some records already exist, and safely repeat the command.
 * Records keep their class code independently of current enrollment, so unenrolling a student, from one class or with `all/`, keeps their attendance history. Unmarking with `c/` and loading saved data do not require a record's class to be a current enrollment.
 * Date-only attendance entries from earlier versions are rejected rather than migrated, because they do not identify the class attended. TAssist reports the load error, blocks commands and leaves the file unchanged until the user fixes or removes it.
 
-### \[Proposed\] Undo/redo feature
+### Undo/redo feature
 
-#### Proposed Implementation
+#### Implementation
 
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+The undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Each snapshot contains students and an independent copy of the gradebook, including assignment links and marks. History lasts for the current application session and is not persisted. It implements the following operations:
 
-* `VersionedAddressBook#commit()` -- Saves the current address book state in its history.
+* `VersionedAddressBook#commit()` -- Saves changed address book data in its history and discards any redo branch. If the data matches the current snapshot, it does nothing and preserves redo history.
 * `VersionedAddressBook#undo()` -- Restores the previous address book state from its history.
 * `VersionedAddressBook#redo()` -- Restores a previously undone address book state from its history.
 
 These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
+
+`LogicManager#execute()` calls `Model#commitAddressBook()` once after successful command execution and before saving to storage. Commands do not commit history themselves. The model ignores commits whose data matches the current snapshot, so display-only commands, no-op changes, and undo/redo preserve the current history and redo branch.
+
+After successful restoration, `ModelManager` clears the person filter, restores `COMPARATOR_NAME_ASC` and `SortDisplay.NONE`, and increments `addressBookRestoreCount`. `MainWindow` listens to this counter to close student details that could otherwise show stale records. Unavailable undo/redo throws `IllegalStateException` at model level; the commands check availability first and report a `CommandException` without changing the display or counter.
 
 Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
 
@@ -235,17 +244,17 @@ Step 1. The user launches the application for the first time. The `VersionedAddr
 
 <puml src="diagrams/UndoRedoState0.puml" alt="UndoRedoState0" />
 
-Step 2. The user executes `delete 5` command to delete the 5th student in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+Step 2. The user executes `delete 5` command to delete the 5th student in the address book. After the command succeeds, `LogicManager` calls `Model#commitAddressBook()`, saving the modified address book in `addressBookStateList` and shifting `currentStatePointer` to the newly inserted state.
 
 <puml src="diagrams/UndoRedoState1.puml" alt="UndoRedoState1" />
 
-Step 3. The user executes `add n/David …​` to add a new student. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
+Step 3. The user executes `add n/David …​` to add a new student. After successful execution, `LogicManager` commits the changed data, adding another state to `addressBookStateList`.
 
 <puml src="diagrams/UndoRedoState2.puml" alt="UndoRedoState2" />
 
 <box type="info" seamless>
 
-**Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
+**Note:** Parsing or command-execution failures do not reach the history commit. `LogicManager` commits successful changes before saving the data file. If saving fails, the in-memory change and history remain effective even though the user receives a `CommandException`. Likewise, a successful undo/redo still restores records and notifies the UI if the subsequent save fails.
 </box>
 
 Step 4. The user now decides that adding the student was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
@@ -279,11 +288,11 @@ The `redo` command does the opposite — it calls `Model#redoAddressBook()`, whi
 **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
 </box>
 
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
+Step 5. The user then decides to execute the command `list`. `LogicManager` calls `Model#commitAddressBook()` after it succeeds, but the model detects that records match the current snapshot. Thus, `addressBookStateList` and redo history remain unchanged.
 
 <puml src="diagrams/UndoRedoState4.puml" alt="UndoRedoState4" />
 
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …` command. This is the behavior that most modern desktop applications follow.
+Step 6. The user executes `clear`, after which `LogicManager` calls `Model#commitAddressBook()`. Assuming the address book is nonempty, this changes records. Since `currentStatePointer` is not pointing at the end of `addressBookStateList`, states after the pointer are purged. If the address book were already empty, `clear` would make no change and preserve redo history.
 
 <puml src="diagrams/UndoRedoState5.puml" alt="UndoRedoState5" />
 
@@ -426,9 +435,11 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | new user                                 | see a list of commands and how to use them                   | start using the app without memorising commands                 |
 | `* *`    | forgetful tutor                          | search for a student by matriculation number                 | find them when I cannot recall their name                       |
 | `* *`    | tutor                                    | update an attendance record                                  | correct mistakes made during attendance taking                  |
+| `* *`    | tutor                                    | mark a whole class present for a session                     | record attendance quickly and then unmark absentees             |
 | `* *`    | tutor                                    | view attendance statistics for a class                       | monitor participation trends                                    |
 | `* *`    | tutor                                    | record a student's class participation                       | grade their participation                                       |
 | `* *`    | tutor                                    | undo my last action                                          | reverse mistakes                                                |
+| `* *`    | tutor                                    | redo an undone action                                        | recover from an accidental undo                                 |
 | `* *`    | tutor                                    | have my filters persist across searches                      | avoid retyping the same filters                                 |
 | `*`      | tutor who has finished teaching a class  | delete students in batches                                   | remove a whole class at once                                    |
 | `*`      | tutor teaching a new class               | import students from a file with one command                 | avoid adding them one by one                                    |
@@ -589,6 +600,8 @@ Use case ends.
   Use case resumes at step 1.
 
 Removing an attendance record (unmarking) follows the same interaction, with these differences: in step 2, TAssist removes the student's record for the given class and date instead of adding one. The class is optional when exactly one record exists on that date. With several records on that date and no class supplied, TAssist reports an error naming the classes and asks the tutor to specify one; no records change (use case resumes at step 1). Extensions 1d and 1h do not apply, and 1g applies only to an invalid supplied class: the record's class need not be a current enrollment. If no record matches the given class and date, or no records exist on that date when the class is omitted, TAssist reports this and leaves the student's records unchanged (use case ends). Success confirms the removed record's class even when inferred.
+
+For whole-class marking, the tutor supplies a class and an optional date without a student identifier. TAssist marks every enrolled student present for that session and reports how many students were marked, naming any students already recorded for that class and date who were skipped. If no students are enrolled in the class, TAssist reports an error and changes nothing.
 
 #### UC05: List all students
 
@@ -1101,6 +1114,16 @@ testers are expected to do more *exploratory* testing.
 
    1. Test case: `attendance unmark 1 c/CS2103T-T11 d/07-10-2026`, then `attendance unmark 1 d/07-10-2026`<br>
       Expected: The first command removes only the CS2103T-T11 record. The second infers CS2103T-T10 and shows `Unmarked attendance for NAME in CS2103T-T10 on 07-10-2026`. Neither record remains.
+
+1. Marking a whole class
+
+   1. Prerequisites: Close TAssist and back up `data/addressbook.json` before testing. Move the data file out of the `data` folder and reopen TAssist. Run `list`, then `enroll 1 c/CS2103T-T10`, `enroll 2 c/CS2103T-T10`, and `attendance 1 c/CS2103T-T10 d/07-10-2026`.
+
+   1. Test case: `attendance c/CS2103T-T10 d/07-10-2026`<br>
+      Expected: The status message shows `Marked attendance for 1 student in CS2103T-T10 on 07-10-2026`, followed on a second line by `Already recorded, skipped: Alex Yeoh`.
+
+   1. Test case: `attendance c/CS2103T-T99`<br>
+      Expected: The status message shows `No students are enrolled in CS2103T-T99.` No attendance records change.
 
 ### Recording class participation
 
