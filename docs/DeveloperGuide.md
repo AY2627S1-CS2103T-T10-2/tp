@@ -214,7 +214,7 @@ Marking resolves the student first, then checks that the student has enrolled cl
 
 Design considerations:
 
-* Records keep their class code independently of current enrollment, so a future unenroll operation will not erase attendance history. Unenrolling is outside this feature's scope; storage and unmark do not require a record's class to be a current enrollment.
+* Records keep their class code independently of current enrollment, so unenrolling a student, from one class or with `all/`, keeps their attendance history. Unmarking with `c/` and loading saved data do not require a record's class to be a current enrollment.
 * Date-only attendance entries from earlier versions are rejected rather than migrated, because they do not identify the class attended. TAssist reports the load error, blocks commands and leaves the file unchanged until the user fixes or removes it.
 
 ### \[Proposed\] Undo/redo feature
