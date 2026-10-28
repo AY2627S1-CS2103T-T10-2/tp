@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.MarkAttendanceCommand;
+import seedu.address.logic.commands.MarkClassAttendanceCommand;
 import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.commands.UnmarkAttendanceCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -18,7 +19,8 @@ import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.AttendanceDate;
 
 /**
- * Parses attendance arguments into a {@code MarkAttendanceCommand} or {@code UnmarkAttendanceCommand}.
+ * Parses attendance arguments into a {@code MarkAttendanceCommand}, {@code MarkClassAttendanceCommand},
+ * or {@code UnmarkAttendanceCommand}.
  */
 public class AttendanceCommandParser implements Parser<Command> {
     public static final String MESSAGE_MISSING_CLASS_CODE =
@@ -27,8 +29,9 @@ public class AttendanceCommandParser implements Parser<Command> {
     private static final Pattern SUBCOMMAND_FORMAT = Pattern.compile("(?<subcommandWord>\\S+)(?<arguments>.*)");
 
     /**
-     * Parses the optional unmark subcommand, displayed student index or matriculation number,
-     * class (required for marking), and optional attendance date.
+     * Parses a single-student mark or unmark request, or a whole-class mark request.
+     * Accepts a displayed student index or matriculation number for single-student requests,
+     * a class (required for marking), and an optional attendance date.
      *
      * @throws ParseException if the user input does not conform to the expected format.
      */
@@ -39,14 +42,17 @@ public class AttendanceCommandParser implements Parser<Command> {
                 && matcher.group("subcommandWord").equalsIgnoreCase(UnmarkAttendanceCommand.SUBCOMMAND_WORD)) {
             return parseUnmark(matcher.group("arguments"));
         }
-        return parseMark(args);
+        ArgumentMultimap argMultimap = tokenizeAttendanceArguments(args);
+        if (isWholeClassRequest(argMultimap)) {
+            return parseMarkClass(argMultimap);
+        }
+        return parseMark(argMultimap);
     }
 
     /**
      * Parses a mark request with a required class code.
      */
-    private static MarkAttendanceCommand parseMark(String args) throws ParseException {
-        ArgumentMultimap argMultimap = tokenizeAttendanceArguments(args);
+    private static MarkAttendanceCommand parseMark(ArgumentMultimap argMultimap) throws ParseException {
         StudentIdentifier targetStudent = ParserUtil.parseStudentIdentifier(argMultimap,
                 MarkAttendanceCommand.MESSAGE_USAGE);
         ClassCode classCode = ParserUtil.parseOptionalClassCode(argMultimap).orElseThrow(() ->
@@ -54,6 +60,24 @@ public class AttendanceCommandParser implements Parser<Command> {
 
         Optional<AttendanceDate> date = ParserUtil.parseOptionalAttendanceDate(argMultimap);
         return new MarkAttendanceCommand(targetStudent, classCode, date);
+    }
+
+    /**
+     * Returns whether the arguments specify a class without a student identifier.
+     */
+    private static boolean isWholeClassRequest(ArgumentMultimap argMultimap) {
+        return argMultimap.getPreamble().isEmpty()
+                && argMultimap.getValue(PREFIX_MATRICULATION_NUMBER).isEmpty()
+                && argMultimap.getValue(PREFIX_CLASS_CODE).isPresent();
+    }
+
+    /**
+     * Parses a whole-class mark request whose class prefix is present.
+     */
+    private static MarkClassAttendanceCommand parseMarkClass(ArgumentMultimap argMultimap) throws ParseException {
+        ClassCode classCode = ParserUtil.parseOptionalClassCode(argMultimap).orElseThrow();
+        Optional<AttendanceDate> date = ParserUtil.parseOptionalAttendanceDate(argMultimap);
+        return new MarkClassAttendanceCommand(classCode, date);
     }
 
     /**

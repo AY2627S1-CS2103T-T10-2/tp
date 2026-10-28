@@ -24,10 +24,11 @@ public class MarkAttendanceCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Marks attendance for the student identified by their displayed index or matriculation number"
-            + " in the given class.\n"
-            + "Parameters: INDEX or m/MATRICULATION_NUMBER c/MODULE-CLASS [d/DATE]\n"
+            + " in the given class, or for every student enrolled in the class.\n"
+            + "Parameters: INDEX or m/MATRICULATION_NUMBER c/MODULE-CLASS [d/DATE], "
+            + "or c/MODULE-CLASS [d/DATE] for a whole class\n"
             + "Example: " + COMMAND_WORD + " 1 c/CS2103T-T10 d/07-10-2026, "
-            + COMMAND_WORD + " m/A1234567X c/CS2103T-T10";
+            + COMMAND_WORD + " m/A1234567X c/CS2103T-T10, " + COMMAND_WORD + " c/CS2103T-T10";
 
     public static final String MESSAGE_SUCCESS = "Marked attendance for %1$s in %2$s on %3$s";
     public static final String MESSAGE_DUPLICATE_RECORD =
