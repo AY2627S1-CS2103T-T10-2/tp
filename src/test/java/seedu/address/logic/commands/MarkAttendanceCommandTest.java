@@ -221,6 +221,10 @@ public class MarkAttendanceCommandTest {
         assertFalse(command.equals(new MarkAttendanceCommand(INDEX_FIRST_PERSON, CLASS_T10, Optional.of(OTHER_DATE))));
         assertFalse(command.equals(new MarkAttendanceCommand(INDEX_FIRST_PERSON, CLASS_T10, Optional.empty())));
 
+        assertFalse(command.equals(new MarkClassAttendanceCommand(CLASS_T10, Optional.of(ATTENDANCE_DATE))));
+        assertFalse(command.equals(new UnmarkAttendanceCommand(new StudentIdentifier(INDEX_FIRST_PERSON),
+                Optional.of(CLASS_T10), Optional.of(ATTENDANCE_DATE))));
+
         MarkAttendanceCommand matricCommand = new MarkAttendanceCommand(
                 new StudentIdentifier(new MatriculationNumber("A1234567A")), CLASS_T10, Optional.of(ATTENDANCE_DATE));
 
