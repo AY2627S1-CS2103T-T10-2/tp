@@ -111,4 +111,36 @@ public class DeleteCommandBatchTest {
         assertEquals(studentsBefore, model.getAddressBook().getPersonList());
         assertEquals(List.of(secondStudent, thirdStudent), model.getFilteredPersonList());
     }
+
+    @Test
+    public void execute_unorderedIndices_deletesOriginalTargets() throws Exception {
+        Person firstStudent = model.getFilteredPersonList().get(0);
+        Person secondStudent = model.getFilteredPersonList().get(1);
+        Person thirdStudent = model.getFilteredPersonList().get(2);
+
+        List<Person> expectedStudents =
+                new ArrayList<>(model.getAddressBook().getPersonList());
+        expectedStudents.remove(firstStudent);
+        expectedStudents.remove(secondStudent);
+        expectedStudents.remove(thirdStudent);
+
+        DeleteCommand command = parser.parse(" 3 1 2");
+        command.execute(model);
+
+        assertEquals(expectedStudents, model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_nonAdjacentDuplicateIndices_doesNotDeleteAnyStudent() throws Exception {
+        List<Person> studentsBefore =
+                List.copyOf(model.getAddressBook().getPersonList());
+
+        DeleteCommand command = parser.parse(" 1 3 1");
+
+        CommandException exception = assertThrows(
+                CommandException.class, () -> command.execute(model));
+
+        assertEquals(DeleteCommand.MESSAGE_DUPLICATE_STUDENT, exception.getMessage());
+        assertEquals(studentsBefore, model.getAddressBook().getPersonList());
+    }
 }
