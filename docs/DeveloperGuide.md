@@ -972,42 +972,64 @@ testers are expected to do more *exploratory* testing.
 
 ### Keeping an open student profile current
 
+Run the following scenarios in order in a test data folder. Keep the details window open and enter commands in the main window unless instructed otherwise.
+
 1. Refreshing details after edits
 
-   1. Prerequisites: Use a test data folder with at least two students. The first student must have no attendance on 07-10-2026 and must not be enrolled in CS2103T-T10. Run `list`, then `view 1`. Keep the details window open and enter subsequent commands in the main window.
+   1. Prerequisites: Have at least two students. The first student must not be enrolled in CS2103T-T10 and must have no attendance records for that class. Ensure A9999999Z is unused. Run `list`, then `view 1`.
 
-   1. Run `edit 1 n/Aaron Updated m/A9999999Z e/aaron.updated@example.com t/updated`, using an unused matriculation number.<br>
+   2. Run `edit 1 n/Aaron Updated m/A9999999Z e/aaron.updated@example.com t/updated`.<br>
       Expected: The existing details window immediately shows the new name, matriculation number, email and tag, and its title uses the new name. It does not take keyboard focus from the main window.
 
-   1. Run `attendance m/A9999999Z d/07-10-2026`, followed by `attendance unmark m/A9999999Z d/07-10-2026`.<br>
-      Expected: The date appears and then disappears from the open window; the attendance count updates each time without another `view` command.
+   3. Run `find m/A9999999Z`, then `enroll 1 c/CS2103T-T10`.<br>
+      Expected: Aaron is the only displayed student. The class immediately appears in the open details window.
 
-   1. Locate Aaron's current displayed index, INDEX. Run `enroll INDEX c/CS2103T-T10`, followed by `unenroll INDEX c/CS2103T-T10`.<br>
-      Expected: The class appears and then disappears from the open window.
+   4. Run `attendance m/A9999999Z c/CS2103T-T10 d/07-10-2026`.<br>
+      Expected: An attendance record for 07-10-2026 and CS2103T-T10 appears in the open window, and the attendance count increases without another `view` command.
 
-1. Preserving the selected profile through list changes
+   5. Run `attendance unmark m/A9999999Z c/CS2103T-T10 d/07-10-2026`.<br>
+      Expected: The attendance record disappears and the attendance count decreases immediately.
 
-   1. With Aaron's profile still open, run `sort matric desc`, then `find` with a name keyword matching only another student.<br>
+   6. Run `unenroll 1 c/CS2103T-T10`.<br>
+      Expected: The class disappears from the open details window.
+
+   7. Run `enroll 1 c/CS2103T-T10` again.<br>
+      Expected: The class reappears. Leave Aaron enrolled for the next scenario.
+
+2. Preserving the selected profile through list changes
+
+   1. With Aaron's profile still open, run `list`, then `sort matric desc`.<br>
+      Expected: The list is sorted, and the details window continues to show Aaron.
+
+   2. Run `find` with a name keyword matching only another student.<br>
       Expected: The details window continues to show Aaron, even while Aaron is absent from the displayed list.
 
-   1. Run `attendance m/A9999999Z d/07-10-2026`.<br>
-      Expected: Aaron's open profile shows the new attendance date while the student remains hidden from the list.
+   3. Run `attendance m/A9999999Z c/CS2103T-T10 d/07-10-2026`.<br>
+      Expected: Aaron's open profile shows the new attendance record and updated count while the student remains hidden from the list.
 
-   1. Edit a different student using their current displayed index.<br>
+   4. Edit a different student using their current displayed index.<br>
       Expected: Aaron's details window stays open and continues to show Aaron.
 
-1. Closing the profile after deletion or clearing
+3. Closing the profile after deletion or clearing
 
    1. Run `find m/A9999999Z`, then `delete 1`.<br>
       Expected: Aaron is deleted and the details window closes, including after the earlier matriculation number edit.
 
-   1. Run `list`, then `view 1` for a remaining student, then `clear`.<br>
+   2. Run `list`, then `view 1` for a remaining student, then `clear`.<br>
       Expected: The student list becomes empty and the details window closes.
 
-1. Keeping a manually closed profile closed
+4. Keeping a manually closed profile closed
 
-   1. Add a student, run `view 1`, then close the details window with `Esc` or its close button. Edit that student.<br>
-      Expected: The details window stays closed. Running `view 1` again opens it with the updated details.
+   1. Run `add n/Profile Test m/A9999999Z e/profile.test@example.com`, then `view 1`.
+
+   2. Close the details window with `Esc`, then run `edit 1 n/Profile Updated`.<br>
+      Expected: The details window stays closed.
+
+   3. Run `view 1` again.<br>
+      Expected: The window opens with the updated name and title.
+
+   4. Close the window with its close button, then run `edit 1 n/Profile Final`.<br>
+      Expected: The details window stays closed. Running `view 1` again opens it with the latest name and title.
 
 ### Deleting a student
 
