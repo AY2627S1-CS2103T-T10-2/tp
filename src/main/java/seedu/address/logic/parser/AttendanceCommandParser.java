@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import seedu.address.logic.commands.Command;
+import seedu.address.logic.commands.AttendanceCommand;
 import seedu.address.logic.commands.MarkAttendanceCommand;
 import seedu.address.logic.commands.MarkClassAttendanceCommand;
 import seedu.address.logic.commands.StudentIdentifier;
@@ -19,10 +19,10 @@ import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.AttendanceDate;
 
 /**
- * Parses attendance arguments into a {@code MarkAttendanceCommand}, {@code MarkClassAttendanceCommand},
- * or {@code UnmarkAttendanceCommand}.
+ * Parses attendance arguments into an {@code AttendanceCommand}: a {@code MarkAttendanceCommand},
+ * {@code MarkClassAttendanceCommand}, or {@code UnmarkAttendanceCommand}.
  */
-public class AttendanceCommandParser implements Parser<Command> {
+public class AttendanceCommandParser implements Parser<AttendanceCommand> {
     public static final String MESSAGE_MISSING_CLASS_CODE =
             "Specify the class with " + PREFIX_CLASS_CODE + "MODULE-CLASS.\n%1$s";
 
@@ -35,7 +35,7 @@ public class AttendanceCommandParser implements Parser<Command> {
      *
      * @throws ParseException if the user input does not conform to the expected format.
      */
-    public Command parse(String args) throws ParseException {
+    public AttendanceCommand parse(String args) throws ParseException {
         requireNonNull(args);
         Matcher matcher = SUBCOMMAND_FORMAT.matcher(args.trim());
         if (matcher.matches()
