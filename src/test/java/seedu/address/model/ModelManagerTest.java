@@ -69,10 +69,20 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void sortPersons_sortsDisplayedListByName() {
+    public void constructor_andAddPerson_displayStudentsByName() {
         modelManager.addPerson(BENSON);
         modelManager.addPerson(ALICE);
-        modelManager.sortPersons(Model.COMPARATOR_NAME_ASC);
+        assertEquals(List.of(ALICE, BENSON), modelManager.getFilteredPersonList());
+        assertEquals(List.of(BENSON, ALICE), modelManager.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void addPerson_afterSort_restoresNameOrder() {
+        modelManager.addPerson(BENSON);
+        modelManager.sortPersons(Model.COMPARATOR_NAME_ASC.reversed());
+
+        modelManager.addPerson(ALICE);
+
         assertEquals(List.of(ALICE, BENSON), modelManager.getFilteredPersonList());
     }
 

@@ -31,6 +31,7 @@
       <FlowPane fx:id="classCodes" />
       <Label fx:id="matriculationNumber" styleClass="cell_small_label" text="\$matriculationNumber" />
       <Label fx:id="email" styleClass="cell_small_label" text="\$email" />
+      <Label fx:id="sortDetail" styleClass="cell_small_label" visible="false" managed="false" />
     </VBox>
   </GridPane>
 </HBox>

@@ -15,15 +15,22 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.math.BigDecimal;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
+import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.gradebook.Assignment;
+import seedu.address.model.gradebook.AssignmentId;
+import seedu.address.model.gradebook.Mark;
+import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
@@ -36,9 +43,29 @@ public class EditCommandTest {
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
+    public void execute_editMatriculationNumber_movesRecordedMark() throws CommandException {
+        Person original = model.getFilteredPersonList().get(0);
+        AssignmentId assignmentId = new AssignmentId("CS2103T:A1");
+        model.addAssignment(new Assignment(assignmentId, "Assignment One", new BigDecimal("20")));
+        model.assignStudent(original.getMatriculationNumber(), assignmentId);
+        model.recordMark(original.getMatriculationNumber(), assignmentId, new Mark(BigDecimal.TEN));
+
+        MatriculationNumber newNumber = new MatriculationNumber("A9999999Z");
+        EditCommand command = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withMatriculationNumber(newNumber.toString()).build());
+        command.execute(model);
+
+        assertTrue(model.getAddressBook().getGradebook().getMarksForStudent(original.getMatriculationNumber())
+                .isEmpty());
+        assertEquals(new Mark(BigDecimal.TEN), model.getAddressBook().getGradebook()
+                .getMarksForStudent(newNumber).get(assignmentId).orElseThrow());
+    }
+
+    @Test
     public void execute_personWithAttendance_preservesAttendance() {
         Person original = model.getFilteredPersonList().get(0);
-        Person recordedPerson = new PersonBuilder(original).withAttendance("16-09-2026", "07-10-2026").build();
+        Person recordedPerson = new PersonBuilder(original)
+                .withAttendance("CS2103T-T10", "16-09-2026", "07-10-2026").build();
         model.setPerson(original, recordedPerson);
         Person editedPerson = new PersonBuilder(recordedPerson).withMatriculationNumber(VALID_MATRICULATION_NUMBER_BOB)
                 .build();
@@ -149,6 +176,7 @@ public class EditCommandTest {
      * Edit filtered list where index is larger than size of filtered list,
      * but smaller than size of address book
      */
+
     @Test
     public void execute_invalidPersonIndexFilteredList_failure() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);

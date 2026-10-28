@@ -37,6 +37,7 @@ public class FindCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         model.updateFilteredPersonList(predicate);
+        model.sortPersons(Model.COMPARATOR_NAME_ASC);
 
         int resultCount = model.getFilteredPersonList().size();
         logger.fine("Applied find predicate " + predicate + "; matched " + resultCount + " student(s).");

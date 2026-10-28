@@ -3,10 +3,10 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -24,9 +24,11 @@ public class EnrollCommand extends Command {
             + "Parameters: INDEX (must be a positive integer) " + PREFIX_CLASS_CODE + "MODULE-CLASS\n"
             + "Example: " + COMMAND_WORD + " 1 " + PREFIX_CLASS_CODE + "CS2103T-T10";
 
-    public static final String MESSAGE_SUCCESS = "Enrolled student %1$s in class %2$s";
+    public static final String MESSAGE_SUCCESS = "Enrolled student %1$s in class %2$s.";
     public static final String MESSAGE_DUPLICATE_CLASS =
             "Student is already enrolled in class %1$s.";
+
+    private static final Logger logger = LogsCenter.getLogger(EnrollCommand.class);
 
     private final Index index;
     private final ClassCode classCode;
@@ -42,28 +44,25 @@ public class EnrollCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
+        logger.fine("Executing enroll: index=" + index.getOneBased() + ", classCode=" + classCode);
         Person student;
         List<Person> lastShownList = model.getFilteredPersonList();
 
         if (index.getZeroBased() >= lastShownList.size()) {
+            logger.info("Enroll rejected: index " + index.getOneBased()
+                    + " out of bounds (list size " + lastShownList.size() + ")");
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
         student = lastShownList.get(index.getZeroBased());
-        if (student.getClassCodes().contains(classCode)) {
+        assert student != null : "Student should not be null after index check";
+        if (student.isEnrolledIn(classCode)) {
+            logger.info("Enroll rejected: " + student.getName() + " already in " + classCode);
             throw new CommandException(String.format(MESSAGE_DUPLICATE_CLASS, classCode));
         }
-        model.setPerson(student, createEnrolledStudent(student, classCode));
-        return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), classCode));
-    }
+        model.setPerson(student, student.withClassCode(classCode));
+        logger.info("Enrolled " + student.getName() + " in " + classCode);
 
-    /**
-     * Creates a student with the given class code added, preserving the student's other details.
-     */
-    private static Person createEnrolledStudent(Person student, ClassCode classCode) {
-        Set<ClassCode> updatedClassCodes = new HashSet<>(student.getClassCodes());
-        updatedClassCodes.add(classCode);
-        return new Person(student.getName(), student.getMatriculationNumber(), student.getEmail(),
-                student.getTags(), student.getAttendance(), updatedClassCodes);
+        return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), classCode));
     }
 
     @Override

@@ -2,11 +2,13 @@ package seedu.address.logic;
 
 import java.util.Optional;
 
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.SortDisplay;
 import seedu.address.model.person.Person;
 
 /**
@@ -30,6 +32,9 @@ public interface Logic {
     /** Returns an unmodifiable view of the filtered list of persons */
     ObservableList<Person> getFilteredPersonList();
 
+    /** Returns the extra student detail selected by the active sort. */
+    ObservableValue<SortDisplay> sortDisplayProperty();
+
     /**
      * Returns the user prefs' GUI settings.
      */
@@ -39,4 +44,9 @@ public interface Logic {
      * Set the user prefs' GUI settings.
      */
     void setGuiSettings(GuiSettings guiSettings);
+
+    /**
+     * Returns an observable counter that increases after each successful undo or redo.
+     */
+    ObservableValue<Number> addressBookRestoreCountProperty();
 }

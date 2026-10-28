@@ -31,7 +31,7 @@ AddressBookParser -> DeleteCommandParser : parse("1")
 activate DeleteCommandParser
 
 create DeleteCommand
-DeleteCommandParser -> DeleteCommand
+DeleteCommandParser -> DeleteCommand : DeleteCommand(targetStudent)
 activate DeleteCommand
 
 DeleteCommand --> DeleteCommandParser :
@@ -49,7 +49,12 @@ deactivate AddressBookParser
 LogicManager -> DeleteCommand : execute(m)
 activate DeleteCommand
 
-DeleteCommand -> Model : deletePerson(1)
+note over DeleteCommand
+Resolves personToDelete using
+targetStudent.resolve(m).
+end note
+
+DeleteCommand -> Model : deletePerson(personToDelete)
 activate Model
 
 Model --> DeleteCommand
