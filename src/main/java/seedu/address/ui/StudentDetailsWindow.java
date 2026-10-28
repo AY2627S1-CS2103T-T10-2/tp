@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
@@ -32,6 +33,8 @@ public class StudentDetailsWindow extends UiPart<Stage> {
 
     private static final Logger logger = LogsCenter.getLogger(StudentDetailsWindow.class);
 
+    private final StudentDetailsSelection selection;
+
     @FXML
     private Label studentName;
     @FXML
@@ -52,9 +55,18 @@ public class StudentDetailsWindow extends UiPart<Stage> {
     /**
      * Creates a details window owned by the main application window.
      */
-    public StudentDetailsWindow(Stage owner) {
+    public StudentDetailsWindow(Stage owner, ObservableList<Person> persons) {
         super(FXML, new Stage());
         getRoot().initOwner(owner);
+        selection = new StudentDetailsSelection(persons);
+        selection.personProperty().addListener((observable, previous, current) -> {
+            if (current == null) {
+                getRoot().hide();
+            } else {
+                updateStudent(current);
+            }
+        });
+        getRoot().setOnHidden(event -> selection.clear());
         getRoot().getScene().setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ESCAPE) {
                 getRoot().hide();
@@ -68,6 +80,17 @@ public class StudentDetailsWindow extends UiPart<Stage> {
      */
     public void showStudent(Person person, ReadOnlyGradebook gradebook) {
         logger.fine("Showing details for student: " + person.getName());
+        selection.select(person);
+        getRoot().show();
+        getRoot().setIconified(false);
+        getRoot().toFront();
+        getRoot().requestFocus();
+    }
+
+    /**
+     * Refreshes the contents without changing window visibility or keyboard focus.
+     */
+    private void updateStudent(Person person) {
         studentName.setText(person.getName().toString());
         matriculationNumber.setText(person.getMatriculationNumber().toString());
         email.setText(person.getEmail().toString());
@@ -108,10 +131,6 @@ public class StudentDetailsWindow extends UiPart<Stage> {
         updateAttendance(person);
 
         getRoot().setTitle("Student details — " + person.getName());
-        getRoot().show();
-        getRoot().setIconified(false);
-        getRoot().toFront();
-        getRoot().requestFocus();
     }
 
     /**

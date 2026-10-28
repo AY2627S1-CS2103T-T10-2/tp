@@ -209,6 +209,16 @@ The `sort` command accepts `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MOD
 
 `SortDisplay` supplies the optional extra line on each student card. An attendance sort shows the record count. A mark sort shows the assignment ID and each student's mark or missing status. `add`, `find`, and `list` restore name order and remove that line. Assignment, mark, or student detail changes reset an active mark sort so its display does not become stale.
 
+### Keeping the student details window up to date
+
+`ViewCommand` returns the selected `Person` in its `CommandResult`. `MainWindow` creates one reusable `StudentDetailsWindow`, passing it `Logic#getPersonList()`, and calls `showStudent` to open or focus it. This list is an unmodifiable observable view of all students from `Model#getAddressBook()`, independent of the filtered and sorted list used by `PersonListPanel`.
+
+`StudentDetailsSelection` observes this full list and exposes the selected student through a read-only object property. Students are immutable: an edit, enrolment change, or attendance change replaces the old `Person` with a new one. When a list change replaces the selected student with one new student, the selection follows that replacement. This also handles edits to the matriculation number, without trying to look up the student by their old number or displayed index. Removing the selected student, including through `clear`, clears the selection. Changes to other students leave it unchanged.
+
+`StudentDetailsWindow` listens to the selection property. A replacement refreshes every section and the window title without changing visibility or keyboard focus; an empty selection hides the window. Closing the window, including with `Esc`, clears the selection so later edits do not reopen it. Filtering and sorting do not change the full student list, so they do not close the window or select a different student.
+
+`StudentDetailsSelectionTest` covers replacements, matriculation number edits followed by deletion, attendance and class changes, clearing, changes to other students, switching the selected student, and updates while the student is hidden by a filter. `LogicManagerTest` checks that the full list remains observable and cannot be modified through the `Logic` API.
+
 ### Attendance feature
 
 The `attendance` command marks a student or a whole class present at a class session, and `attendance unmark` removes an individual student's record. Each `AttendanceRecord` contains an `AttendanceDate` and a `ClassCode`; the same student may have records for different classes on one date, but not two records for the same class and date. Single-student mark and unmark requests identify the student by `INDEX` or `m/MATRICULATION_NUMBER`. All forms take an optional `d/DATE`, which defaults to today. Mark requires `c/MODULE-CLASS`; unmark accepts an optional `[c/MODULE-CLASS]`.
@@ -617,6 +627,8 @@ The default display order ignores case when comparing names. It does not change 
 
 1. Tutor requests to view a student's profile using the student's index in the currently displayed list.
 2. TAssist opens or updates a details window showing the selected student's name, matriculation number, email, tags, enrolled classes, assignment marks, and attendance records with their dates and classes. Tags are sorted by their text, classes by module and class group, assignments by assignment ID, and attendance by date from most recent to oldest, then by class code in ascending order within a date. Each assignment shows its ID, name, maximum mark, and recorded score or `Unmarked`. Only assignments attached to the selected student are shown.
+
+While the window remains open, changes to the selected student refresh its contents automatically. Deleting that student or clearing all students closes the window. Searching, filtering, and sorting preserve the selected profile, even if the student is hidden from the displayed list.
 
 Use case ends.
 
@@ -1035,6 +1047,67 @@ testers are expected to do more *exploratory* testing.
 
    1. Record another mark using `mark m/A6789012U id/CS2103T:A1 mark/15`.<br>
       Expected: The list returns to name order and the assignment result line disappears. Running `sort mark id/CS2103T:A1 desc` again shows the student with 15 first.
+
+### Keeping an open student profile current
+
+Run the following scenarios in order in a test data folder. Keep the details window open and enter commands in the main window unless instructed otherwise.
+
+1. Refreshing details after edits
+
+   1. Prerequisites: Have at least two students. The first student must not be enrolled in CS2103T-T10 and must have no attendance records for that class. Ensure A9999999Z is unused. Run `list`, then `view 1`.
+
+   2. Run `edit 1 n/Aaron Updated m/A9999999Z e/aaron.updated@example.com t/updated`.<br>
+      Expected: The existing details window immediately shows the new name, matriculation number, email and tag, and its title uses the new name. It does not take keyboard focus from the main window.
+
+   3. Run `find m/A9999999Z`, then `enroll 1 c/CS2103T-T10`.<br>
+      Expected: Aaron is the only displayed student. The class immediately appears in the open details window.
+
+   4. Run `attendance m/A9999999Z c/CS2103T-T10 d/07-10-2026`.<br>
+      Expected: An attendance record for 07-10-2026 and CS2103T-T10 appears in the open window, and the attendance count increases without another `view` command.
+
+   5. Run `attendance unmark m/A9999999Z c/CS2103T-T10 d/07-10-2026`.<br>
+      Expected: The attendance record disappears and the attendance count decreases immediately.
+
+   6. Run `unenroll 1 c/CS2103T-T10`.<br>
+      Expected: The class disappears from the open details window.
+
+   7. Run `enroll 1 c/CS2103T-T10` again.<br>
+      Expected: The class reappears. Leave Aaron enrolled for the next scenario.
+
+2. Preserving the selected profile through list changes
+
+   1. With Aaron's profile still open, run `list`, then `sort matric desc`.<br>
+      Expected: The list is sorted, and the details window continues to show Aaron.
+
+   2. Run `find` with a name keyword matching only another student.<br>
+      Expected: The details window continues to show Aaron, even while Aaron is absent from the displayed list.
+
+   3. Run `attendance m/A9999999Z c/CS2103T-T10 d/07-10-2026`.<br>
+      Expected: Aaron's open profile shows the new attendance record and updated count while the student remains hidden from the list.
+
+   4. Edit a different student using their current displayed index.<br>
+      Expected: Aaron's details window stays open and continues to show Aaron.
+
+3. Closing the profile after deletion or clearing
+
+   1. Run `find m/A9999999Z`, then `delete 1`.<br>
+      Expected: Aaron is deleted and the details window closes, including after the earlier matriculation number edit.
+
+   2. Run `list`, then `view 1` for a remaining student, then `clear`.<br>
+      Expected: The student list becomes empty and the details window closes.
+
+4. Keeping a manually closed profile closed
+
+   1. Run `add n/Profile Test m/A9999999Z e/profile.test@example.com`, then `view 1`.
+
+   2. Close the details window with `Esc`, then run `edit 1 n/Profile Updated`.<br>
+      Expected: The details window stays closed.
+
+   3. Run `view 1` again.<br>
+      Expected: The window opens with the updated name and title.
+
+   4. Close the window with its close button, then run `edit 1 n/Profile Final`.<br>
+      Expected: The details window stays closed. Running `view 1` again opens it with the latest name and title.
 
 ### Deleting a student
 

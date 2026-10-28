@@ -165,6 +165,9 @@ Format: `view INDEX`
 * Details are organised into Particulars, Classes and modules, Assignments and marks, and Attendance sections.
 * Classes are listed by module code and class group. Students without classes show `No classes enrolled`.
 * Running `view` again updates the same window to the selected student. Press `Esc` to close the window.
+* While the window is open, edits to that student's particulars, class enrolments, or attendance automatically refresh the displayed details. This includes changes to their matriculation number.
+* Deleting the displayed student or clearing all students closes the details window.
+* Finding, filtering, or sorting students keeps the window on the same student, even if that student is no longer in the displayed list. Changes to other students do not switch the window to another student.
 * Attendance records show the date and class, ordered from newest to oldest, then by class code for records on the same date. If there are no attendance records, the Attendance section shows `None recorded`.
 * The Assignments and marks section shows only assignments attached to the selected student, ordered by assignment ID. Each entry includes its ID, name, maximum mark, and score (for example, `Mark: 8.5/10`).
 * An assignment without a recorded score shows `Mark: Unmarked`. A recorded zero shows a score such as `Mark: 0/10`. If the student has no assignments, the section shows `None assigned`.

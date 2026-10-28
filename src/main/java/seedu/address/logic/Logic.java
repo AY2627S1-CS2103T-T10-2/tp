@@ -30,6 +30,9 @@ public interface Logic {
      */
     Optional<String> getStartupErrorMessage();
 
+    /** Returns an unmodifiable observable view of all persons, independent of filtering and sorting. */
+    ObservableList<Person> getPersonList();
+
     /** Returns an unmodifiable view of the filtered list of persons */
     ObservableList<Person> getFilteredPersonList();
 
