@@ -61,6 +61,7 @@ public class DeleteCommand extends Command {
         Person personToDelete = targetStudent.resolve(model);
 
         model.deletePerson(personToDelete);
+        model.commitAddressBook();
         return new CommandResult(String.format(
                 MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(personToDelete)));
     }

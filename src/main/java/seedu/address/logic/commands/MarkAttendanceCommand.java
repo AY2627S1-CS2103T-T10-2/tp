@@ -58,6 +58,7 @@ public class MarkAttendanceCommand extends Command {
 
         model.setPerson(student,
                 createStudentWithAttendance(student, student.getAttendance().withDate(attendanceDate)));
+        model.commitAddressBook();
         return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), attendanceDate));
     }
 

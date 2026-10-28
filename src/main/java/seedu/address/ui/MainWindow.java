@@ -63,6 +63,8 @@ public class MainWindow extends UiPart<Stage> {
         // Set dependencies
         this.primaryStage = primaryStage;
         this.logic = logic;
+        logic.addressBookRestoreCountProperty().addListener((
+                observable, oldValue, newValue) -> closeStudentDetailsWindow());
         this.dataFilePath = dataFilePath;
 
         // Configure the UI
@@ -178,6 +180,12 @@ public class MainWindow extends UiPart<Stage> {
 
     public PersonListPanel getPersonListPanel() {
         return personListPanel;
+    }
+
+    private void closeStudentDetailsWindow() {
+        if (studentDetailsWindow != null) {
+            studentDetailsWindow.getRoot().hide();
+        }
     }
 
     /**
