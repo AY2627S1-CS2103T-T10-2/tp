@@ -1,5 +1,6 @@
 package seedu.address.storage;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -55,6 +56,34 @@ public class JsonAddressBookStorageTest {
     @Test
     public void read_notJsonFormat_exceptionThrown() {
         assertThrows(DataLoadingException.class, () -> readAddressBook("notJsonFormatAddressBook.json"));
+    }
+
+    @Test
+    public void readAddressBook_trailingContent_preservesFileAndThrowsDataLoadingException() throws Exception {
+        Path filePath = testFolder.resolve("TrailingContentAddressBook.json");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+        storage.saveAddressBook(getTypicalAddressBook());
+        String validRecords = Files.readString(filePath);
+
+        for (String trailingContent : new String[]{validRecords, " \t\r\n" + validRecords,
+            " []", " \"extra\"", " 42", " true", " null", " garbage", " }"}) {
+            Files.writeString(filePath, "{\"persons\":[]}" + trailingContent);
+            byte[] originalContents = Files.readAllBytes(filePath);
+
+            assertThrows(DataLoadingException.class, storage::readAddressBook);
+            assertArrayEquals(originalContents, Files.readAllBytes(filePath));
+        }
+    }
+
+    @Test
+    public void readAddressBook_trailingWhitespace_restoresRecords() throws Exception {
+        Path filePath = testFolder.resolve("TrailingWhitespaceAddressBook.json");
+        AddressBook original = getTypicalAddressBook();
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+        storage.saveAddressBook(original);
+        Files.writeString(filePath, Files.readString(filePath) + " \t\r\n");
+
+        assertEquals(original, storage.readAddressBook().orElseThrow());
     }
 
     @Test
