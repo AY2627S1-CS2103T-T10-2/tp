@@ -239,7 +239,7 @@ Format for all students: `removeassignment id/MODULE:CODE`
 * With `m/`, only that student's assignment link and recorded mark are removed. The shared assignment stays available for other students and can be assigned to this student again.
 * Without `m/`, the assignment definition and every student's link and mark for it are removed. You can then create a new assignment using the same ID or name.
 * Neither form deletes or edits student details, other assignments, or their marks. The student is found by matriculation number even if hidden from the current list.
-* An unknown assignment or student, or an assignment not attached to the specified student, gives an error without changing records. A successful removal is saved in TAssist's data file; there is no assignment archive or undo command.
+* An unknown assignment or student, or an assignment not attached to the specified student, gives an error without changing records. A successful removal is saved in TAssist's data file and can be undone during the current session using `undo`. There is no separate assignment archive.
 
 Examples:
 * `removeassignment id/CS2103T:A1 m/A1234567X`
@@ -405,6 +405,35 @@ Clears all entries from the address book.
 
 Format: `clear`
 
+### Undoing a change: `undo`
+
+Restores the records from before the most recent change.
+
+Format: `undo`
+
+* Supports changes to students, enrollment, attendance, assignments and marks, including `delete`, `clear`, and both forms of `removeassignment`.
+* You can repeat `undo` to restore earlier changes in the current session. History starts when TAssist launches and is discarded when it closes.
+* Commands that only change the displayed list, unsuccessful commands that leave records unchanged, and commands that make no change to records do not add history entries.
+* A successful undo shows all students sorted by name in ascending order, clears extra sort details, and closes the student details window. It saves the restored records to the data file.
+* If there is no earlier change, TAssist reports `No commands to undo.` and leaves records and the displayed list unchanged.
+* If saving fails after a change or restoration, the in-memory change still takes effect and remains in history; follow the error message before retrying the command.
+
+Example: run `delete 1`, then `undo` to restore the deleted student and their assignment links and marks.
+
+### Redoing a change: `redo`
+
+Reapplies the most recently undone change.
+
+Format: `redo`
+
+* You can repeat `redo` until all undone changes have been reapplied.
+* A new change to records after `undo` discards the remaining redo history. Commands that only change the display, failed commands that leave records unchanged, and commands that make no change to records preserve redo history.
+* Successful redo resets the displayed list and closes student details in the same way as undo, then saves the restored records.
+* If there is no change to redo, TAssist reports `No commands to redo.` and leaves records and the displayed list unchanged.
+* Extra parameters after `undo` or `redo` are ignored, as with `clear`.
+
+Example: run `delete 1`, `undo`, then `redo` to delete the same student again.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -460,6 +489,8 @@ Action     | Format, Examples
 **Marks** | `marks id/MODULE:CODE`<br> e.g., `marks id/CS2103T:A1`
 **Remove assignment** | `removeassignment id/MODULE:CODE [m/MATRICULATION_NUMBER]`<br> e.g., `removeassignment id/CS2103T:A1 m/A1234567A`
 **Clear**  | `clear`
+**Undo** | `undo`
+**Redo** | `redo`
 **Delete** | `delete INDEX` or `delete m/MATRICULATION_NUMBER`<br> e.g., `delete 3`, `delete m/A1234567X`
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Enroll** | `enroll INDEX c/MODULE-CLASS` <br> e.g., `enroll 1 c/CS2103T-T10`
