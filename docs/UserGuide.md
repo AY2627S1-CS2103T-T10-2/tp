@@ -245,23 +245,36 @@ Examples:
 * `removeassignment id/CS2103T:A1 m/A1234567X`
 * `removeassignment id/CS2103T:A1`
 
-### Deleting a student: `delete`
+### Deleting students: `delete`
 
-Deletes the specified student from the address book.
+Deletes one or more students by their displayed indices, or one student by matriculation number.
 
-Format: `delete INDEX`
+Format: `delete INDEX [MORE_INDICES]...`
 or
 `delete m/MATRICULATION_NUMBER`
 
-* Deletes the student at the specified `INDEX` or with the specified `MATRICULATION_NUMBER`.
-* The index refers to the index number shown in the displayed student list.
-* The index **must be a positive integer** 1, 2, 3, ...
+**Deleting by index**
+
+* Each index refers to the number shown in the currently displayed student list.
+* Each index must be a positive integer within the displayed list.
+* You can specify multiple indices separated by spaces.
+* All indices refer to the displayed list before any students are deleted.
+* If any index is invalid or repeated, no students are deleted.
+
+**Deleting by matriculation number**
+
+* Deletes the student with the specified matriculation number.
 * The matriculation number must start with `A`, followed by 7 digits, and end with a letter.
 * The matriculation number is case-insensitive.
+* Only one matriculation number can be specified per command.
+
+Do not combine indices with a matriculation number in the same command.
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd student in the address book.
+* `list` followed by `delete 2` deletes the 2nd student in the displayed list.
 * `find Betsy` followed by `delete 1` deletes the 1st student in the results of the `find` command.
+* `delete 1 3` deletes the students originally displayed at indices 1 and 3, provided both indices are valid.
+* `delete 1 1` shows an error without deleting any students because index 1 is repeated.
 * `delete m/A1234567X` deletes the student whose matriculation number is `A1234567X`.
 
 ### Sorting displayed students: `sort`
