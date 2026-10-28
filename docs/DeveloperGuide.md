@@ -935,7 +935,9 @@ testers are expected to do more *exploratory* testing.
 
 1. Sorting by one assignment's mark
 
-   1. In a fresh data folder with the original sample students, create an assignment and attach it to two students using `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20` and `assignment m/A6789012U id/CS2103T:A1`. Record `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
+   1. Prerequisites: Start in a fresh data folder with the original six sample students. Run `list`, then `enroll 1 c/CS2103T-T10` and `enroll 6 c/CS2103T-T10` to enroll Alex Yeoh (`A1234567X`) and Roy Balakrishnan (`A6789012U`) in `CS2103T`.
+
+   1. Create an assignment and attach it to two students using `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20` and `assignment m/A6789012U id/CS2103T:A1`. Record `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
       Expected: One student has a recorded zero, one is unmarked, and at least one other sample student is not assigned.
 
    1. Run `sort mark id/CS2103T:A1 desc`.<br>
@@ -1011,7 +1013,10 @@ testers are expected to do more *exploratory* testing.
 
 ### Assigning work to a student
 
-1. Add two students with different matriculation numbers, then assign the same work to each.
+1. Assign the same work to two enrolled students.
+
+   1. Prerequisites: Start in a fresh data folder with the original six sample students. Run `list`, then `enroll 1 c/CS2103T-T10` and `enroll 2 c/CS2103T-T10` to enroll Alex Yeoh (`A1234567X`) and Bernice Yu (`A2345678Y`) in `CS2103T`.
+
    1. Test case: `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20`<br>
       Expected: TAssist confirms the assignment was attached to the first student without a mark.
    1. Test case: `assignment m/A2345678Y id/CS2103T:A1`<br>
