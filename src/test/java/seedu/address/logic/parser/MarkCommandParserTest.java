@@ -33,6 +33,31 @@ public class MarkCommandParserTest {
     }
 
     @Test
+    public void parse_validScientificNotation_success() {
+        String[][] cases = {
+            {"1.7500e1", "17.5"},
+            {"100e-2", "1"},
+            {"1e63", "1" + "0".repeat(63)},
+            {"1e-62", "0." + "0".repeat(61) + "1"},
+            {"0e2147483647", "0"},
+            {"0e-2147483647", "0"}
+        };
+        for (String[] testCase : cases) {
+            assertParseSuccess(parser, " m/A1234567X id/CS2103T:A1 mark/" + testCase[0],
+                    new MarkCommand(student, id, new Mark(new BigDecimal(testCase[1]))));
+        }
+    }
+
+    @Test
+    public void parse_oversizedScientificNotation_failure() {
+        String[] inputs = {"100e2147483647", "1e1000000", "1e64", "1e-63"};
+        for (String input : inputs) {
+            assertParseFailure(parser, " m/A1234567X id/CS2103T:A1 mark/" + input,
+                    Mark.MESSAGE_LENGTH_CONSTRAINTS);
+        }
+    }
+
+    @Test
     public void parse_missingFieldOrPreamble_failure() {
         String usage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, MarkCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "", usage);

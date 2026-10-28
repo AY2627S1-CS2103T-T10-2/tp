@@ -34,6 +34,38 @@ public class AssignmentCommandParserTest {
     }
 
     @Test
+    public void parse_validScientificNotation_success() {
+        String[][] cases = {
+            {"1.7500e1", "17.5"},
+            {"100e-2", "1"},
+            {"1e63", "1" + "0".repeat(63)},
+            {"1e-62", "0." + "0".repeat(61) + "1"}
+        };
+        for (String[] testCase : cases) {
+            Assignment assignment = new Assignment(id, "Assignment One", new BigDecimal(testCase[1]));
+            assertParseSuccess(parser, required + " n/Assignment One max/" + testCase[0],
+                    new AssignmentCommand(student, assignment));
+        }
+    }
+
+    @Test
+    public void parse_oversizedScientificNotation_failure() {
+        String[] inputs = {"100e2147483647", "1e1000000", "1e64", "1e-63"};
+        for (String input : inputs) {
+            assertParseFailure(parser, required + " n/Assignment One max/" + input,
+                    Assignment.MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS);
+        }
+    }
+
+    @Test
+    public void parse_scientificZeroMaximum_failure() {
+        for (String input : new String[] {"0e2147483647", "0e-2147483647"}) {
+            assertParseFailure(parser, required + " n/Assignment One max/" + input,
+                    Assignment.MESSAGE_MAX_MARK_CONSTRAINTS);
+        }
+    }
+
+    @Test
     public void parse_existingAssignment_success() {
         assertParseSuccess(parser, required, new AssignmentCommand(student, id));
     }

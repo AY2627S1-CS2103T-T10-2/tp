@@ -13,6 +13,7 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -127,18 +128,32 @@ public class LogicManagerTest {
         model.addPerson(AMY);
         String student = AMY.getMatriculationNumber().toString();
         String assignment = " id/CS2103T:A1";
-        assertParseException("assignment m/" + student + assignment + " n/Assignment One max/1e1000000",
-                Assignment.MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS);
-        assertTrue(model.getAddressBook().getGradebook().getAssignments().isEmpty());
-
         logic.execute("assignment m/" + student + assignment + " n/Assignment One max/20");
-        assertParseException("mark m/" + student + assignment + " mark/1e1000000",
-                Mark.MESSAGE_LENGTH_CONSTRAINTS);
-        assertEquals(Optional.empty(), model.getAddressBook().getGradebook()
-                .getMarksForStudent(AMY.getMatriculationNumber()).get(new AssignmentId("CS2103T:A1")));
+        logic.execute("mark m/" + student + assignment + " mark/10");
+        Path filePath = temporaryFolder.resolve("addressBook.json");
+        String saved = Files.readString(filePath);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+        ReadOnlyAddressBook original = storage.readAddressBook().orElseThrow();
 
-        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
-        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+        String[] inputs = {"100e2147483647", "1e1000000", "1e64", "1e-63"};
+        for (String input : inputs) {
+            assertParseException("mark m/" + student + assignment + " mark/" + input,
+                    Mark.MESSAGE_LENGTH_CONSTRAINTS);
+            assertEquals(original, model.getAddressBook());
+            assertEquals(saved, Files.readString(filePath));
+            assertEquals(original, storage.readAddressBook().orElseThrow());
+
+            assertParseException("assignment m/" + student + " id/CS2103T:A2 n/Assignment Two max/" + input,
+                    Assignment.MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS);
+            assertEquals(original, model.getAddressBook());
+            assertEquals(saved, Files.readString(filePath));
+            assertEquals(original, storage.readAddressBook().orElseThrow());
+        }
+        assertEquals(Optional.of(new Mark(BigDecimal.TEN)), original.getGradebook()
+                .getMarksForStudent(AMY.getMatriculationNumber()).get(new AssignmentId("CS2103T:A1")));
+        assertEquals(new BigDecimal("20"), original.getGradebook()
+                .findAssignment(new AssignmentId("CS2103T:A1")).orElseThrow().getMaxMark().setScale(0));
+        assertTrue(original.getGradebook().findAssignment(new AssignmentId("CS2103T:A2")).isEmpty());
     }
 
     @Test
