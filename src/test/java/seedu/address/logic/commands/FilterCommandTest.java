@@ -66,20 +66,20 @@ class FilterCommandTest {
 
     @Test
     public void execute_afterFind_filterKeepsActiveFind() throws ParseException {
-            Person johnInT10 = new PersonBuilder().withName("John Tan").withMatriculationNumber("A1234567A")
-                            .withClassCodes("CS2103T-T10").build();
-            Person johnInCs3230 = new PersonBuilder().withName("John Lee").withMatriculationNumber("A1234568A")
-                            .withClassCodes("CS3230-T01").build();
-            Person maryInCs3230 = new PersonBuilder().withName("Mary Lim").withMatriculationNumber("A1234569A")
-                            .withClassCodes("CS3230-T01").build();
-            Model model = new ModelManager();
-            List.of(johnInT10, johnInCs3230, maryInCs3230).forEach(model::addPerson);
+        Person johnInT10 = new PersonBuilder().withName("John Tan").withMatriculationNumber("A1234567A")
+                .withClassCodes("CS2103T-T10").build();
+        Person johnInCs3230 = new PersonBuilder().withName("John Lee").withMatriculationNumber("A1234568A")
+                .withClassCodes("CS3230-T01").build();
+        Person maryInCs3230 = new PersonBuilder().withName("Mary Lim").withMatriculationNumber("A1234569A")
+                .withClassCodes("CS3230-T01").build();
+        Model model = new ModelManager();
+        List.of(johnInT10, johnInCs3230, maryInCs3230).forEach(model::addPerson);
 
-            new FindCommand(new NameContainsKeywordsPredicate(List.of("John"))).execute(model);
-            new FilterCommandParser().parse("CS3230").execute(model);
+        new FindCommand(new NameContainsKeywordsPredicate(List.of("John"))).execute(model);
+        new FilterCommandParser().parse("CS3230").execute(model);
 
-            // the filter applies (excludes johnInT10) and the find is kept (excludes Mary)
-            assertEquals(List.of(johnInCs3230), model.getFilteredPersonList());
+        // the filter applies (excludes johnInT10) and the find is kept (excludes Mary)
+        assertEquals(List.of(johnInCs3230), model.getFilteredPersonList());
     }
 
     @Test
