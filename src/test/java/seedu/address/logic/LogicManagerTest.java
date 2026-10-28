@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -216,6 +217,24 @@ public class LogicManagerTest {
     public void execute_storageThrowsAdException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
+    }
+
+    @Test
+    public void getPersonList_filterAndEdit_retainsFullObservableList() {
+        model.addPerson(AMY);
+        var persons = logic.getPersonList();
+        model.updateFilteredPersonList(person -> false);
+        assertEquals(List.of(AMY), persons);
+        Person edited = new PersonBuilder(AMY).withName("Updated Amy").build();
+        model.setPerson(AMY, edited);
+        assertEquals(List.of(edited), persons);
+        model.deletePerson(edited);
+        assertTrue(persons.isEmpty());
+    }
+
+    @Test
+    public void getPersonList_modifyList_throwsUnsupportedOperationException() {
+        assertThrows(UnsupportedOperationException.class, () -> logic.getPersonList().add(AMY));
     }
 
     @Test
