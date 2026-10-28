@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
@@ -27,11 +28,13 @@ import seedu.address.model.person.Person;
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
 
-    private final AddressBook addressBook;
+    private final VersionedAddressBook versionedAddressBook;
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
     private final SortedList<Person> sortedPersons;
     private final ReadOnlyObjectWrapper<SortDisplay> sortDisplay = new ReadOnlyObjectWrapper<>(SortDisplay.NONE);
+    private final ReadOnlyIntegerWrapper addressBookRestoreCount =
+            new ReadOnlyIntegerWrapper(0);
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -41,9 +44,9 @@ public class ModelManager implements Model {
 
         logger.fine("Initializing with address book: " + addressBook + " and user prefs " + userPrefs);
 
-        this.addressBook = new AddressBook(addressBook);
+        this.versionedAddressBook = new VersionedAddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
-        this.filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
+        this.filteredPersons = new FilteredList<>(this.versionedAddressBook.getPersonList());
         this.sortedPersons = new SortedList<>(this.filteredPersons);
         this.sortedPersons.setComparator(COMPARATOR_NAME_ASC);
     }
@@ -74,29 +77,29 @@ public class ModelManager implements Model {
 
     @Override
     public void setAddressBook(ReadOnlyAddressBook addressBook) {
-        this.addressBook.resetData(addressBook);
+        this.versionedAddressBook.resetData(addressBook);
         resetAssignmentSort();
     }
 
     @Override
     public ReadOnlyAddressBook getAddressBook() {
-        return addressBook;
+        return versionedAddressBook;
     }
 
     @Override
     public boolean hasPerson(Person person) {
         requireNonNull(person);
-        return addressBook.hasPerson(person);
+        return versionedAddressBook.hasPerson(person);
     }
 
     @Override
     public void deletePerson(Person target) {
-        addressBook.removePerson(target);
+        versionedAddressBook.removePerson(target);
     }
 
     @Override
     public void addPerson(Person person) {
-        addressBook.addPerson(person);
+        versionedAddressBook.addPerson(person);
         updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         sortPersons(COMPARATOR_NAME_ASC);
     }
@@ -105,44 +108,44 @@ public class ModelManager implements Model {
     public void setPerson(Person target, Person editedPerson) {
         requireAllNonNull(target, editedPerson);
 
-        addressBook.setPerson(target, editedPerson);
+        versionedAddressBook.setPerson(target, editedPerson);
         resetAssignmentSort();
     }
 
     @Override
     public void addAssignment(Assignment assignment) {
-        addressBook.addAssignment(assignment);
+        versionedAddressBook.addAssignment(assignment);
         resetAssignmentSort();
     }
 
     @Override
     public void addAssignmentForStudent(Assignment assignment, MatriculationNumber student) {
-        addressBook.addAssignmentForStudent(assignment, student);
+        versionedAddressBook.addAssignmentForStudent(assignment, student);
         resetAssignmentSort();
     }
 
     @Override
     public void assignStudent(MatriculationNumber student, AssignmentId assignmentId) {
-        addressBook.assignStudent(student, assignmentId);
+        versionedAddressBook.assignStudent(student, assignmentId);
         resetAssignmentSort();
     }
 
     @Override
     public Optional<Mark> recordMark(MatriculationNumber student, AssignmentId assignmentId, Mark mark) {
-        Optional<Mark> previous = addressBook.recordMark(student, assignmentId, mark);
+        Optional<Mark> previous = versionedAddressBook.recordMark(student, assignmentId, mark);
         resetAssignmentSort();
         return previous;
     }
 
     @Override
     public void unassignStudent(MatriculationNumber student, AssignmentId assignmentId) {
-        addressBook.unassignStudent(student, assignmentId);
+        versionedAddressBook.unassignStudent(student, assignmentId);
         resetAssignmentSort();
     }
 
     @Override
     public void removeAssignment(AssignmentId assignmentId) {
-        addressBook.removeAssignment(assignmentId);
+        versionedAddressBook.removeAssignment(assignmentId);
         resetAssignmentSort();
     }
 
@@ -186,6 +189,45 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public void undoAddressBook() {
+        versionedAddressBook.undo();
+        resetDisplayAfterRestoration();
+    }
+
+    @Override
+    public void redoAddressBook() {
+        versionedAddressBook.redo();
+        resetDisplayAfterRestoration();
+    }
+
+    private void resetDisplayAfterRestoration() {
+        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        sortPersons(COMPARATOR_NAME_ASC);
+
+        addressBookRestoreCount.set(addressBookRestoreCount.get() + 1);
+    }
+
+    @Override
+    public void commitAddressBook() {
+        versionedAddressBook.commit();
+    }
+
+    @Override
+    public boolean canUndoAddressBook() {
+        return versionedAddressBook.canUndo();
+    }
+
+    @Override
+    public boolean canRedoAddressBook() {
+        return versionedAddressBook.canRedo();
+    }
+
+    @Override
+    public ObservableValue<Number> addressBookRestoreCountProperty() {
+        return addressBookRestoreCount.getReadOnlyProperty();
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (other == this) {
             return true;
@@ -196,9 +238,8 @@ public class ModelManager implements Model {
             return false;
         }
 
-        return addressBook.equals(otherModelManager.addressBook)
+        return versionedAddressBook.equals(otherModelManager.versionedAddressBook)
                 && userPrefs.equals(otherModelManager.userPrefs)
                 && filteredPersons.equals(otherModelManager.filteredPersons);
     }
-
 }

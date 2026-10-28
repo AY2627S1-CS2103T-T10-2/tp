@@ -50,6 +50,7 @@ public class UnmarkAttendanceCommand extends Command {
 
         model.setPerson(student, MarkAttendanceCommand.createStudentWithAttendance(student,
                 student.getAttendance().withoutDate(attendanceDate)));
+        model.commitAddressBook();
         return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), attendanceDate));
     }
 

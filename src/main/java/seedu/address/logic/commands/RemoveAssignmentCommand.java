@@ -70,10 +70,12 @@ public class RemoveAssignmentCommand extends Command {
             } catch (IllegalArgumentException ex) {
                 throw new CommandException(ex.getMessage());
             }
+            model.commitAddressBook();
             return new CommandResult(String.format(MESSAGE_UNASSIGNED_STUDENT, assignmentId, studentNumber));
         }
 
         model.removeAssignment(assignmentId);
+        model.commitAddressBook();
         return new CommandResult(String.format(MESSAGE_REMOVED_ASSIGNMENT, assignmentId));
     }
 

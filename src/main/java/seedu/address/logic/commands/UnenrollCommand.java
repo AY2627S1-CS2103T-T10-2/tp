@@ -80,6 +80,7 @@ public class UnenrollCommand extends Command {
             throw new CommandException(String.format(MESSAGE_MISSING_CLASS, targetClassCode));
         }
         model.setPerson(student, student.withoutClassCode(targetClassCode));
+        model.commitAddressBook();
         return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), targetClassCode));
     }
 
@@ -93,6 +94,7 @@ public class UnenrollCommand extends Command {
             throw new CommandException(MESSAGE_MISSING_CLASS_ALL);
         }
         model.setPerson(student, student.withoutClassCodes());
+        model.commitAddressBook();
         return new CommandResult(String.format(MESSAGE_SUCCESS_ALL, student.getName()));
     }
 

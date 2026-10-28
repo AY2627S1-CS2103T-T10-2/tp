@@ -121,4 +121,35 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /**
+     * Saves changed address book data for undo and clears any redo history.
+     * Does nothing if the data matches the current saved state.
+     */
+    void commitAddressBook();
+
+    /**
+     * Reverses the most recent change to the address book.
+     */
+    void undoAddressBook();
+
+    /**
+     * Reapplies the most recently undone change.
+     */
+    void redoAddressBook();
+
+    /**
+     * Returns true if there is a change to undo.
+     */
+    boolean canUndoAddressBook();
+
+    /**
+     * Returns true if there is a change to redo.
+     */
+    boolean canRedoAddressBook();
+
+    /**
+     * Returns an observable counter that increases after each successful undo or redo.
+     */
+    ObservableValue<Number> addressBookRestoreCountProperty();
 }

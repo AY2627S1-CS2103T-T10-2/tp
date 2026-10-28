@@ -25,10 +25,11 @@ import seedu.address.storage.Storage;
  * The main LogicManager of the app.
  */
 public class LogicManager implements Logic {
-    public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s";
-
+    public static final String FILE_OPS_ERROR_FORMAT =
+            "The command executed in memory, but the data could not be saved: %s";
     public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
-            "Could not save data to file %s due to insufficient permissions to write to the file or the folder.";
+            "The command executed in memory, but the data could not be saved to %s "
+                    + "due to insufficient permissions to write to the file or folder.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
@@ -104,5 +105,10 @@ public class LogicManager implements Logic {
     @Override
     public void setGuiSettings(GuiSettings guiSettings) {
         model.setGuiSettings(guiSettings);
+    }
+
+    @Override
+    public ObservableValue<Number> addressBookRestoreCountProperty() {
+        return model.addressBookRestoreCountProperty();
     }
 }
