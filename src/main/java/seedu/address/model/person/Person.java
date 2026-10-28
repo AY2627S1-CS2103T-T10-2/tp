@@ -25,6 +25,7 @@ public class Person {
 
     // Data fields
     private final Attendance attendance;
+    private final ParticipationHistory participationHistory;
     private final Set<Tag> tags = new HashSet<>();
     private final Set<ClassCode> classCodes = new HashSet<>();
 
@@ -36,23 +37,35 @@ public class Person {
     }
 
     /**
-     * Constructs a person with the given attendance history. Every field must be non-null.
+     * Constructs a person with the given attendance history.
+     * Every field must be non-null.
      */
     public Person(Name name, MatriculationNumber matriculationNumber, Email email, Set<Tag> tags,
-            Attendance attendance) {
+                  Attendance attendance) {
         this(name, matriculationNumber, email, tags, attendance, new HashSet<>());
     }
 
     /**
-     * Constructs a person with the given attendance history and enrolled classes. Every field must be non-null.
+     * Constructs a person with attendance and enrolled classes, but no participation records.
+     * Every field must be non-null.
      */
     public Person(Name name, MatriculationNumber matriculationNumber, Email email, Set<Tag> tags,
-            Attendance attendance, Set<ClassCode> classCodes) {
-        requireAllNonNull(name, matriculationNumber, email, tags, attendance, classCodes);
+                  Attendance attendance, Set<ClassCode> classCodes) {
+        this(name, matriculationNumber, email, tags, attendance, classCodes, ParticipationHistory.empty());
+    }
+
+    /**
+     * Constructs a person with attendance, enrolled classes and participation history.
+     * Every field must be non-null.
+     */
+    public Person(Name name, MatriculationNumber matriculationNumber, Email email, Set<Tag> tags,
+                  Attendance attendance, Set<ClassCode> classCodes, ParticipationHistory participationHistory) {
+        requireAllNonNull(name, matriculationNumber, email, tags, attendance, classCodes, participationHistory);
         this.name = name;
         this.matriculationNumber = matriculationNumber;
         this.email = email;
         this.attendance = attendance;
+        this.participationHistory = participationHistory;
         this.tags.addAll(tags);
         this.classCodes.addAll(classCodes);
     }
@@ -74,6 +87,23 @@ public class Person {
     }
 
     /**
+     * Returns this student's immutable participation history.
+     */
+    public ParticipationHistory getParticipationHistory() {
+        return participationHistory;
+    }
+
+    /**
+     * Returns a copy of this student with the given participation history.
+     * All other student information is preserved.
+     */
+    public Person withParticipationHistory(ParticipationHistory updatedHistory) {
+        requireNonNull(updatedHistory);
+        return new Person(name, matriculationNumber, email, tags,
+                attendance, classCodes, updatedHistory);
+    }
+
+    /**
      * Returns an immutable tag set, which throws {@code UnsupportedOperationException}
      * if modification is attempted.
      */
@@ -82,8 +112,8 @@ public class Person {
     }
 
     /**
-     * Returns an immutable class code set, which throws {@code UnsupportedOperationException} if modification is
-     * attempted.
+     * Returns an immutable class code set, which throws {@code UnsupportedOperationException}
+     * if modification is attempted.
      */
     public Set<ClassCode> getClassCodes() {
         return Collections.unmodifiableSet(classCodes);
@@ -91,6 +121,7 @@ public class Person {
 
     /**
      * Checks if a {@link Person} is enrolled in the class.
+     *
      * @return True if the {@link Person} is enrolled in the class specified by {@link ClassCode}
      */
     public boolean isEnrolledIn(ClassCode classCode) {
@@ -100,7 +131,8 @@ public class Person {
 
     /**
      * Checks if a {@link Person} is enrolled in any class.
-     * @return True if the {@link Person} is enrolled in any class.
+     *
+     * @return True if the {@link Person} is enrolled in any class
      */
     public boolean isEnrolled() {
         return !classCodes.isEmpty();
@@ -108,8 +140,10 @@ public class Person {
 
     /**
      * Creates a copy of the Person without the specified classCode.
+     * Participation history and all other student information are preserved.
      * Preconditions: the Person is enrolled in the given class.
-     * @param classCode the specified class to unenroll from.
+     *
+     * @param classCode The specified class to unenroll from
      */
     public Person withoutClassCode(ClassCode classCode) {
         Set<ClassCode> updatedClassCodes = new HashSet<>(classCodes);
@@ -117,32 +151,38 @@ public class Person {
         assert updatedClassCodes.contains(classCode);
 
         updatedClassCodes.remove(classCode);
-        return new Person(name, matriculationNumber, email, tags, attendance, updatedClassCodes);
+        return new Person(name, matriculationNumber, email, tags,
+                attendance, updatedClassCodes, participationHistory);
     }
 
     /**
      * Creates a copy of the Person with the specified classCode.
-     * @param classCode the specified class to enroll in.
+     * Participation history and all other student information are preserved.
+     *
+     * @param classCode The specified class to enroll in
      */
     public Person withClassCode(ClassCode classCode) {
         requireNonNull(classCode);
         Set<ClassCode> updatedClassCodes = new HashSet<>(classCodes);
         updatedClassCodes.add(classCode);
-        return new Person(name, matriculationNumber, email, tags, attendance, updatedClassCodes);
+        return new Person(name, matriculationNumber, email, tags,
+                attendance, updatedClassCodes, participationHistory);
     }
 
     /**
      * Creates a copy of the Person without any classes.
+     * Participation history and all other student information are preserved.
      * Preconditions: the Person is enrolled in at least one class.
      */
     public Person withoutClassCodes() {
         assert !classCodes.isEmpty();
 
-        return new Person(name, matriculationNumber, email, tags, attendance);
+        return new Person(name, matriculationNumber, email, tags,
+                attendance, Collections.emptySet(), participationHistory);
     }
 
     /**
-     * Returns true if both persons have the same name.
+     * Returns true if both persons have the same matriculation number.
      * This defines a weaker notion of equality between two persons.
      */
     public boolean isSamePerson(Person otherPerson) {
@@ -174,13 +214,15 @@ public class Person {
                 && email.equals(otherPerson.email)
                 && tags.equals(otherPerson.tags)
                 && attendance.equals(otherPerson.attendance)
-                && classCodes.equals(otherPerson.classCodes);
+                && classCodes.equals(otherPerson.classCodes)
+                && participationHistory.equals(otherPerson.participationHistory);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, matriculationNumber, email, tags, attendance, classCodes);
+        return Objects.hash(name, matriculationNumber, email, tags,
+                attendance, classCodes, participationHistory);
     }
 
     @Override
@@ -192,7 +234,7 @@ public class Person {
                 .add("tags", tags)
                 .add("attendance", attendance)
                 .add("classCodes", classCodes)
+                .add("participationHistory", participationHistory)
                 .toString();
     }
-
 }

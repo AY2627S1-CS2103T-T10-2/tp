@@ -36,11 +36,12 @@ public abstract class AttendanceCommand extends Command {
     }
 
     /**
-     * Creates a copy of the student with the given attendance history, preserving other details.
+     * Creates a copy of the student with the given attendance history,
+     * preserving other details, including participation history.
      */
     static Person createStudentWithAttendance(Person student, Attendance attendance) {
         return new Person(student.getName(), student.getMatriculationNumber(), student.getEmail(),
-                student.getTags(), attendance, student.getClassCodes());
+                student.getTags(), attendance, student.getClassCodes(), student.getParticipationHistory());
     }
 
     /**
