@@ -1,3 +1,4 @@
+
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
@@ -14,51 +15,68 @@ import seedu.address.logic.commands.MarkAttendanceCommand;
 import seedu.address.logic.commands.MarkClassAttendanceCommand;
 import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.commands.UnmarkAttendanceCommand;
+import seedu.address.logic.commands.ViewAttendanceStatsCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.AttendanceDate;
 
 /**
- * Parses attendance arguments into a {@code MarkAttendanceCommand}, {@code MarkClassAttendanceCommand},
- * or {@code UnmarkAttendanceCommand}.
+ * Parses attendance arguments into a mark, unmark, whole-class mark,
+ * or statistics command.
  */
 public class AttendanceCommandParser implements Parser<Command> {
+
     public static final String MESSAGE_MISSING_CLASS_CODE =
             "Specify the class with " + PREFIX_CLASS_CODE + "MODULE-CLASS.\n%1$s";
 
-    private static final Pattern SUBCOMMAND_FORMAT = Pattern.compile("(?<subcommandWord>\\S+)(?<arguments>.*)");
+    private static final Pattern SUBCOMMAND_FORMAT =
+            Pattern.compile("(?<subcommandWord>\\S+)(?<arguments>.*)");
 
     /**
-     * Parses a single-student mark or unmark request, or a whole-class mark request.
-     * Accepts a displayed student index or matriculation number for single-student requests,
-     * a class (required for marking), and an optional attendance date.
+     * Parses attendance command arguments.
      *
-     * @throws ParseException if the user input does not conform to the expected format.
+     * @throws ParseException if the input does not conform to the expected format.
      */
     public Command parse(String args) throws ParseException {
         requireNonNull(args);
+
         Matcher matcher = SUBCOMMAND_FORMAT.matcher(args.trim());
-        if (matcher.matches()
-                && matcher.group("subcommandWord").equalsIgnoreCase(UnmarkAttendanceCommand.SUBCOMMAND_WORD)) {
-            return parseUnmark(matcher.group("arguments"));
+
+        if (matcher.matches()) {
+            String subcommand = matcher.group("subcommandWord");
+
+            if (subcommand.equalsIgnoreCase(UnmarkAttendanceCommand.SUBCOMMAND_WORD)) {
+                return parseUnmark(matcher.group("arguments"));
+            }
+
+            if (subcommand.equalsIgnoreCase(ViewAttendanceStatsCommand.SUBCOMMAND_WORD)) {
+                return parseStats(matcher.group("arguments"));
+            }
         }
+
         ArgumentMultimap argMultimap = tokenizeAttendanceArguments(args);
+
         if (isWholeClassRequest(argMultimap)) {
             return parseMarkClass(argMultimap);
         }
+
         return parseMark(argMultimap);
     }
 
     /**
-     * Parses a mark request with a required class code.
+     * Parses a request to mark one student's attendance.
      */
-    private static MarkAttendanceCommand parseMark(ArgumentMultimap argMultimap) throws ParseException {
+    private static MarkAttendanceCommand parseMark(ArgumentMultimap argMultimap)
+            throws ParseException {
         StudentIdentifier targetStudent = ParserUtil.parseStudentIdentifier(argMultimap,
                 MarkAttendanceCommand.MESSAGE_USAGE);
-        ClassCode classCode = ParserUtil.parseOptionalClassCode(argMultimap).orElseThrow(() ->
-                new ParseException(String.format(MESSAGE_MISSING_CLASS_CODE, MarkAttendanceCommand.MESSAGE_USAGE)));
+
+        ClassCode classCode = ParserUtil.parseOptionalClassCode(argMultimap)
+                .orElseThrow(() -> new ParseException(String.format(
+                        MESSAGE_MISSING_CLASS_CODE, MarkAttendanceCommand.MESSAGE_USAGE)));
 
         Optional<AttendanceDate> date = ParserUtil.parseOptionalAttendanceDate(argMultimap);
+
         return new MarkAttendanceCommand(targetStudent, classCode, date);
     }
 
@@ -72,33 +90,67 @@ public class AttendanceCommandParser implements Parser<Command> {
     }
 
     /**
-     * Parses a whole-class mark request whose class prefix is present.
+     * Parses a request to mark the attendance of a whole class.
      */
-    private static MarkClassAttendanceCommand parseMarkClass(ArgumentMultimap argMultimap) throws ParseException {
+    private static MarkClassAttendanceCommand parseMarkClass(ArgumentMultimap argMultimap)
+            throws ParseException {
         ClassCode classCode = ParserUtil.parseOptionalClassCode(argMultimap).orElseThrow();
         Optional<AttendanceDate> date = ParserUtil.parseOptionalAttendanceDate(argMultimap);
+
         return new MarkClassAttendanceCommand(classCode, date);
     }
 
     /**
-     * Parses an unmark request with an optional class code.
+     * Parses a request to unmark one student's attendance.
      */
-    private static UnmarkAttendanceCommand parseUnmark(String args) throws ParseException {
+    private static UnmarkAttendanceCommand parseUnmark(String args)
+            throws ParseException {
         ArgumentMultimap argMultimap = tokenizeAttendanceArguments(args);
+
         StudentIdentifier targetStudent = ParserUtil.parseStudentIdentifier(argMultimap,
                 UnmarkAttendanceCommand.MESSAGE_USAGE);
+
         Optional<ClassCode> classCode = ParserUtil.parseOptionalClassCode(argMultimap);
         Optional<AttendanceDate> date = ParserUtil.parseOptionalAttendanceDate(argMultimap);
+
         return new UnmarkAttendanceCommand(targetStudent, classCode, date);
     }
 
     /**
-     * Tokenizes attendance arguments, rejecting duplicate prefixes before parsing their values.
+     * Parses a read-only attendance statistics request.
+     * Both the class and date must be specified.
      */
-    private static ArgumentMultimap tokenizeAttendanceArguments(String args) throws ParseException {
+    private static ViewAttendanceStatsCommand parseStats(String args)
+            throws ParseException {
+        ArgumentMultimap argMultimap = tokenizeAttendanceArguments(args);
+
+        if (!argMultimap.getPreamble().isEmpty()
+                || argMultimap.getValue(PREFIX_MATRICULATION_NUMBER).isPresent()) {
+            throw new ParseException(ViewAttendanceStatsCommand.MESSAGE_USAGE);
+        }
+
+        ClassCode classCode = ParserUtil.parseOptionalClassCode(argMultimap)
+                .orElseThrow(() -> new ParseException(
+                        ViewAttendanceStatsCommand.MESSAGE_USAGE));
+
+        AttendanceDate date = ParserUtil.parseOptionalAttendanceDate(argMultimap)
+                .orElseThrow(() -> new ParseException(
+                        ViewAttendanceStatsCommand.MESSAGE_USAGE));
+
+        return new ViewAttendanceStatsCommand(classCode, date);
+    }
+
+    /**
+     * Tokenizes attendance arguments, rejecting duplicate prefixes.
+     */
+    private static ArgumentMultimap tokenizeAttendanceArguments(String args)
+            throws ParseException {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args,
                 PREFIX_MATRICULATION_NUMBER, PREFIX_CLASS_CODE, PREFIX_DATE);
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_MATRICULATION_NUMBER, PREFIX_CLASS_CODE, PREFIX_DATE);
+
+        argMultimap.verifyNoDuplicatePrefixesFor(
+                PREFIX_MATRICULATION_NUMBER, PREFIX_CLASS_CODE, PREFIX_DATE);
+
         return argMultimap;
     }
 }
