@@ -35,7 +35,7 @@ TAssist is a **desktop application for managing students, optimized for use thro
 
    * `delete 3` : Deletes the 3rd student shown in the current list.
 
-   * `clear` : Deletes all students.
+   * `clear` : Deletes all students and their associated records, all shared assignment definitions, and all recorded marks.
 
    * `exit` : Exits the app.
 
@@ -551,9 +551,11 @@ Examples:
 
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Deletes all students and their associated records, all shared assignment definitions, and all recorded marks.
 
 Format: `clear`
+
+You can undo this change during the current session using [`undo`](#undoing-a-change-undo). Undo history is discarded when TAssist closes.
 
 ### Undoing a change: `undo`
 
@@ -644,6 +646,7 @@ Action     | Format, Examples
 **Undo** | `undo`
 **Redo** | `redo`
 **Delete** | `delete INDEX [MORE_INDICES]...`<br>or `delete m/MATRICULATION_NUMBER`<br>Examples: `delete 1`, `delete 1 3`, `delete m/A1234567X` |
+**View student details** | `view INDEX`<br> e.g., `view 1`
 **Record/update participation** | `participation INDEX c/MODULE-CLASS d/DATE p/POINTS`<br>or `participation m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE p/POINTS`<br>Example: `participation 1 c/CS2103T-T10 d/28-10-2026 p/2` |
 **View participation** | `participation view INDEX`<br>or `participation view m/MATRICULATION_NUMBER`<br>Example: `participation view 1` |
 **Remove participation record** | `participation remove INDEX c/MODULE-CLASS d/DATE`<br>or `participation remove m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE`<br>Example: `participation remove 1 c/CS2103T-T10 d/28-10-2026` |
@@ -655,3 +658,4 @@ Action     | Format, Examples
 **Sort**   | `sort`, `sort FIELD [asc\|desc]`, or `sort mark id/MODULE:CODE [asc\|desc]`<br> e.g., `sort matric desc`, `sort mark id/CS2103T:A1 desc`
 **Filter** | `filter KEYWORD [MORE_KEYWORDS]`<br> e.g., `filter CS2103T-T10 CS3230`
 **Help**   | `help`
+**Exit** | `exit`
