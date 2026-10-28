@@ -59,7 +59,7 @@ public class UndoRedoIntegrationTest {
                 "assignment m/A2345678B id/CS2103T:A1",
                 "mark m/A1234567A id/CS2103T:A1 mark/17",
                 "enroll 1 c/CS2103T-T10",
-                "attendance m/A1234567A d/07-10-2026",
+                "attendance m/A1234567A c/CS2103T-T10 d/07-10-2026",
                 "edit 1 m/A3456789C",
                 "unenroll 1 c/CS2103T-T10",
                 "enroll 1 c/CS2103T-T10",
@@ -68,7 +68,10 @@ public class UndoRedoIntegrationTest {
                 "removeassignment id/CS2103T:A1 m/A2345678B",
                 "removeassignment id/CS2103T:A1",
                 "delete m/A2345678B",
-                "clear");
+                "clear",
+                "add n/Amy m/A1234567A e/amy@example.com",
+                "add n/Bob m/A2345678B e/bob@example.com",
+                "delete 1 2");
         for (String text : commands) {
             AddressBook before = new AddressBook(model.getAddressBook());
             parser.parseCommand(text).execute(model);

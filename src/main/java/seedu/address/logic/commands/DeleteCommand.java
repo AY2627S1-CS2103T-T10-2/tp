@@ -2,6 +2,10 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringJoiner;
+
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -11,21 +15,28 @@ import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.Person;
 
 /**
- * Deletes a person identified using either their displayed index
- * or matriculation number.
+ * Deletes students identified by their displayed indices or a matriculation number.
  */
 public class DeleteCommand extends Command {
 
     public static final String COMMAND_WORD = "delete";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Deletes the student identified by their displayed index or matriculation number.\n"
-            + "Parameters: INDEX or m/MATRICULATION_NUMBER\n"
-            + "Example: " + COMMAND_WORD + " 1, " + COMMAND_WORD + " m/A1234567X";
+            + ": Deletes students identified by their displayed indices or a matriculation number.\n"
+            + "Parameters: INDEX [MORE_INDICES]... or m/MATRICULATION_NUMBER\n"
+            + "Examples: " + COMMAND_WORD + " 1; " + COMMAND_WORD + " 1 3; "
+            + COMMAND_WORD + " m/A1234567X";
 
     public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted student: %1$s";
 
-    private final StudentIdentifier targetStudent;
+    public static final String MESSAGE_DELETE_STUDENTS_SUCCESS =
+            "Deleted %1$d students:\n%2$s";
+
+    public static final String MESSAGE_DUPLICATE_STUDENT =
+            "The same student cannot be specified more than once. "
+                    + "Remove duplicate targets and try again.";
+
+    private final List<StudentIdentifier> targetStudents;
 
     /**
      * Creates a DeleteCommand that deletes a person using their displayed index.
@@ -51,19 +62,54 @@ public class DeleteCommand extends Command {
      * @param targetStudent Identifier of the student to delete
      */
     public DeleteCommand(StudentIdentifier targetStudent) {
-        this.targetStudent = requireNonNull(targetStudent);
+        this(List.of(requireNonNull(targetStudent)));
+    }
+
+    /**
+     * Creates a DeleteCommand that deletes the identified students.
+     *
+     * @param targetStudents Identifiers of the students to delete
+     * @throws IllegalArgumentException if no identifiers are provided
+     */
+    public DeleteCommand(List<StudentIdentifier> targetStudents) {
+        requireNonNull(targetStudents);
+        if (targetStudents.isEmpty()) {
+            throw new IllegalArgumentException("At least one student identifier is required.");
+        }
+        this.targetStudents = List.copyOf(targetStudents);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        Person personToDelete = targetStudent.resolve(model);
+        List<Person> studentsToDelete = new ArrayList<>();
 
-        model.deletePerson(personToDelete);
+        // Resolve all targets before deletion changes the displayed indices.
+        for (StudentIdentifier targetStudent : targetStudents) {
+            Person student = targetStudent.resolve(model);
+            if (studentsToDelete.contains(student)) {
+                throw new CommandException(MESSAGE_DUPLICATE_STUDENT);
+            }
+            studentsToDelete.add(student);
+        }
+
+        StringJoiner deletedStudentDetails = new StringJoiner("\n");
+        for (Person student : studentsToDelete) {
+            model.deletePerson(student);
+            deletedStudentDetails.add(Messages.format(student));
+        }
+
         model.commitAddressBook();
+
+        if (studentsToDelete.size() == 1) {
+            return new CommandResult(String.format(
+                    MESSAGE_DELETE_PERSON_SUCCESS, deletedStudentDetails.toString()));
+        }
+
         return new CommandResult(String.format(
-                MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(personToDelete)));
+                MESSAGE_DELETE_STUDENTS_SUCCESS,
+                studentsToDelete.size(), deletedStudentDetails.toString()));
     }
 
     @Override
@@ -77,13 +123,13 @@ public class DeleteCommand extends Command {
             return false;
         }
 
-        return targetStudent.equals(otherDeleteCommand.targetStudent);
+        return targetStudents.equals(otherDeleteCommand.targetStudents);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("targetStudent", targetStudent)
+                .add("targetStudents", targetStudents)
                 .toString();
     }
 }
