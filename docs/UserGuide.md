@@ -362,6 +362,7 @@ Examples:
 * `attendance unmark 1 c/CS2103T-T10 d/07-10-2026` removes that student's record for `CS2103T-T10` on `07-10-2026`, leaving any records for other classes unchanged.
 * `attendance unmark m/A1234567X` removes the only attendance record for today's date for the student whose matriculation number is `A1234567X`.
 
+<<<<<<< HEAD
 ### Recording class participation: `participation`
 
 Records participation points for a student in a particular class on a given
@@ -449,6 +450,39 @@ preserved.
 Example:
 
 * `participation remove m/A1234567X c/CS2103T-T10 d/28-10-2026`
+=======
+
+### Viewing attendance statistics for a class: `attendance stats`
+
+Shows how many students attended a class on a specified date, compared with the total number of students currently enrolled in that class.
+
+Format: `attendance stats c/MODULE-CLASS d/DATE`
+
+* `MODULE-CLASS` is the class to check, such as `CS2103T-T10`.
+* `DATE` must be a valid calendar date in `dd-MM-yyyy` format.
+* Both the class and date must be specified.
+* The number of students attended is based on attendance records for the specified class and date.
+* The total number of students is based on students currently enrolled in the class.
+* Students who are no longer enrolled are not included, even if they have an earlier attendance record for that class.
+* All stored students are considered, including those hidden by the current `find` or `filter` results.
+* If no attendance has been recorded, the attended count is `0`.
+* If no students are enrolled in the class, both counts are `0`.
+* This command only displays statistics and does not change any student or attendance records.
+
+Example:
+
+* `attendance stats c/CS2103T-T10 d/28-10-2026` shows attendance statistics for CS2103T-T10 on 28 October 2026.
+
+Example output:
+
+```text
+Attendance statistics for CS2103T-T10 on 28-10-2026
+Students attended: 8
+Total students: 12
+```
+
+The statistics reflect the current enrollment and stored attendance records. They do not represent a historical enrollment snapshot.
+>>>>>>> upstream/master
 
 ### Filtering students by class/module: `filter`
 
@@ -600,6 +634,7 @@ Action     | Format, Examples
 **Add**    | `add n/NAME m/MATRICULATION_NUMBER e/EMAIL [t/TAG]... ` <br> e.g., `add n/James Ho m/A1234567A e/jamesho@example.com t/friend t/colleague`
 **Mark attendance** | `attendance INDEX c/MODULE-CLASS [d/DATE]` or `attendance m/MATRICULATION_NUMBER c/MODULE-CLASS [d/DATE]` or `attendance c/MODULE-CLASS [d/DATE]`<br> e.g., `attendance 1 c/CS2103T-T10 d/07-10-2026`, `attendance m/A1234567X c/CS2103T-T10`, `attendance c/CS2103T-T10 d/07-10-2026`
 **Unmark attendance** | `attendance unmark INDEX [c/MODULE-CLASS] [d/DATE]` or `attendance unmark m/MATRICULATION_NUMBER [c/MODULE-CLASS] [d/DATE]`<br> e.g., `attendance unmark 1 d/07-10-2026`, `attendance unmark 1 c/CS2103T-T10 d/07-10-2026`
+**View attendance statistics** | `attendance stats c/MODULE-CLASS d/DATE`<br> e.g., `attendance stats c/CS2103T-T10 d/28-10-2026`
 **Assignment** | `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`<br> e.g., `assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20`
 **Mark** | `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`<br> e.g., `mark m/A1234567A id/CS2103T:A1 mark/17.5`
 **Marks** | `marks id/MODULE:CODE`<br> e.g., `marks id/CS2103T:A1`

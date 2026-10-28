@@ -45,15 +45,15 @@ class JsonAdaptedPerson {
      */
     public JsonAdaptedPerson(String name, String matriculationNumber, String email,
                              List<JsonAdaptedTag> tags) {
-        this(name, matriculationNumber, email, tags, null);
+        this(name, matriculationNumber, email, tags, null, null, null);
     }
 
     /**
-     * Constructs an adapted person with attendance records and no class codes or participation.
+     * Constructs an adapted person with attendance records but no class codes or participation.
      */
     public JsonAdaptedPerson(String name, String matriculationNumber, String email,
                              List<JsonAdaptedTag> tags, List<JsonAdaptedAttendanceRecord> attendance) {
-        this(name, matriculationNumber, email, tags, attendance, null);
+        this(name, matriculationNumber, email, tags, attendance, null, null);
     }
 
     /**
