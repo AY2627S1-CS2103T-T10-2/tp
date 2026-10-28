@@ -33,17 +33,12 @@ public class EnrollCommandParser implements Parser<EnrollCommand> {
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_CLASS_CODE);
 
-        String classCode;
         if (!argMultimap.getValue(PREFIX_CLASS_CODE).isPresent()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EnrollCommand.MESSAGE_USAGE));
         }
-        classCode = argMultimap.getValue(PREFIX_CLASS_CODE).get().trim();
-        if (!ClassCode.isValidClassCode(classCode)) {
-            throw new ParseException(ClassCode.MESSAGE_CONSTRAINTS);
-        }
-        ClassCode classCodeObj = new ClassCode(classCode);
+        ClassCode classCode = ParserUtil.parseClassCode(argMultimap.getValue(PREFIX_CLASS_CODE).get());
 
-        return new EnrollCommand(index, classCodeObj);
+        return new EnrollCommand(index, classCode);
     }
 
 }
