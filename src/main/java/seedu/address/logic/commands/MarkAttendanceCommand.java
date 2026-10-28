@@ -8,86 +8,98 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.person.Attendance;
+import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.AttendanceDate;
+import seedu.address.model.person.AttendanceRecord;
 import seedu.address.model.person.Person;
 
 /**
- * Marks the student identified by displayed index or matriculation number present on the given date,
+ * Marks the student identified by displayed index or matriculation number present in the given class on the given date,
  * or today if no date is given.
  */
-public class MarkAttendanceCommand extends Command {
-
-    public static final String COMMAND_WORD = "attendance";
+public class MarkAttendanceCommand extends AttendanceCommand {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Marks attendance for the student identified by their displayed index or matriculation number.\n"
-            + "Parameters: INDEX or m/MATRICULATION_NUMBER [d/DATE]\n"
-            + "Example: " + COMMAND_WORD + " 1 d/07-10-2026, " + COMMAND_WORD + " m/A1234567X";
+            + ": Marks attendance for the student identified by their displayed index or matriculation number"
+            + " in the given class, or for every student enrolled in the class.\n"
+            + "Parameters: INDEX or m/MATRICULATION_NUMBER c/MODULE-CLASS [d/DATE], "
+            + "or c/MODULE-CLASS [d/DATE] for a whole class\n"
+            + "Example: " + COMMAND_WORD + " 1 c/CS2103T-T10 d/07-10-2026, "
+            + COMMAND_WORD + " m/A1234567X c/CS2103T-T10, " + COMMAND_WORD + " c/CS2103T-T10";
 
-    public static final String MESSAGE_SUCCESS = "Marked attendance for %1$s on %2$s";
-    public static final String MESSAGE_DUPLICATE_DATE =
-            "Attendance for %1$s on %2$s has already been recorded.";
+    public static final String MESSAGE_SUCCESS = "Marked attendance for %1$s in %2$s on %3$s";
+    public static final String MESSAGE_DUPLICATE_RECORD =
+            "Attendance for %1$s in %2$s on %3$s has already been recorded.";
 
+    public static final String MESSAGE_NOT_ENROLLED = "%1$s is not enrolled in %2$s.";
+    public static final String MESSAGE_NO_CLASSES =
+            "%1$s is not enrolled in any class. Enroll them in a class first.";
+
+    private final ClassCode classCode;
     private final StudentIdentifier targetStudent;
-    private final Optional<AttendanceDate> date;
 
     /**
-     * Constructs an attendance request for the displayed person index and optional date.
+     * Constructs an attendance request for the displayed person index given class and optional date.
      */
-    public MarkAttendanceCommand(Index targetIndex, Optional<AttendanceDate> date) {
-        this(new StudentIdentifier(targetIndex), date);
+    public MarkAttendanceCommand(Index targetIndex, ClassCode classCode, Optional<AttendanceDate> date) {
+        this(new StudentIdentifier(targetIndex), classCode, date);
     }
 
     /**
-     * Constructs an attendance request for the identified student and optional date.
+     * Constructs an attendance request for the identified student given class and optional date.
      */
-    public MarkAttendanceCommand(StudentIdentifier targetStudent, Optional<AttendanceDate> date) {
+    public MarkAttendanceCommand(StudentIdentifier targetStudent, ClassCode classCode, Optional<AttendanceDate> date) {
+        super(date);
         this.targetStudent = requireNonNull(targetStudent);
-        this.date = requireNonNull(date);
+        this.classCode = requireNonNull(classCode);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         Person student = targetStudent.resolve(model);
-        AttendanceDate attendanceDate = date.orElseGet(AttendanceDate::today);
-        if (student.getAttendance().contains(attendanceDate)) {
-            throw new CommandException(String.format(MESSAGE_DUPLICATE_DATE, student.getName(), attendanceDate));
+        AttendanceDate attendanceDate = resolveDate();
+        requireEnrolled(student, classCode);
+        AttendanceRecord record = new AttendanceRecord(attendanceDate, classCode);
+        if (student.getAttendance().contains(record)) {
+            throw new CommandException(String.format(MESSAGE_DUPLICATE_RECORD,
+                    student.getName(), classCode, attendanceDate));
         }
 
         model.setPerson(student,
-                createStudentWithAttendance(student, student.getAttendance().withDate(attendanceDate)));
-        return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), attendanceDate));
+                createStudentWithAttendance(student, student.getAttendance().withRecord(record)));
+        return new CommandResult(String.format(MESSAGE_SUCCESS, student.getName(), classCode, attendanceDate));
     }
 
     /**
-     * Creates a copy of the student with the given attendance history, preserving other details.
+     * Rejects marking attendance unless the student is enrolled in the given class.
      */
-    static Person createStudentWithAttendance(Person student, Attendance attendance) {
-        return new Person(student.getName(), student.getMatriculationNumber(), student.getEmail(),
-                student.getTags(), attendance, student.getClassCodes());
+    private static void requireEnrolled(Person student, ClassCode classCode) throws CommandException {
+        if (student.getClassCodes().isEmpty()) {
+            throw new CommandException(String.format(MESSAGE_NO_CLASSES, student.getName()));
+        }
+        if (!student.getClassCodes().contains(classCode)) {
+            throw new CommandException(String.format(MESSAGE_NOT_ENROLLED, student.getName(), classCode));
+        }
     }
 
     @Override
     public boolean equals(Object other) {
-        if (other == this) {
-            return true;
-        }
-
-        if (!(other instanceof MarkAttendanceCommand otherMarkAttendanceCommand)) {
+        if (!super.equals(other)) {
             return false;
         }
 
+        MarkAttendanceCommand otherMarkAttendanceCommand = (MarkAttendanceCommand) other;
         return targetStudent.equals(otherMarkAttendanceCommand.targetStudent)
-                && date.equals(otherMarkAttendanceCommand.date);
+                && classCode.equals(otherMarkAttendanceCommand.classCode);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
                 .add("targetStudent", targetStudent)
-                .add("date", date)
+                .add("classCode", classCode)
+                .add("date", getDate())
                 .toString();
     }
 }

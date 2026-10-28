@@ -29,8 +29,10 @@ import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PersonBuilder;
 
 public class MainAppTest {
+    private static final String VALID_RECORD_JSON =
+            "{\"date\":\"07-10-2026\",\"classCode\":\"CS2103T-T10\"}";
     private static final String VALID_STUDENT_JSON = "{\"name\":\"Amy Bee\",\"matriculationNumber\":\"A1234567Z\","
-            + "\"email\":\"amy@gmail.com\",\"tags\":[],\"attendance\":[\"07-10-2026\"]}";
+            + "\"email\":\"amy@gmail.com\",\"tags\":[],\"attendance\":[" + VALID_RECORD_JSON + "]}";
 
     @TempDir
     public Path temporaryFolder;
@@ -39,7 +41,7 @@ public class MainAppTest {
     public void initModelAndLogic_validRecords_restoresStudentsAndAttendance() throws Exception {
         Path dataFilePath = temporaryFolder.resolve("addressbook.json");
         AddressBook savedRecords = new AddressBook();
-        savedRecords.addPerson(new PersonBuilder().withAttendance("07-10-2026").build());
+        savedRecords.addPerson(new PersonBuilder().withAttendance("CS2103T-T10", "07-10-2026").build());
         new JsonAddressBookStorage(dataFilePath).saveAddressBook(savedRecords);
 
         MainApp app = initializeApp(new JsonAddressBookStorage(dataFilePath));
@@ -83,8 +85,8 @@ public class MainAppTest {
     @Test
     public void initModelAndLogic_duplicateAttendance_blocksCommandsAndPreservesFile() throws Exception {
         assertRestoreFailure("{\"persons\":["
-                + VALID_STUDENT_JSON.replace("[\"07-10-2026\"]", "[\"07-10-2026\",\"07-10-2026\"]") + "]}",
-                Attendance.MESSAGE_DUPLICATE_DATE);
+                + VALID_STUDENT_JSON.replace(VALID_RECORD_JSON, VALID_RECORD_JSON + "," + VALID_RECORD_JSON) + "]}",
+                Attendance.MESSAGE_DUPLICATE_RECORD);
     }
 
     @Test

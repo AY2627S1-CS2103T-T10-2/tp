@@ -68,10 +68,15 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
+    public void readAddressBook_dateOnlyAttendance_throwDataLoadingException() {
+        assertThrows(DataLoadingException.class, () -> readAddressBook("dateOnlyAttendanceAddressBook.json"));
+    }
+
+    @Test
     public void readAndSaveAddressBook_withAttendance_preservesHistory() throws Exception {
         Path filePath = testFolder.resolve("AttendanceAddressBook.json");
         AddressBook original = new AddressBook();
-        original.addPerson(new PersonBuilder(ALICE).withAttendance("16-09-2026", "07-10-2026").build());
+        original.addPerson(new PersonBuilder(ALICE).withAttendance("CS2103T-T10", "16-09-2026", "07-10-2026").build());
         original.addPerson(HOON);
         JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
         storage.saveAddressBook(original);

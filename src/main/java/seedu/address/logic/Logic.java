@@ -47,4 +47,9 @@ public interface Logic {
      * Set the user prefs' GUI settings.
      */
     void setGuiSettings(GuiSettings guiSettings);
+
+    /**
+     * Returns an observable counter that increases after each successful undo or redo.
+     */
+    ObservableValue<Number> addressBookRestoreCountProperty();
 }

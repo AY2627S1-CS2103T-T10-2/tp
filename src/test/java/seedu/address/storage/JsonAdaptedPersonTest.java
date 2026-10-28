@@ -18,6 +18,7 @@ import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.Attendance;
 import seedu.address.model.person.AttendanceDate;
+import seedu.address.model.person.AttendanceRecord;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.Name;
@@ -40,12 +41,13 @@ public class JsonAdaptedPersonTest {
 
     @Test
     public void toModelType_attendanceJsonRoundTrip_preservesHistory() throws Exception {
-        Person original = new PersonBuilder(BENSON).withAttendance("16-09-2026", "07-10-2026").build();
+        Person original = new PersonBuilder(BENSON).withAttendance("CS2103T-T10", "16-09-2026", "07-10-2026").build();
         String json = JsonUtil.toJsonString(new JsonAdaptedPerson(original));
         JsonAdaptedPerson restored = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
         assertEquals(original, restored.toModelType());
-        assertEquals(List.of(new AttendanceDate("07-10-2026"), new AttendanceDate("16-09-2026")),
-                restored.toModelType().getAttendance().getDates());
+        assertEquals(List.of(new AttendanceRecord(new AttendanceDate("07-10-2026"), new ClassCode("CS2103T-T10")),
+                new AttendanceRecord(new AttendanceDate("16-09-2026"), new ClassCode("CS2103T-T10"))),
+                restored.toModelType().getAttendance().getRecords());
     }
 
     @Test
@@ -71,20 +73,40 @@ public class JsonAdaptedPersonTest {
 
     @Test
     public void toModelType_invalidAttendance_throwsIllegalValueException() {
-        List<List<String>> invalidHistories = List.of(List.of("31-02-2026"), List.of("2026-09-16"),
-                Arrays.asList("16-09-2026", null));
-        for (List<String> dates : invalidHistories) {
+        List<JsonAdaptedAttendanceRecord> invalidRecords = List.of(
+                new JsonAdaptedAttendanceRecord("31-02-2026", "CS2103T-T10"),
+                new JsonAdaptedAttendanceRecord("2026-09-16", "CS2103T-T10"));
+        for (JsonAdaptedAttendanceRecord record : invalidRecords) {
             JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_MATRICULATION_NUMBER, VALID_EMAIL,
-                    VALID_TAGS, dates);
+                    VALID_TAGS, List.of(record));
             assertThrows(IllegalValueException.class, AttendanceDate.MESSAGE_CONSTRAINTS, person::toModelType);
         }
     }
 
     @Test
+    public void toModelType_nullAttendanceRecord_throwsIllegalValueException() {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_MATRICULATION_NUMBER, VALID_EMAIL,
+                VALID_TAGS, Arrays.asList((JsonAdaptedAttendanceRecord) null));
+        assertThrows(IllegalValueException.class, "Student attendance records must not be null.", person::toModelType);
+    }
+
+    @Test
     public void toModelType_duplicateAttendance_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_MATRICULATION_NUMBER, VALID_EMAIL,
-                VALID_TAGS, List.of("16-09-2026", "16-09-2026"));
-        assertThrows(IllegalValueException.class, Attendance.MESSAGE_DUPLICATE_DATE, person::toModelType);
+                VALID_TAGS, List.of(new JsonAdaptedAttendanceRecord("16-09-2026", "CS2103T-T10"),
+                        new JsonAdaptedAttendanceRecord("16-09-2026", "cs2103t-t10")));
+        assertThrows(IllegalValueException.class, Attendance.MESSAGE_DUPLICATE_RECORD, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_sameDateDifferentClassesWithoutEnrolment_loadsRecords() throws Exception {
+        AttendanceRecord first = new AttendanceRecord(new AttendanceDate("07-10-2026"), new ClassCode("CS2103T-T10"));
+        AttendanceRecord second = new AttendanceRecord(new AttendanceDate("07-10-2026"), new ClassCode("CS2103T-T11"));
+        Person original = new PersonBuilder(BENSON).withAttendanceRecords(first, second).build();
+        String json = JsonUtil.toJsonString(new JsonAdaptedPerson(original));
+        assertTrue(json.contains("\"date\" : \"07-10-2026\""));
+        assertTrue(json.contains("\"classCode\" : \"CS2103T-T10\""));
+        assertEquals(original, JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType());
     }
 
     @Test

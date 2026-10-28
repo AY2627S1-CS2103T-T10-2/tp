@@ -1,11 +1,13 @@
 package seedu.address.testutil;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.Attendance;
 import seedu.address.model.person.AttendanceDate;
+import seedu.address.model.person.AttendanceRecord;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.Name;
@@ -86,14 +88,23 @@ public class PersonBuilder {
     }
 
     /**
-     * Sets the attendance history using the given date strings.
+     * Sets the attendance history for the given class using the date strings.
      */
-    public PersonBuilder withAttendance(String... dates) {
+    public PersonBuilder withAttendance(String classCode, String... dates) {
         Attendance updatedAttendance = Attendance.empty();
         for (String date : dates) {
-            updatedAttendance = updatedAttendance.withDate(new AttendanceDate(date));
+            updatedAttendance = updatedAttendance.withRecord(new AttendanceRecord(new AttendanceDate(date),
+                    new ClassCode(classCode)));
         }
         attendance = updatedAttendance;
+        return this;
+    }
+
+    /**
+     * Sets the attendance history using records from any classes.
+     */
+    public PersonBuilder withAttendanceRecords(AttendanceRecord... records) {
+        attendance = new Attendance(List.of(records));
         return this;
     }
 
@@ -105,6 +116,9 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Builds a person with the configured details.
+     */
     public Person build() {
         return new Person(name, matriculationNumber, email, tags, attendance, classCodes);
     }
