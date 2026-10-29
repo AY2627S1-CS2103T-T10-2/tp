@@ -637,6 +637,8 @@ TAssist automatically saves data after every command. You do not need to save ma
 
 TAssist data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
 
+The file must contain exactly one JSON object. Spaces, tabs, and line breaks may follow it, but another JSON value or other trailing text causes a restoration failure.
+
 <box type="warning" seamless>
 
 **Caution:**

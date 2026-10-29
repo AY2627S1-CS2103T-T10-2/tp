@@ -71,6 +71,36 @@ public class MainAppTest {
     }
 
     @Test
+    public void initModelAndLogic_consecutiveObjects_blocksCommandsAndPreservesFile() throws Exception {
+        String savedRecords = "{\"persons\":[" + VALID_STUDENT_JSON + "]}";
+        assertRestoreFailure("{\"persons\":[]}" + savedRecords, "Reason:");
+        assertRestoreFailure("{\"persons\":[]} \t\r\n" + savedRecords, "Reason:");
+    }
+
+    @Test
+    public void initModelAndLogic_trailingContent_blocksCommandsAndPreservesFile() throws Exception {
+        String savedRecords = "{\"persons\":[" + VALID_STUDENT_JSON + "]}";
+        for (String trailingContent : new String[]{" []", " \"extra\"", " 42", " true", " null", " garbage", " }"}) {
+            assertRestoreFailure(savedRecords + trailingContent, "Reason:");
+        }
+    }
+
+    @Test
+    public void initModelAndLogic_trailingWhitespace_restoresRecordsAndAllowsCommands() throws Exception {
+        Path dataFilePath = temporaryFolder.resolve("addressbook.json");
+        Files.writeString(dataFilePath, "{\"persons\":[" + VALID_STUDENT_JSON + "]} \t\r\n");
+        MainApp app = initializeApp(new JsonAddressBookStorage(dataFilePath));
+        AddressBook restoredRecords = new AddressBook(app.model.getAddressBook());
+
+        assertTrue(app.logic.getStartupErrorMessage().isEmpty());
+        assertEquals(1, restoredRecords.getPersonList().size());
+        assertEquals("Amy Bee", restoredRecords.getPersonList().getFirst().getName().fullName);
+        app.logic.execute("list");
+        app.stop();
+        assertEquals(restoredRecords, new JsonAddressBookStorage(dataFilePath).readAddressBook().orElseThrow());
+    }
+
+    @Test
     public void initModelAndLogic_invalidStudent_blocksCommandsAndPreservesFile() throws Exception {
         assertRestoreFailure("{\"persons\":[" + VALID_STUDENT_JSON.replace("amy@gmail.com", "invalid") + "]}",
                 Email.MESSAGE_CONSTRAINTS);
@@ -157,6 +187,7 @@ public class MainAppTest {
 
         MainApp app = initializeApp(new JsonAddressBookStorage(dataFilePath));
 
+        assertArrayEquals(originalContents, Files.readAllBytes(dataFilePath));
         assertStartupError(app, dataFilePath, expectedReason);
         assertEquals(new AddressBook(), app.model.getAddressBook());
         assertThrows(CommandException.class, () -> app.logic.execute("list"));

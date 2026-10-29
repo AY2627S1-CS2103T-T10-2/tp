@@ -159,6 +159,10 @@ The `Storage` component,
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
+Both JSON storage classes read through `JsonUtil`, which deserializes one root value and checks that the parser reaches the end of the input. Trailing whitespace is allowed; additional root values and invalid trailing content are rejected. Unknown fields remain ignored, and missing optional fields retain their existing defaults. This check uses the existing Jackson dependency without an upgrade.
+
+For TAssist's saved records, parsing failures propagate as `DataLoadingException` to `MainApp`, which sets a startup error. `LogicManager` then rejects commands before execution or saving, preserving the original data file through startup, attempted commands, and shutdown. The app displays the existing restoration error and recovery instructions. Preference-loading failures retain their existing default-preferences behavior.
+
 ### Common classes
 
 Classes used by multiple components are in the `seedu.address.commons` package.
@@ -1466,6 +1470,18 @@ Prerequisites: Run `list` to restore name order. Have at least two students with
       (e.g., `31-02-2026`), a duplicate attendance record for the same class and date, a date-only attendance entry
       (e.g., `"attendance": ["07-10-2026"]`), or an assignment mark above its maximum.<br>
       Expected: The same command block and file preservation apply, with the corresponding validation error.
+   1. Close TAssist and restore the valid backup. Prepend `{"persons":[]}` to the file, keeping the original
+      contents immediately afterward. Reopen TAssist, attempt `list`, and close the app. Repeat with a newline
+      separating the two objects.<br>
+      Expected: Both files cause a restoration failure and commands remain blocked. Compare the file with a copy
+      taken immediately after prepending the empty object: every byte remains unchanged through startup,
+      the command attempt, and shutdown, including the original student records in the second object.
+   1. Repeat with the valid backup followed by another JSON value (e.g., `true`) or invalid text
+      (e.g., `garbage`).<br>
+      Expected: The same restoration error, command block, and file preservation apply.
+   1. Close TAssist, restore the valid backup, and append only spaces, tabs, and line breaks. Reopen TAssist,
+      run `list`, and close and reopen the app.<br>
+      Expected: Records load normally, commands remain available, and the saved records survive reopening.
    1. Close TAssist, correct the file or replace it with the valid backup, and reopen TAssist.<br>
       Expected: The saved student and attendance records are restored, the command box is enabled,
       and `list` executes successfully without a restoration failure message.
