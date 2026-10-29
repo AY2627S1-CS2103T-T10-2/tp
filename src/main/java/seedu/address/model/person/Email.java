@@ -21,6 +21,7 @@ public class Email {
             + "labels separated by periods.\n"
             + "The domain name must:\n"
             + "    - have each domain label contain 1 to 63 ASCII characters\n"
+            + "    - end with a domain label at least 2 characters long\n"
             + "    - have each domain label start and end with alphanumeric characters\n"
             + "    - have each domain label consist of alphanumeric characters or hyphens.\n"
             + "3. The entire email must not exceed 254 characters. Quoted local-parts, domain literals, "
@@ -29,7 +30,8 @@ public class Email {
     private static final String LOCAL_ATOM_REGEX = "[A-Za-z0-9" + SPECIAL_CHARACTERS + "]+";
     private static final String LOCAL_PART_REGEX = LOCAL_ATOM_REGEX + "(?:\\." + LOCAL_ATOM_REGEX + ")*";
     private static final String DOMAIN_PART_REGEX = "[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?";
-    private static final String DOMAIN_REGEX = DOMAIN_PART_REGEX + "(?:\\." + DOMAIN_PART_REGEX + ")*";
+    private static final String DOMAIN_LAST_PART_REGEX = "[A-Za-z0-9][A-Za-z0-9-]{0,61}[A-Za-z0-9]";
+    private static final String DOMAIN_REGEX = "(?:" + DOMAIN_PART_REGEX + "\\.)*" + DOMAIN_LAST_PART_REGEX;
     public static final String VALIDATION_REGEX = LOCAL_PART_REGEX + "@" + DOMAIN_REGEX;
 
     public final String value;

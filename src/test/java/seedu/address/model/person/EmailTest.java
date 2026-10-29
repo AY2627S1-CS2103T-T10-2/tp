@@ -20,10 +20,12 @@ public class EmailTest {
     }
 
     @Test
-    public void isValidEmail() {
-        // null email
+    public void isValidEmail_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> Email.isValidEmail(null));
+    }
 
+    @Test
+    public void isValidEmail() {
         // blank email
         assertFalse(Email.isValidEmail("")); // empty string
         assertFalse(Email.isValidEmail(" ")); // spaces only
@@ -51,6 +53,8 @@ public class EmailTest {
         assertFalse(Email.isValidEmail("peterjack@-example.com")); // domain name starts with a hyphen
         assertFalse(Email.isValidEmail("peterjack@example.com-")); // domain name ends with a hyphen
         assertFalse(Email.isValidEmail("peterjack@example..com")); // empty domain label
+        assertFalse(Email.isValidEmail("peterjack@example.c")); // final label has fewer than two characters
+        assertFalse(Email.isValidEmail("a@b")); // single-label domain has fewer than two characters
         assertFalse(Email.isValidEmail("john\n@example.com")); // control character
         assertFalse(Email.isValidEmail("john@example.com\n")); // trailing newline
         assertFalse(Email.isValidEmail("j\u00f6hn@example.com")); // non-ASCII local part
@@ -71,11 +75,12 @@ public class EmailTest {
         assertTrue(Email.isValidEmail("o'connor@example.com")); // apostrophe
         assertTrue(Email.isValidEmail("!#$%&'*+/=?^_`{|}~-@example.com")); // all allowed special characters
         assertTrue(Email.isValidEmail("peterjack@exam--ple.com")); // consecutive domain hyphens
-        assertTrue(Email.isValidEmail("peterjack@example.c")); // single-character final label
+        assertTrue(Email.isValidEmail("peterjack@example.co")); // two-character final label
+        assertTrue(Email.isValidEmail("peterjack@a.co")); // earlier labels may contain one character
         assertTrue(Email.isValidEmail("PeterJack.1190@example.com")); // period in local part
         assertTrue(Email.isValidEmail("PeterJack+1190@example.com")); // '+' symbol in local part
         assertTrue(Email.isValidEmail("PeterJack-1190@example.com")); // hyphen in local part
-        assertTrue(Email.isValidEmail("a@b")); // minimal
+        assertTrue(Email.isValidEmail("a@bc")); // minimal
         assertTrue(Email.isValidEmail("test@localhost")); // alphabets only
         assertTrue(Email.isValidEmail("123@145")); // numeric local part and domain name
         assertTrue(Email.isValidEmail("a1+be.d@example1.com")); // mixture of alphanumeric and special characters
@@ -91,6 +96,7 @@ public class EmailTest {
 
         assertTrue(Email.isValidEmail("a@" + "b".repeat(63) + ".com"));
         assertFalse(Email.isValidEmail("a@" + "b".repeat(64) + ".com"));
+        assertTrue(Email.isValidEmail("a@example." + "b".repeat(63)));
         assertFalse(Email.isValidEmail("a@example." + "b".repeat(64)));
 
         String domainPrefix = "b".repeat(63) + "." + "c".repeat(63) + ".";
