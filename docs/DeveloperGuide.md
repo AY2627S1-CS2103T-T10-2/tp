@@ -203,13 +203,13 @@ Module enrollment is a prerequisite for the `assignment` command, rather than a 
 
 ### Student profile assignment marks
 
-`ViewCommand` resolves the displayed index against `Model#getFilteredPersonList()` and returns the selected `Person` in `CommandResult`. `MainWindow` reuses a `StudentDetailsWindow` and passes the selected person together with `Logic#getGradebook()`. `LogicManager` delegates this getter to `ReadOnlyAddressBook#getGradebook()`, giving the UI a fresh snapshot without exposing the stored gradebook to mutation.
+`ViewCommand` resolves the displayed index against `Model#getFilteredPersonList()` and returns the selected `Person` in `CommandResult`. `MainWindow` constructs one reusable `StudentDetailsWindow` with the full observable student list and a `Supplier<ReadOnlyGradebook>` bound to `logic::getGradebook`, then passes the selected person to `showStudent(Person)`. `LogicManager` delegates the getter to `ReadOnlyAddressBook#getGradebook()`. The supplier obtains a fresh snapshot for each refresh without exposing the stored gradebook to mutation.
 
 `StudentDetailsWindow#formatAssignmentRows` looks up assignments by the selected person's matriculation number using `ReadOnlyGradebook#getMarksForStudent()`. It sorts entries by the string form of the assignment ID, resolves each shared definition, and formats the ID, name, maximum mark, and optional score. Recorded scores use plain decimal notation as `Mark: SCORE/MAXIMUM`; a zero remains a recorded score, while an empty mark displays `Mark: Unmarked`. Unassigned definitions and other students' marks are excluded.
 
-The `assignments` container in `StudentDetailsWindow.fxml` holds the rows under Assignments and marks. Each call to `showStudent` clears the previous rows before displaying the selected student's results or `None assigned`. Labels wrap within the existing scrollable window. The window displays a snapshot; assignment and mark commands do not automatically refresh it. Running `view` again fetches the latest snapshot and rebuilds its contents.
+The `assignments` container in `StudentDetailsWindow.fxml` holds the rows under Assignments and marks. Each refresh clears the previous rows before displaying the selected student's results or `None assigned`. Labels wrap within the existing scrollable window. `showStudent` explicitly refreshes even when selecting the same `Person`, because an unchanged selection does not fire a property-change event. After other commands execute and save successfully, `MainWindow` calls `refreshIfShowing()` on an existing window. This immediately reflects `assignment`, `mark`, and `removeassignment` without another `view` command. The refresh only reads the current model snapshot and updates UI controls; it does not alter student data, assignment links, marks, or history.
 
-`StudentDetailsWindowTest` covers empty assignments, ordering, student isolation, decimal and zero scores, unmarked assignments, and updated or removed entries. It also opens one JavaFX details window and switches between students to verify that displayed scores and assignment rows are replaced, including the `None assigned` state and switching back to the original student. The test initializes JavaFX and performs window operations on its application thread; Linux CI runs under Xvfb to provide a display. `LogicManagerTest#getGradebook_afterMarkChanges_returnsFreshSnapshot` verifies that a later request reflects a mark update while the earlier snapshot stays unchanged.
+`StudentDetailsWindowTest` covers empty assignments, ordering, student isolation, decimal and zero scores, unmarked assignments, and updated or removed entries. Regression cases exercise repeated views, matriculation migration, rapid edits, switching students while a refresh is pending, closing, deletion, undo/redo, and preservation of model data. `mainWindow_assignmentCommands_refreshOpenDetailsWithoutAnotherView` enters commands through the actual `MainWindow` command box and verifies immediate mark, assignment, and removal updates, saved data, and a closed window staying closed. The tests initialize JavaFX and perform window operations on its application thread; Linux CI runs under Xvfb to provide a display. `LogicManagerTest#getGradebook_afterMarkChanges_returnsFreshSnapshot` verifies that a later request reflects a mark update while the earlier snapshot stays unchanged.
 
 ### Sorting displayed students
 
@@ -219,11 +219,13 @@ The `sort` command accepts `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MOD
 
 ### Keeping the student details window up to date
 
-`ViewCommand` returns the selected `Person` in its `CommandResult`. `MainWindow` creates one reusable `StudentDetailsWindow`, passing it `Logic#getPersonList()`, and calls `showStudent` to open or focus it. This list is an unmodifiable observable view of all students from `Model#getAddressBook()`, independent of the filtered and sorted list used by `PersonListPanel`.
+`ViewCommand` returns the selected `Person` in its `CommandResult`. `MainWindow` creates one reusable `StudentDetailsWindow`, passing it `Logic#getPersonList()` and the gradebook supplier described above, and calls `showStudent` to open or focus it. This list is an unmodifiable observable view of all students from `Model#getAddressBook()`, independent of the filtered and sorted list used by `PersonListPanel`.
 
 `StudentDetailsSelection` observes this full list and exposes the selected student through a read-only object property. Students are immutable: an edit, enrolment change, or attendance change replaces the old `Person` with a new one. When a list change replaces the selected student with one new student, the selection follows that replacement. This also handles edits to the matriculation number, without trying to look up the student by their old number or displayed index. Removing the selected student, including through `clear`, clears the selection. Changes to other students leave it unchanged.
 
-`StudentDetailsWindow` listens to the selection property. A replacement refreshes every section and the window title without changing visibility or keyboard focus; an empty selection hides the window. Closing the window, including with `Esc`, clears the selection so later edits do not reopen it. Filtering and sorting do not change the full student list, so they do not close the window or select a different student.
+`StudentDetailsWindow` listens to the selection property. A replacement schedules a refresh with `Platform.runLater` rather than fetching the gradebook synchronously in the listener. `AddressBook#setPerson` publishes the replacement `Person` before installing the gradebook with migrated matriculation-number keys. Waiting until the current model operation finishes lets `refreshSelectedStudent()` read the replacement student and the migrated assignments together. `updateStudent` then refreshes particulars, classes, assignments, attendance, and the window title.
+
+Each queued refresh captures `refreshVersion` and checks it again before rendering. A newer edit, explicit view, completed-command refresh, deletion, or window close invalidates older work. `refreshIfShowing()` also checks visibility, so it neither reopens a hidden window nor takes keyboard focus from the main window. An empty selection hides the window; closing it, including with `Esc`, clears the selection. Successful undo/redo closes it through the existing restoration-counter listener. Filtering and sorting preserve the selected student, and changes to other students do not switch the profile.
 
 `StudentDetailsSelectionTest` covers replacements, matriculation number edits followed by deletion, attendance and class changes, clearing, changes to other students, switching the selected student, and updates while the student is hidden by a filter. `LogicManagerTest` checks that the full list remains observable and cannot be modified through the `Logic` API.
 
@@ -704,7 +706,7 @@ The default display order ignores case when comparing names. It does not change 
 1. Tutor requests to view a student's profile using the student's index in the currently displayed list.
 2. TAssist opens or updates a details window showing the selected student's name, matriculation number, email, tags, enrolled classes, assignment marks, and attendance records with their dates and classes. Tags are sorted by their text, classes by module and class group, assignments by assignment ID, and attendance by date from most recent to oldest, then by class code in ascending order within a date. Each assignment shows its ID, name, maximum mark, and recorded score or `Unmarked`. Only assignments attached to the selected student are shown.
 
-While the window remains open, changes to the selected student refresh its contents automatically. Deleting that student or clearing all students closes the window. Searching, filtering, and sorting preserve the selected profile, even if the student is hidden from the displayed list.
+While the window remains open, successful changes to the selected student's particulars, classes, attendance, assignments, or marks refresh its contents automatically without another `view` command. A matriculation-number edit preserves the displayed assignments and marks. Repeating `view` for the same student also refreshes all sections. Deleting that student, clearing all students, or successfully undoing or redoing a change closes the window. Searching, filtering, and sorting preserve the selected profile, even if the student is hidden from the displayed list.
 
 Use case ends.
 
@@ -1440,20 +1442,36 @@ Use test data for the cases below, as some steps change student enrollment and a
 
 ### Viewing marks in a student profile
 
-Prerequisites: Run `list` to restore name order. Have at least two students with no assignments, and note the first student's matriculation number as `MATRIC`. Substitute that number in the commands below. Ensure `CS2103T:A1` and `CS2103T:A2` do not already exist.
+Run these steps in order in a test data folder. Ensure matriculation numbers `A9900204Z`, `A9900205Z`, and `A9900206Z`, assignment IDs `CS2103T:TEST204A` and `CS2103T:TEST204B`, and assignment names `Refresh Quiz` and `Refresh Homework` are unused. No pre-existing assignments or marks are needed. Keep the details window open and enter commands in the main window unless instructed otherwise.
 
-1. Enter `assignment m/MATRIC id/CS2103T:A2 n/Profile Quiz max/20`, then `view 1`.<br>
-   Expected: Assignments and marks shows `CS2103T:A2 - Profile Quiz (out of 20)` and `Mark: Unmarked`.
-1. Enter `mark m/MATRIC id/CS2103T:A2 mark/0`, then `view 1` again.<br>
-   Expected: The same window now shows `Mark: 0/20`.
-1. Enter `mark m/MATRIC id/CS2103T:A2 mark/17.5`.<br>
-   Expected: The open details window keeps its previous snapshot. Entering `view 1` refreshes it to `Mark: 17.5/20`.
-1. Enter `assignment m/MATRIC id/CS2103T:A1 n/Profile Homework max/10`, then `view 1`.<br>
-   Expected: `CS2103T:A1` appears before `CS2103T:A2`, with `Mark: Unmarked`. The quiz still shows `Mark: 17.5/20`.
-1. Enter `view 2`.<br>
-   Expected: The reused window shows `None assigned`, with no rows left over from the previous student. It does not show the first student's marks.
-1. Enter `removeassignment id/CS2103T:A1 m/MATRIC` and `removeassignment id/CS2103T:A2 m/MATRIC`, then `view 1`.<br>
-   Expected: The section shows `None assigned`. Particulars, classes, attendance, and Escape to close still work.
+1. Enter `add n/Refresh Test m/A9900204Z e/refresh204@example.com` and `add n/Other Profile m/A9900206Z e/other204@example.com`. Enter `find m/A9900204Z`, `enroll 1 c/CS2103T-T10`, then `view 1`.<br>
+   Expected: Refresh Test is the only displayed student. The details window shows `None assigned`.
+1. Enter `assignment m/A9900204Z id/CS2103T:TEST204A n/Refresh Quiz max/10`.<br>
+   Expected: The open window immediately shows the quiz and `Mark: Unmarked`, without another `view`.
+1. Enter `mark m/A9900204Z id/CS2103T:TEST204A mark/8.5`, then `mark m/A9900204Z id/CS2103T:TEST204A mark/10`.<br>
+   Expected: The visible mark changes to `8.5/10`, then `10/10`, immediately after each successful command. Keyboard focus stays in the main window.
+1. Enter `view 1` again without closing the window.<br>
+   Expected: The same window shows the latest score, `Mark: 10/10`, with no duplicate assignment rows.
+1. Enter `assignment m/A9900204Z id/CS2103T:TEST204B n/Refresh Homework max/20`.<br>
+   Expected: The homework immediately appears as `Mark: Unmarked` after the quiz in assignment ID order. The quiz still shows `Mark: 10/10`.
+1. Enter `edit 1 m/A9900205Z`.<br>
+   Expected: Without another `view`, the open window shows `A9900205Z`, both assignments, and the quiz's `10/10` mark. Enter `marks id/CS2103T:TEST204A` to confirm the saved result is associated with the new number.
+1. Enter `undo`.<br>
+   Expected: The details window closes. Enter `find m/A9900204Z`, then `view 1`; both assignments and the quiz's `10/10` mark appear under the original number.
+1. Enter `redo`.<br>
+   Expected: The window closes again. Enter `find m/A9900205Z`, then `view 1`; both assignments and the quiz's `10/10` mark appear under the new number.
+1. Enter `find m/A9900206Z`, then `view 1`.<br>
+   Expected: The reused window shows Other Profile and `None assigned`, with no rows left over from Refresh Test. Enter `find m/A9900205Z`, then `view 1`; Refresh Test's two assignments and `10/10` mark reappear.
+1. Enter `removeassignment id/CS2103T:TEST204B m/A9900205Z`.<br>
+   Expected: The homework disappears immediately; the quiz remains with `Mark: 10/10`.
+1. Enter `removeassignment id/CS2103T:TEST204A`.<br>
+   Expected: The quiz definition is removed and the open profile immediately shows `None assigned`.
+1. Close the details window with `Esc`. Enter `assignment m/A9900205Z id/CS2103T:TEST204B`, then `mark m/A9900205Z id/CS2103T:TEST204B mark/0`.<br>
+   Expected: Both commands succeed and the window stays closed. Enter `view 1`; the homework appears with `Mark: 0/20`.
+1. Enter `delete 1`.<br>
+   Expected: The details window closes. Enter `marks id/CS2103T:TEST204B`; its shared definition remains, but its results show `None assigned.`.
+1. Enter `undo`, `find m/A9900205Z`, then `view 1`.<br>
+   Expected: The restored student has the homework and `Mark: 0/20`. Close and reopen TAssist, then repeat `find m/A9900205Z` and `view 1`; the same assignment and mark remain stored.
 
 ### Removing assignments
 
