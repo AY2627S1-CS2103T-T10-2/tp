@@ -19,8 +19,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.logic.commands.AssignmentCommand;
+import seedu.address.logic.commands.MarkCommand;
+import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
+import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.UserPrefs;
 import seedu.address.model.gradebook.Assignment;
 import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.gradebook.Mark;
@@ -84,7 +90,7 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
-    public void readAndSaveAddressBook_withGradebook_preservesDefinitionsAndMarks() throws Exception {
+    public void readAndSaveAddressBook_gradebookWithoutEnrollment_preservesDefinitionsAndMarks() throws Exception {
         Path filePath = testFolder.resolve("GradebookAddressBook.json");
         AddressBook original = new AddressBook();
         original.addPerson(ALICE);
@@ -100,7 +106,20 @@ public class JsonAddressBookStorageTest {
         String saved = Files.readString(filePath);
         assertTrue(saved.contains("\"mark\" : \"17.5\""));
         assertTrue(saved.contains("\"mark\" : null"));
-        assertEquals(original, new AddressBook(storage.readAddressBook().orElseThrow()));
+        AddressBook restored = new AddressBook(storage.readAddressBook().orElseThrow());
+        assertEquals(original, restored);
+        assertTrue(restored.getPersonList().stream().allMatch(person -> person.getClassCodes().isEmpty()));
+
+        Model model = new ModelManager(restored, new UserPrefs());
+        new MarkCommand(ALICE.getMatriculationNumber(), id, new Mark(BigDecimal.TEN)).execute(model);
+        new MarkCommand(HOON.getMatriculationNumber(), id, new Mark(BigDecimal.ZERO)).execute(model);
+        model.unassignStudent(HOON.getMatriculationNumber(), id);
+        assertThrows(CommandException.class,
+                String.format(AssignmentCommand.MESSAGE_STUDENT_NOT_ENROLLED,
+                        id, HOON.getMatriculationNumber(), id.getModuleCode()), () ->
+                        new AssignmentCommand(HOON.getMatriculationNumber(), id).execute(model));
+        storage.saveAddressBook(model.getAddressBook());
+        assertEquals(model.getAddressBook(), new AddressBook(storage.readAddressBook().orElseThrow()));
     }
 
     @Test
