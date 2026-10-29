@@ -15,14 +15,16 @@ TAssist is a **desktop application for managing students, optimized for use thro
 
 ## Quick start
 
-1. Ensure that Java `25` or later is installed on your computer.<br>
+1. Ensure that Java `25` is installed on your computer. Run `java -version` in a terminal to check that Java 25 is selected.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
 1. Download the latest `.jar` file from [here](https://github.com/AY2627S1-CS2103T-T10-2/tp/releases).
 
-1. Copy the file to the folder you want to use as the _home folder_ for your TAssist.
+1. Copy the file to the folder you want to use as the _home folder_ for your TAssist.<br>
+   Choose a folder where you have permission to create and update files. TAssist cannot save your records and preferences properly in a write-protected folder.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
+1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar "addressbook.jar"`. If your downloaded file has a different name, substitute that filename inside the quotes.<br>
+   Double-clicking the JAR file may not work on some systems. Use the terminal command above to launch TAssist.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
@@ -637,9 +639,13 @@ Format: `exit`
 
 TAssist automatically saves data after every command. You do not need to save manually.
 
+If a save fails, TAssist displays an error. The command may already have changed the records in memory, but those changes have not been saved and may be lost when you close the app. For a write-permission error, restore write access to the data file and its folder, then run `list` to retry saving the current records before closing TAssist.
+
 ### Editing the data file
 
-TAssist data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+TAssist data is saved automatically as a JSON file `data/addressbook.json` inside the folder from which you launch the app (the terminal's current folder). Following the Quick start instructions makes this the folder containing the JAR file. If you launch the JAR from another folder, TAssist reads and saves data in that other folder instead. Always launch from the same home folder to use the same records.
+
+Advanced users are welcome to update data directly by editing that data file while TAssist is closed.
 
 The file must contain exactly one JSON object. Spaces, tabs, and line breaks may follow it, but another JSON value or other trailing text causes a restoration failure.
 
@@ -670,6 +676,7 @@ _Details coming soon ..._
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+3. **On macOS, using fullscreen mode for secondary windows**, such as the Help or student details window, may cause unexpected window behaviour. Keep these windows in windowed mode. If you encounter this issue, exit fullscreen mode before continuing.
 
 --------------------------------------------------------------------------------------------------------------------
 

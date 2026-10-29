@@ -13,7 +13,9 @@
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+* TAssist is adapted from [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the SE-EDU initiative. We reuse and extend its application architecture, code, tests, build configuration, documentation and diagrams, including the undo/redo design described in its [Developer Guide](https://se-education.org/addressbook-level3/DeveloperGuide.html).
+* Libraries used: [JavaFX](https://openjfx.io/) for the GUI, [Jackson](https://github.com/FasterXML/jackson) for JSON storage, and [JUnit 5](https://github.com/junit-team/junit5) for testing.
+* Documentation tools: [MarkBind](https://markbind.org/) for the website and [PlantUML](https://plantuml.com/) for UML diagrams.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -382,7 +384,6 @@ The following activity diagram summarizes what happens when a user executes a ne
   * Pros: Will use less memory (e.g. for `delete`, just save the student being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
-_{more aspects and alternatives to be added}_
 
 ### Class participation
 
@@ -452,9 +453,6 @@ enrollment changes preserve the participation history.
 * Scores have no configurable module-specific maximum. The supported
   whole-number range is determined by the integer representation.
 
-### \[Proposed\] Data archiving
-
-_{Explain here how the data archiving feature will be implemented}_
 
 
 --------------------------------------------------------------------------------------------------------------------
@@ -487,6 +485,8 @@ _{Explain here how the data archiving feature will be implemented}_
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
+Stories describe current capabilities unless marked **Future**. Future stories are retained as requirements for later iterations and do not describe functionality available in this release.
+
 | Priority | As a …                                   | I want to …                                                  | So that I can…                                                  |
 |----------|------------------------------------------|--------------------------------------------------------------|-----------------------------------------------------------------|
 | `* * *`  | tutor                                    | add a student                                                | keep track of the students in my classes                        |
@@ -511,26 +511,34 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | tutor                                    | redo an undone action                                        | recover from an accidental undo                                 |
 | `* *`    | tutor                                    | have my filters persist across searches                      | avoid retyping the same filters                                 |
 | `*`      | tutor who has finished teaching a class  | delete students in batches                                   | remove a whole class at once                                    |
-| `*`      | tutor teaching a new class               | import students from a file with one command                 | avoid adding them one by one                                    |
-| `*`      | tutor                                    | add notes to a student                                       | remember details about them                                     |
-| `*`      | tutor                                    | colour-code student entries by conditions such as class      | tell my classes apart at a glance                               |
-| `*`      | tutor                                    | see a student's photo                                        | recognise them in class                                         |
-| `*`      | tutor                                    | view a student's grade trend                                 | see their progress over time                                    |
-| `*`      | tutor                                    | record which students are friends                            | ask friends to help students who are struggling                 |
-| `*`      | tutor managing at-risk students          | pin a student entry                                          | find them quickly for special attention                         |
-| `*`      | tutor                                    | open my mail app with a student's email filled in            | email students without copying their addresses                  |
-| `*`      | tutor teaching many modules              | autocomplete course codes                                    | avoid memorising module identifiers                             |
-| `*`      | tutor                                    | view previously executed commands                            | reuse commands without retyping them                            |
-| `*`      | tutor                                    | view my search history                                       | repeat past searches easily                                     |
-| `*`      | tutor                                    | clear my search history                                      | keep only relevant entries                                      |
-| `*`      | experienced user                         | set custom command aliases                                   | type fewer characters                                           |
-| `*`      | experienced user                         | customise the app's appearance                               | match it to my other applications                               |
+| `*`      | tutor teaching a new class               | **Future:** import students from a file with one command | avoid adding them one by one                                    |
+| `*`      | tutor                                    | **Future:** add notes to a student | remember details about them                                     |
+| `*`      | tutor                                    | **Future:** colour-code student entries by conditions such as class | tell my classes apart at a glance                               |
+| `*`      | tutor                                    | **Future:** see a student's photo | recognise them in class                                         |
+| `*`      | tutor                                    | **Future:** view a student's grade trend | see their progress over time                                    |
+| `*`      | tutor                                    | **Future:** record which students are friends                            | ask friends to help students who are struggling                 |
+| `*`      | tutor managing at-risk students          | **Future:** pin a student entry | find them quickly for special attention                         |
+| `*`      | tutor                                    | **Future:** open my mail app with a student's email filled in | email students without copying their addresses                  |
+| `*`      | tutor teaching many modules              | **Future:** autocomplete course codes | avoid memorising module identifiers                             |
+| `*`      | tutor                                    | **Future:** view previously executed commands | reuse commands without retyping them                            |
+| `*`      | tutor                                    | **Future:** view my search history | repeat past searches easily                                     |
+| `*`      | tutor                                    | **Future:** clear my search history | keep only relevant entries                                      |
+| `*`      | experienced user                         | **Future:** set custom command aliases | type fewer characters                                           |
+| `*`      | experienced user                         | **Future:** customise the app's appearance | match it to my other applications                               |
+| `* * *` | tutor | define work and assign it to students enrolled in its module | track who should complete each assignment |
+| `* *` | tutor | view all students' marks for one assignment | compare results and identify unmarked work |
+| `* *` | tutor | remove an assignment from one student or everyone | correct assignment allocation mistakes |
+| `* *` | tutor | unenroll a student from one class or all classes | keep enrollment current while retaining historical records |
+| `* *` | tutor | view and correct participation records | review awarded points and remove incorrect entries |
+| `* *` | tutor | clear all student and assignment records | start with an empty dataset |
+| `* *` | tutor | sort students by name, matriculation number, email or attendance count | locate and compare students using the relevant field |
+| `*` | tutor | **Future:** archive old records | retain past teaching records separately from current work |
 
 ### Use cases
 
 These use cases describe the current program's behavior. For all use cases, the **System** is TAssist, the **Actor** is a university Computer Science tutor, and **MSS** means Main Success Scenario. Unless stated otherwise, TAssist is running and startup has completed without a restoration error. Restoration failures are covered by UC07.
 
-**Common extension (UC01–UC06, UC08–UC14):** If TAssist cannot save the records after processing a request, it reports the save failure instead of confirming success. Any changes already made to student information, assignment marks, or the displayed list remain. The main success scenarios assume saving succeeds.
+**Common extension (UC01–UC06, UC08–UC17):** If TAssist cannot save the records after processing a request, it reports the save failure instead of confirming success. Any changes already made to student information, assignment marks, or the displayed list remain. The main success scenarios assume saving succeeds.
 
 #### UC01: Add a student
 
@@ -559,8 +567,8 @@ Use case ends.
 
 **MSS**
 
-1. Tutor requests to delete a student using their displayed index or matriculation number. The matriculation number can identify a student excluded from the current search results.
-2. TAssist deletes the selected student from TAssist and confirms the deletion.
+1. Tutor requests to delete one or more students using their displayed indices, or one student using their matriculation number. The matriculation number can identify a student excluded from the current search results.
+2. TAssist deletes the selected students from TAssist and confirms the deletion. All indices refer to the list before deletion; if any index is invalid or repeated, no students are deleted.
 
 Use case ends.
 
@@ -593,7 +601,7 @@ Use case ends.
 
 Use case ends.
 
-Matching considers all students and ignores case. A student matches if any supplied keyword occurs within a word in their name. Each matching student appears once, including distinct students with the same name. Non-empty keywords are accepted without student-name validation.
+Name matching considers students satisfying any active class/module filter and ignores case. A new name search replaces the previous name search while keeping that filter. A student matches if any supplied keyword occurs within a word in their name. Each matching student appears once, including distinct students with the same name. Non-empty keywords are accepted without student-name validation.
 
 **Extensions**
 
@@ -608,6 +616,18 @@ Matching considers all students and ignores case. A student matches if any suppl
   * 2a1. TAssist reports zero matches and displays an empty result list.
 
   Use case ends.
+
+* 1b. Tutor supplies one complete matriculation number instead of name keywords.
+
+  * 1b1. TAssist clears the previous search and class/module filter, then searches all stored students for that exact number, ignoring case. It shows the matching student, or an empty list if none matches.
+
+  Use case ends.
+
+* 1c. Tutor combines name keywords with a matriculation number, repeats the matriculation prefix, or supplies an invalid number.
+
+  * 1c1. TAssist rejects the request without changing the displayed list or records.
+
+  Use case resumes at step 1.
 
 #### UC04: Record attendance
 
@@ -1030,6 +1050,20 @@ Use case ends.
 
     Use case ends.
 
+#### UC17: Filter students by class or module
+
+**MSS**
+
+1. Tutor supplies one or more complete class or module codes.
+2. TAssist replaces the previous class/module filter and shows students enrolled in any supplied class or module, also satisfying any active search.
+
+Use case ends. Codes ignore case. A later name search retains this filter; `list` clears both, while a matriculation-number search clears the previous filter and search before looking up the number.
+
+**Extensions**
+
+* 1a. Codes are missing or malformed. TAssist reports an input error and preserves the displayed list and records. Use case resumes at step 1.
+* 2a. No student satisfies the combined criteria. TAssist displays an empty list and explains that an active search may restrict the results. Use case ends.
+
 ### Non-Functional Requirements
 
 Compatibility, packaging and storage requirements follow the [CS2103T project constraints](https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-constraints.html). Performance targets assume a computer with at least 8 GB RAM running Java 25.
@@ -1087,19 +1121,71 @@ testers are expected to do more *exploratory* testing.
 
 1. Initial launch
 
-   1. Download the JAR file and copy it into an empty folder.
+   1. Download the JAR file and copy it into an empty folder where you can create and update files. Use a separate test folder to protect your real records.
 
-   1. Double-click the JAR file.<br>
+   1. Open a terminal and `cd` to that folder. Run `java -version` and check that Java 25 is selected. Run `java -jar "addressbook.jar"`, substituting the actual downloaded filename if different.<br>
       Expected: The GUI opens with a set of sample students. The window size may not be optimal.
 
 1. Saving window preferences
 
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
+   1. Relaunch the app with the same terminal command from the same folder.<br>
        Expected: The most recent window size and location are retained.
 
-1. _{ more test cases … }_
+
+### Adding and editing students
+
+Start in a fresh test folder with the original sample students.
+
+1. Run `add n/Zoe Test m/A9900001Z e/zoe@example.com t/tutorial`.<br>
+   Expected: Zoe appears after the six sample students in name order, with the supplied details.
+1. Repeat the command with `n/Another Name` but the same matriculation number.<br>
+   Expected: The duplicate is rejected; only one student has that number.
+1. Run `find m/A9900001Z`, then `edit 1 n/Zoe Updated e/zoe.updated@example.com t/` and `view 1`.<br>
+   Expected: The name and email change and all tags are cleared. The matriculation number remains A9900001Z.
+1. Run `edit 1 m/A1234567X` and `edit 1 e/zoe..test@example.com` separately.<br>
+   Expected: Both requests fail (duplicate matriculation number and invalid email), preserving Zoe's details.
+1. Close and reopen the app from the same folder. Run `find m/A9900001Z` and `view 1`.<br>
+   Expected: Zoe's updated name, email and empty tags are retained.
+
+### Searching and filtering students
+
+Start in a fresh test folder with the six original sample students. Run each step in order.
+
+1. Run `enroll 1 c/CS2103T-T10` and `enroll 2 c/CS3230-T01`.<br>
+   Expected: Alex Yeoh and Bernice Yu are enrolled in their respective classes.
+1. Run `filter cs2103t`, then `find alex`.<br>
+   Expected: Only Alex appears. Run `find Bernice`; the list becomes empty because Bernice does not satisfy the active filter.
+1. Run `list`, `find Bernice`, then `filter CS3230`.<br>
+   Expected: Only Bernice appears, demonstrating that search and filter also combine in this order.
+1. Run `filter CS2103T`.<br>
+   Expected: No students appear: the new filter replaces CS3230, while the Bernice search remains active.
+1. Run `find m/a1234567x`, then `find Bernice`.<br>
+   Expected: The first command finds Alex despite the previous criteria. The second finds Bernice, proving the old filter was cleared.
+1. Run `list`, then `filter CS2103T-T10 CS3230`.<br>
+   Expected: Alex and Bernice appear. Run `list`; all six students return in name order.
+1. Run `find Alex m/A1234567X`, `find m/A1234567X m/A2345678Y`, and `filter invalid` separately.<br>
+   Expected: Each request is rejected and the six-student list is preserved.
+
+### Unenrolling from one or all classes
+
+Start in a fresh test folder with the original sample students. Run these steps in order.
+
+1. Run `enroll 1 c/CS2103T-T10` and `enroll 1 c/CS3230-T01`, then `assignment m/A1234567X id/CS2103T:A1 n/Quiz max/10` and `mark m/A1234567X id/CS2103T:A1 mark/8`.
+1. Run `attendance 1 c/CS2103T-T10 d/28-10-2026` and `participation 1 c/CS2103T-T10 d/28-10-2026 p/2`.
+1. Run `unenroll 1 c/CS2103T-T10`, then `view 1`.<br>
+   Expected: Only CS3230-T01 remains enrolled. The quiz, score and attendance record remain. `participation view 1` still shows 2 points.
+1. Repeat `unenroll 1 c/CS2103T-T10`.<br>
+   Expected: An error reports that the student is not enrolled in that class; records remain unchanged.
+1. Run `unenroll 1 all/`, then `view 1`.<br>
+   Expected: No classes remain, but assignments, marks and attendance remain. `participation view 1` still shows the recorded points.
+1. Run `mark m/A1234567X id/CS2103T:A1 mark/9`.<br>
+   Expected: The retained assignment can still be marked. Run `assignment m/A1234567X id/CS2103T:A2 n/New Quiz max/10`; it is rejected because module enrollment is required for new work.
+1. Run `unenroll 1 all/` and `unenroll 1 c/CS3230-T01 all/` separately.<br>
+   Expected: Both fail without changing records: the first has no enrollment to remove, and the second combines incompatible forms.
+1. Close and reopen the app from the same test folder. Run `view 1` and `participation view 1`.<br>
+   Expected: No classes are enrolled; the quiz score of 9, attendance record and participation points are retained.
 
 ### Sorting the displayed students
 
@@ -1229,7 +1315,21 @@ Run the following scenarios in order in a test data folder. Keep the details win
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.
 
-1. _{ more test cases … }_
+
+### Deleting multiple students or a hidden student
+
+Start in a fresh test folder with the original six sample students. Run these steps in order.
+
+1. Run `delete 1 1`, then `delete 1 99`.<br>
+   Expected: Each command fails without deleting anyone. Run `list` to confirm all six students remain.
+1. Run `delete 1 3`.<br>
+   Expected: Alex Yeoh and Charlotte Oliveiro are deleted using their original displayed indices. Bernice Yu remains.
+1. Run `undo`.<br>
+   Expected: All six students return in name order. Run `redo`; Alex and Charlotte disappear again. Run `undo` to restore them.
+1. Run `find Alex`, then `delete m/A2345678Y`.<br>
+   Expected: Bernice is deleted even though only Alex was displayed. Run `list` to confirm Bernice is absent and the other five students remain.
+1. Run `delete m/A2345678Y` again.<br>
+   Expected: An error reports that the student was not found; no additional students are deleted.
 
 ### Recording attendance
 
@@ -1518,5 +1618,3 @@ Run these steps in order in a test data folder. Ensure matriculation numbers `A9
       Expected: The saved student and attendance records are restored, the command box is enabled,
       and `list` executes successfully without a restoration failure message.
       Alternatively, delete the file while the app is closed and reopen it to start with sample records.
-
-1. _{ more test cases … }_
