@@ -136,10 +136,11 @@ public class UndoRedoIntegrationTest {
         List<String> commands = List.of(
                 "add n/Amy m/A1234567A e/amy@example.com",
                 "add n/Bob m/A2345678B e/bob@example.com",
+                "enroll 1 c/CS2103T-T10",
+                "enroll 2 c/CS2103T-T10",
                 "assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20",
                 "assignment m/A2345678B id/CS2103T:A1",
                 "mark m/A1234567A id/CS2103T:A1 mark/17",
-                "enroll 1 c/CS2103T-T10",
                 "attendance c/CS2103T-T10 d/06-10-2026",
                 "attendance m/A1234567A c/CS2103T-T10 d/07-10-2026",
                 "edit 1 m/A3456789C",
