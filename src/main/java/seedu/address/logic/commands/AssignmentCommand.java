@@ -17,6 +17,7 @@ import seedu.address.model.gradebook.Assignment;
 import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.gradebook.Gradebook;
 import seedu.address.model.person.MatriculationNumber;
+import seedu.address.model.person.Person;
 
 /**
  * Creates an assignment for a student or assigns an existing definition to that student.
@@ -24,6 +25,7 @@ import seedu.address.model.person.MatriculationNumber;
 public class AssignmentCommand extends Command {
     public static final String COMMAND_WORD = "assignment";
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Assigns work to a student.\n"
+            + "The student must be enrolled in the assignment's module.\n"
             + "Parameters for new work: " + PREFIX_MATRICULATION_NUMBER + "MATRICULATION_NUMBER "
             + PREFIX_ASSIGNMENT_ID + "MODULE:CODE " + PREFIX_NAME + "NAME "
             + PREFIX_MAX_MARK + "MAX_MARK\n"
@@ -34,6 +36,9 @@ public class AssignmentCommand extends Command {
             + PREFIX_MAX_MARK + "20";
 
     public static final String MESSAGE_SUCCESS = "Assigned %1$s to student %2$s.";
+    public static final String MESSAGE_STUDENT_NOT_ENROLLED =
+            "Cannot assign %1$s to student %2$s: the student is not enrolled in module %3$s. "
+                    + "Enroll the student first.";
 
     private final MatriculationNumber student;
     private final AssignmentId assignmentId;
@@ -60,15 +65,20 @@ public class AssignmentCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        boolean hasStudent = model.getAddressBook().getPersonList().stream()
-                .anyMatch(person -> person.getMatriculationNumber().equals(student));
-        if (!hasStudent) {
-            throw new CommandException(AddressBook.MESSAGE_STUDENT_NOT_FOUND);
-        }
+        Person targetStudent = model.getAddressBook().getPersonList().stream()
+                .filter(person -> person.getMatriculationNumber().equals(student))
+                .findFirst()
+                .orElseThrow(() -> new CommandException(AddressBook.MESSAGE_STUDENT_NOT_FOUND));
 
         if (newAssignment.isEmpty()
                 && model.getAddressBook().getGradebook().findAssignment(assignmentId).isEmpty()) {
             throw new CommandException(Gradebook.MESSAGE_UNKNOWN_ASSIGNMENT);
+        }
+        boolean isEnrolledInModule = targetStudent.getClassCodes().stream()
+                .anyMatch(classCode -> classCode.getModuleCode().equals(assignmentId.getModuleCode()));
+        if (!isEnrolledInModule) {
+            throw new CommandException(String.format(MESSAGE_STUDENT_NOT_ENROLLED,
+                    assignmentId, student, assignmentId.getModuleCode()));
         }
         try {
             if (newAssignment.isPresent()) {

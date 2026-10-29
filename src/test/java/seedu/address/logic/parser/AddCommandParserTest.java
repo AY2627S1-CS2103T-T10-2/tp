@@ -25,6 +25,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
+import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.AMY;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
@@ -41,6 +42,30 @@ import seedu.address.testutil.PersonBuilder;
 
 public class AddCommandParserTest {
     private AddCommandParser parser = new AddCommandParser();
+
+    @Test
+    public void parse_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> parser.parse(null));
+    }
+
+    @Test
+    public void parse_emailWithConsecutiveUnderscores_success() {
+        Person expectedPerson = new PersonBuilder().withName("John Doe").withMatriculationNumber("A7654321B")
+                .withEmail("john__doe@example.com").withTags().build();
+        assertParseSuccess(parser, " n/John Doe m/A7654321B e/john__doe@example.com",
+                new AddCommand(expectedPerson));
+    }
+
+    @Test
+    public void parse_emailWithUnquotedSpecialCharacters_success() {
+        String[] emails = {"_john@example.com", "john_@example.com", "john++doe@example.com",
+            "john_.doe@example.com", "o'connor@example.com", "!#$%&'*+/=?^_`{|}~-@example.com"};
+        for (String email : emails) {
+            Person expectedPerson = new PersonBuilder().withName("John Doe").withMatriculationNumber("A7654321B")
+                    .withEmail(email).withTags().build();
+            assertParseSuccess(parser, " n/John Doe m/A7654321B e/" + email, new AddCommand(expectedPerson));
+        }
+    }
 
     @Test
     public void parse_allFieldsPresent_success() {

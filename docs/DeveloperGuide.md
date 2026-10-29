@@ -185,7 +185,9 @@ The `Gradebook` separately maps each student's matriculation number and assignme
 
 JSON storage keeps shared definitions in `assignments` and each student's link to a definition in `studentAssignments`. An assignment stores its ID, name, and decimal maximum mark. A student assignment stores a matriculation number, assignment ID, and decimal `mark`; a `null` mark means the assignment is unmarked, while `"0"` means a recorded zero. Decimal values are written as strings to preserve exact fractional marks. On restoration, students are loaded first, followed by definitions and student assignments. The storage adapter rejects invalid or duplicate definitions, unknown students or assignments, duplicate student links, and marks outside the allowed range. Files created before these two JSON arrays existed load with an empty gradebook. A failed restoration leaves the saved file unchanged.
 
-`AssignmentCommandParser` accepts a student's matriculation number and assignment ID, plus a name and maximum mark together when defining new work. `AssignmentCommand` resolves the student against all stored students, independently of the displayed list. For new work, it calls `Model#addAssignmentForStudent`, which validates and publishes the definition and student link as one change. For existing work, it calls `Model#assignStudent` using the stored definition. The gradebook rejects a duplicate ID or name in the module and prevents assigning the same work twice to one student. Neither command form records a mark.
+`AssignmentCommandParser` accepts a student's matriculation number and assignment ID, plus a name and maximum mark together when defining new work. `AssignmentCommand` resolves the student against all stored students, independently of the displayed list. Both forms require the student to be enrolled in the assignment's module: at least one of the student's class codes must have the same module code as the assignment ID. Module comparison ignores letter case and uses the entire module code. The command checks student existence, an existing definition for the shorter form, and module enrollment before making any changes. For new work, it calls `Model#addAssignmentForStudent`, which validates and publishes the definition and student link as one change. For existing work, it calls `Model#assignStudent` using the stored definition. The gradebook rejects a duplicate ID or name in the module and prevents assigning the same work twice to one student. Neither command form records a mark.
+
+Module enrollment is a prerequisite for the `assignment` command, rather than a persistent gradebook constraint. Unenrolling from the last class in a module, including through `unenroll INDEX all/`, preserves existing assignment links and marks, and `mark` can still record or update those results. Storage restores historical links without requiring current enrollment. Removing a link and later reassigning the work through `assignment` requires current enrollment again.
 
 `MarkCommandParser` accepts a matriculation number, an assignment ID, and a nonnegative decimal score. `MarkCommand` checks that the student, shared definition, and student's assignment link exist before calling `Model#recordMark`. The gradebook rejects scores above the shared maximum. `recordMark` returns the previous optional value, allowing the command to distinguish the first recorded mark from an update; a previous zero is present and therefore produces the updated response. The command changes only that student's score. `edit` remains for student particulars. The student profile also displays these marks, as described below.
 
@@ -373,6 +375,74 @@ The following activity diagram summarizes what happens when a user executes a ne
   * Cons: We must ensure that the implementation of each individual command is correct.
 
 _{more aspects and alternatives to be added}_
+
+### Class participation
+
+The participation feature records a student's points for a class on a
+particular date. Participation is stored separately from attendance.
+
+#### Data model
+
+`ParticipationPoints` represents a non-negative whole-number score.
+
+`ParticipationRecord` contains a class code, date and score. Two records
+refer to the same session when their class and date match. Their full
+equality comparison also includes the score.
+
+Each `Person` owns an immutable `ParticipationHistory`. The history
+contains at most one record per class and date. Adding a record for an
+existing session replaces its score rather than adding the scores or
+creating another record.
+
+History updates return a new history. `Person.withParticipationHistory`
+creates an updated student while preserving the other fields.
+
+#### Command execution
+
+`AddressBookParser` delegates participation arguments to
+`ParticipationCommandParser`, which selects the set, view or remove
+operation.
+
+The parser reuses `ParserUtil` for student identifiers, class codes and
+calendar-date validation. Points are validated by `ParticipationPoints`.
+Missing, repeated and invalid arguments are rejected before command
+execution.
+
+`ParticipationCommand` resolves the student through `StudentIdentifier`,
+checks enrollment, creates the updated history and replaces the student
+through the model.
+
+`ViewParticipationCommand` sorts a copy of the records for display without
+changing the stored history.
+
+`RemoveParticipationCommand` checks that the requested record exists
+before updating the student. Viewing and removing historical records do
+not require current enrollment.
+
+#### Persistence and preservation
+
+`JsonAdaptedPerson` stores participation records through
+`JsonAdaptedParticipationRecord`. Participation dates use ISO date strings
+in storage; command input uses `dd-MM-yyyy`.
+
+A missing or null participation list is read as an empty history for
+compatibility with older student files. Null records, invalid record
+fields and duplicate class-date sessions are rejected.
+
+The student-copy paths used for basic edits, attendance marking and
+enrollment changes preserve the participation history.
+
+#### Design decisions
+
+* A score replaces the previous value for the same student, class and date.
+  Repeating a command therefore does not accidentally accumulate points.
+* Zero points and an absent record have different meanings. Removing a
+  record is a separate operation.
+* Participation does not automatically change attendance.
+* Class and date identify a session; multiple sessions of the same class
+  on one date are outside this version's scope.
+* Scores have no configurable module-specific maximum. The supported
+  whole-number range is determined by the integer representation.
 
 ### \[Proposed\] Data archiving
 
@@ -730,7 +800,7 @@ Use case ends.
 
   Use case resumes at step 2.
 
-* 1b. The student does not exist, the new assignment ID or name already exists in its module, or the existing assignment is already attached to the student.
+* 1b. The student does not exist or is not enrolled in the assignment's module, the new assignment ID or name already exists in its module, or the existing assignment is already attached to the student.
 
   * 1b1. TAssist reports the problem and changes no records.
 
@@ -898,6 +968,32 @@ Use case ends.
 
   Use case ends.
 
+### UC15: Record class participation points
+
+**Actor:** Tutor
+
+**Main success scenario**
+
+1. The tutor requests to record participation points for a student,
+   specifying the class, date and score.
+2. TAssist records the score, replacing the previous score for the same
+   class and date if one exists, and confirms the update.
+
+Use case ends.
+
+**Extensions**
+
+1a. Required input is missing, repeated or invalid.
+
+    1a1. TAssist explains the input error without changing student data.
+
+    Use case resumes at step 1.
+
+1b. The student cannot be found or is not enrolled in the specified class.
+
+    1b1. TAssist explains the problem without changing student data.
+
+    Use case resumes at step 1.
 
 ### UC16: View attendance statistics for a class
 
@@ -907,7 +1003,7 @@ Use case ends.
 
 1. The tutor requests attendance statistics for a class on a specified date.
 2. TAssist finds all students currently enrolled in that class.
-3. TAssist counts the enrolled students who have an attendance record for that class and date.
+3. TAssist counts enrolled students with an attendance record for that class and date.
 4. TAssist displays the attended count and total enrolled count.
 
 Use case ends.
@@ -925,7 +1021,6 @@ Use case ends.
     2a1. TAssist displays 0 students attended and 0 total students.
 
     Use case ends.
-
 
 ### Non-Functional Requirements
 
@@ -1036,7 +1131,9 @@ testers are expected to do more *exploratory* testing.
 
 1. Sorting by one assignment's mark
 
-   1. In a fresh data folder with the original sample students, create an assignment and attach it to two students using `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20` and `assignment m/A6789012U id/CS2103T:A1`. Record `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
+   1. Prerequisites: Start in a fresh data folder with the original six sample students. Run `list`, then `enroll 1 c/CS2103T-T10` and `enroll 6 c/CS2103T-T10` to enroll Alex Yeoh (`A1234567X`) and Roy Balakrishnan (`A6789012U`) in `CS2103T`.
+
+   1. Create an assignment and attach it to two students using `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20` and `assignment m/A6789012U id/CS2103T:A1`. Record `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
       Expected: One student has a recorded zero, one is unmarked, and at least one other sample student is not assigned.
 
    1. Run `sort mark id/CS2103T:A1 desc`.<br>
@@ -1181,6 +1278,62 @@ Run the following scenarios in order in a test data folder. Keep the details win
    1. Test case: `attendance c/CS2103T-T99`<br>
       Expected: The status message shows `No students are enrolled in CS2103T-T99.` No attendance records change.
 
+### Recording class participation
+
+Use test data for the cases below, as some steps change student details or remove participation records.
+
+Replace `MATRIC` with the chosen test student's matriculation number, without the angle brackets or any other placeholder text. `NAME` refers to that student's current name. Run commands one at a time.
+
+1. Recording and updating participation points
+   1. Prerequisites: Run `list` with at least one student in the list. Use the first student as the test student and note their matriculation number using `view 1`. Enroll them using `enroll 1 c/CS2103T-T10` if they are not already enrolled. The student must have no participation record for CS2103T-T10 on 28-10-2026.
+   2. Test case: `participation 1 c/CS2103T-T10 d/28-10-2026 p/2`, followed by `participation view m/MATRIC`.<br>
+      Expected: The status message confirms that 2 points were recorded. The history contains `CS2103T-T10 | 28-10-2026 | 2 point(s)`. Attendance and other student details are unchanged.
+   3. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3`, followed by `participation view m/MATRIC`.<br>
+      Expected: The existing score is replaced. There is one record for that class and date with 3 points, not 5. Other participation records are unchanged.
+   4. Test case: Repeat `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3`, then view the history again.<br>
+      Expected: The score remains 3 and no duplicate record is created.
+
+2. Viewing a student outside the displayed list
+   1. Prerequisites: Have at least two students with distinguishable names. The chosen test student must have a participation record. Run `participation view m/MATRIC` to note their history, then use `find` with a keyword that matches another student only, so the chosen student is not displayed.
+   2. Test case: `participation view m/MATRIC`.<br>
+      Expected: The chosen student's participation history is shown in the command result panel, even though they are not in the displayed list. Entries are ordered by class code and then date. The displayed student list and stored data are unchanged.
+
+3. Rejecting invalid or incomplete input
+   1. Prerequisites: The chosen student is enrolled in CS2103T-T10. Run `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3`, then `participation view m/MATRIC` to note the existing records. After each rejected command below, view the history again to check that it is unchanged.
+   2. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/-1`.<br>
+      Expected: The status message explains the valid points format and range. The existing score remains 3, and no other participation records change.
+   3. Test case: Repeat the previous command with each of these point values: `p/2.5`, `p/two`, `p/2147483648`, and an empty `p/`.<br>
+      Expected: Each command is rejected without changing any participation records.
+   4. Test case: `participation m/MATRIC c/CS2103T-T10 d/31-02-2026 p/2`.<br>
+      Expected: The status message explains that a valid calendar date in dd-MM-yyyy format is required. No record is added or changed.
+   5. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026`.<br>
+      Expected: The status message asks for points using `p/POINTS`. The existing history is unchanged.
+   6. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/2 p/3`.<br>
+      Expected: The repeated prefix is rejected. Neither value is applied, and the existing history is unchanged.
+
+4. Rejecting a class the student is not enrolled in
+   1. Prerequisites: The chosen student is enrolled in CS2103T-T10 but not CS2103T-T11. Note the student's current participation history.
+   2. Test case: `participation m/MATRIC c/CS2103T-T11 d/28-10-2026 p/2`.<br>
+      Expected: The status message shows `NAME is not enrolled in CS2103T-T11. Enroll the student in this class first.` No student data is changed.
+
+5. Preserving participation after edits, attendance changes and restart
+   1. Prerequisites: Run `list` and use the first student as the test student. Note their matriculation number using `view 1`. Ensure this student is enrolled in CS2103T-T10. Run `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3` to set up the participation record. The student must have no attendance record for that class on 29-10-2026.
+   2. Test case: `edit 1 n/Participation Test Student`, followed by `participation view m/MATRIC`.<br>
+      Expected: The student's name changes, but the participation record still contains 3 points for CS2103T-T10 on 28-10-2026. Other participation records are unchanged.
+   3. Test case: `attendance m/MATRIC c/CS2103T-T10 d/29-10-2026`, followed by `participation view m/MATRIC`.<br>
+      Expected: Attendance is recorded successfully. The participation history is unchanged.
+   4. Test case: Close and reopen TAssist, then run `participation view m/MATRIC`.<br>
+      Expected: The updated student name and participation history are retained, including the score of 3 for CS2103T-T10 on 28-10-2026.
+
+6. Distinguishing zero points from removing a record
+   1. Prerequisites: The chosen student is enrolled in CS2103T-T10. Run `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3` and `participation m/MATRIC c/CS2103T-T10 d/29-10-2026 p/1`. View the history to confirm both records.
+   2. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/0`, followed by `participation view m/MATRIC`.<br>
+      Expected: The 28-10-2026 record remains in the history with 0 points. The 29-10-2026 record still has 1 point.
+   3. Test case: `participation remove m/MATRIC c/CS2103T-T10 d/28-10-2026`, followed by `participation view m/MATRIC`.<br>
+      Expected: Only the 28-10-2026 participation record is removed. The 29-10-2026 record, attendance and other student details remain unchanged.
+   4. Test case: Repeat `participation remove m/MATRIC c/CS2103T-T10 d/28-10-2026`, then view the history again.<br>
+      Expected: The status message reports that no participation record exists for that student, class and date. No further data changes occur.
+
 ### Viewing class attendance statistics
 
 Use test data for the cases below, as some steps change student enrollment and attendance records.
@@ -1231,9 +1384,13 @@ Use test data for the cases below, as some steps change student enrollment and a
   4. Test case: `attendance stats c/CS2103T-T11 d/30-10-2026`\
      Expected: The attendance recorded on 29-10-2026 is not counted for 30-10-2026.
 
+
 ### Assigning work to a student
 
-1. Add two students with different matriculation numbers, then assign the same work to each.
+1. Assign the same work to two enrolled students.
+
+   1. Prerequisites: Start in a fresh data folder with the original six sample students. Run `list`, then `enroll 1 c/CS2103T-T10` and `enroll 2 c/CS2103T-T10` to enroll Alex Yeoh (`A1234567X`) and Bernice Yu (`A2345678Y`) in `CS2103T`.
+
    1. Test case: `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20`<br>
       Expected: TAssist confirms the assignment was attached to the first student without a mark.
    1. Test case: `assignment m/A2345678Y id/CS2103T:A1`<br>
