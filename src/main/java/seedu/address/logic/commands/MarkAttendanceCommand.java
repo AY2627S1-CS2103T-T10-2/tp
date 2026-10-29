@@ -9,18 +9,15 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.classcode.ClassCode;
-import seedu.address.model.person.Attendance;
 import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.AttendanceRecord;
 import seedu.address.model.person.Person;
 
 /**
- * Marks the student identified by displayed index or matriculation number present in the given class on the given date,
- * or today if no date is given.
+ * Marks the student identified by displayed index or matriculation number present in the given class
+ * on the given date, or today if no date is given.
  */
-public class MarkAttendanceCommand extends Command {
-
-    public static final String COMMAND_WORD = "attendance";
+public class MarkAttendanceCommand extends AttendanceCommand {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Marks attendance for the student identified by their displayed index or matriculation number"
@@ -40,7 +37,6 @@ public class MarkAttendanceCommand extends Command {
 
     private final ClassCode classCode;
     private final StudentIdentifier targetStudent;
-    private final Optional<AttendanceDate> date;
 
     /**
      * Constructs an attendance request for the displayed person index given class and optional date.
@@ -53,16 +49,16 @@ public class MarkAttendanceCommand extends Command {
      * Constructs an attendance request for the identified student given class and optional date.
      */
     public MarkAttendanceCommand(StudentIdentifier targetStudent, ClassCode classCode, Optional<AttendanceDate> date) {
+        super(date);
         this.targetStudent = requireNonNull(targetStudent);
         this.classCode = requireNonNull(classCode);
-        this.date = requireNonNull(date);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         Person student = targetStudent.resolve(model);
-        AttendanceDate attendanceDate = date.orElseGet(AttendanceDate::today);
+        AttendanceDate attendanceDate = resolveDate();
         requireEnrolled(student, classCode);
         AttendanceRecord record = new AttendanceRecord(attendanceDate, classCode);
         if (student.getAttendance().contains(record)) {
@@ -87,27 +83,15 @@ public class MarkAttendanceCommand extends Command {
         }
     }
 
-    /**
-     * Creates a copy of the student with the given attendance history, preserving other details.
-     */
-    static Person createStudentWithAttendance(Person student, Attendance attendance) {
-        return new Person(student.getName(), student.getMatriculationNumber(), student.getEmail(),
-                student.getTags(), attendance, student.getClassCodes());
-    }
-
     @Override
     public boolean equals(Object other) {
-        if (other == this) {
-            return true;
-        }
-
-        if (!(other instanceof MarkAttendanceCommand otherMarkAttendanceCommand)) {
+        if (!super.equals(other)) {
             return false;
         }
 
+        MarkAttendanceCommand otherMarkAttendanceCommand = (MarkAttendanceCommand) other;
         return targetStudent.equals(otherMarkAttendanceCommand.targetStudent)
-                && classCode.equals(otherMarkAttendanceCommand.classCode)
-                && date.equals(otherMarkAttendanceCommand.date);
+                && classCode.equals(otherMarkAttendanceCommand.classCode);
     }
 
     @Override
@@ -115,7 +99,7 @@ public class MarkAttendanceCommand extends Command {
         return new ToStringBuilder(this)
                 .add("targetStudent", targetStudent)
                 .add("classCode", classCode)
-                .add("date", date)
+                .add("date", getDate())
                 .toString();
     }
 }

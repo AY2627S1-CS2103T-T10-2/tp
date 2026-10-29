@@ -19,27 +19,26 @@ import seedu.address.model.person.Person;
  * Marks every student enrolled in the given class present on the given date, or today if no date is given.
  * Students already recorded for that class and date are skipped.
  */
-public class MarkClassAttendanceCommand extends Command {
+public class MarkClassAttendanceCommand extends AttendanceCommand {
 
     public static final String MESSAGE_SUCCESS = "Marked attendance for %1$s in %2$s on %3$s";
     public static final String MESSAGE_SKIPPED = "\nAlready recorded, skipped: %1$s";
     public static final String MESSAGE_NO_ENROLLED_STUDENTS = "No students are enrolled in %1$s.";
 
     private final ClassCode classCode;
-    private final Optional<AttendanceDate> date;
 
     /**
      * Constructs an attendance request for every student enrolled in the given class and optional date.
      */
     public MarkClassAttendanceCommand(ClassCode classCode, Optional<AttendanceDate> date) {
+        super(date);
         this.classCode = requireNonNull(classCode);
-        this.date = requireNonNull(date);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        AttendanceDate attendanceDate = date.orElseGet(AttendanceDate::today);
+        AttendanceDate attendanceDate = resolveDate();
         AttendanceRecord record = new AttendanceRecord(attendanceDate, classCode);
         List<Person> enrolledStudents = findEnrolledStudents(model);
         if (enrolledStudents.isEmpty()) {
@@ -57,7 +56,7 @@ public class MarkClassAttendanceCommand extends Command {
         }
 
         for (Person student : studentsToMark) {
-            model.setPerson(student, MarkAttendanceCommand.createStudentWithAttendance(student,
+            model.setPerson(student, createStudentWithAttendance(student,
                     student.getAttendance().withRecord(record)));
         }
         return new CommandResult(buildResultMessage(studentsToMark.size(), attendanceDate, skippedStudents));
@@ -96,23 +95,19 @@ public class MarkClassAttendanceCommand extends Command {
 
     @Override
     public boolean equals(Object other) {
-        if (other == this) {
-            return true;
-        }
-
-        if (!(other instanceof MarkClassAttendanceCommand otherMarkClassAttendanceCommand)) {
+        if (!super.equals(other)) {
             return false;
         }
 
-        return classCode.equals(otherMarkClassAttendanceCommand.classCode)
-                && date.equals(otherMarkClassAttendanceCommand.date);
+        MarkClassAttendanceCommand otherMarkClassAttendanceCommand = (MarkClassAttendanceCommand) other;
+        return classCode.equals(otherMarkClassAttendanceCommand.classCode);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
                 .add("classCode", classCode)
-                .add("date", date)
+                .add("date", getDate())
                 .toString();
     }
 }

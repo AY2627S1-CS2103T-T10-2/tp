@@ -85,6 +85,8 @@ Adds a student to the address book.
 
 Format: `add n/NAME m/MATRICULATION_NUMBER e/EMAIL [t/TAG]... `
 
+The email address must follow the [email constraints](#email-constraints) below.
+
 <box type="tip" seamless>
 
 **Tip:** A student can have any number of tags, including zero.
@@ -93,6 +95,24 @@ Format: `add n/NAME m/MATRICULATION_NUMBER e/EMAIL [t/TAG]... `
 Examples:
 * `add n/John Doe m/A1234567A e/johnd@example.com`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com m/A2345678A t/criminal`
+
+#### Email constraints
+
+These rules apply to the `e/EMAIL` field in both `add` and `edit`.
+
+* The address must have the form `local-part@domain`, with exactly one `@` and no spaces.
+* The local part (before `@`) must contain 1 to 64 ASCII characters. It may contain English letters (`A`–`Z`, `a`–`z`), digits (`0`–`9`), periods (`.`), and these special characters: `` !#$%&'*+/=?^_`{|}~- ``.
+* Periods cannot appear at the start or end of the local part, or consecutively. All other allowed special characters may appear at the start or end, repeat, or appear next to each other.
+* The domain (after `@`) consists of one or more labels separated by periods. Each label must contain 1 to 63 ASCII letters, digits, or hyphens, and must start and end with a letter or digit. Hyphens may repeat within a label. Underscores are not allowed in the domain.
+* The final domain label (the top-level domain for addresses such as `example.com`) must contain at least **2 characters**.
+* The entire address, including `@` and periods, must not exceed **254 characters**.
+* Quoted local parts (such as `"john doe"@example.com`), IP-address domains (such as `john@[127.0.0.1]`), and non-ASCII addresses are not supported.
+
+Accepted examples: `john__doe@example.com`, `_john@example.com`, `john_@example.com`, `john++doe@example.com`, `john_.doe@example.com`, and `o'connor@example.com`.
+
+Rejected examples: `.john@example.com`, `john.@example.com`, `john..doe@example.com`, `john@exam_ple.com`, and `john@example.c`.
+
+TAssist checks the address format only; it does not check whether the domain or mailbox exists.
 
 ### Listing all students: `list`
 
@@ -111,6 +131,7 @@ Format: `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `
 * Edits the student at the specified `INDEX`. The index refers to the index number shown in the displayed student list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
+* An updated email address must follow the same [email constraints](#email-constraints) as `add`.
 * When editing tags, all of the student's existing tags are removed; adding tags is not cumulative.
 * To remove all of a student's tags, enter `t/` without a tag after it.
 
@@ -165,6 +186,9 @@ Format: `view INDEX`
 * Details are organised into Particulars, Classes and modules, and Attendance sections.
 * Classes are listed by module code and class group. Students without classes show `No classes enrolled`.
 * Running `view` again updates the same window to the selected student. Press `Esc` to close the window.
+* While the window is open, edits to that student's particulars, class enrolments, or attendance automatically refresh the displayed details. This includes changes to their matriculation number.
+* Deleting the displayed student or clearing all students closes the details window.
+* Finding, filtering, or sorting students keeps the window on the same student, even if that student is no longer in the displayed list. Changes to other students do not switch the window to another student.
 * Attendance records show the date and class, ordered from newest to oldest, then by class code for records on the same date. If there are no attendance records, the Attendance section shows `None recorded`.
 * Marks are planned for future updates.
 
@@ -179,6 +203,8 @@ Format for new work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME ma
 Format for existing work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`
 
 * `id/` identifies an assignment within a module, such as `CS2103T:A1`. IDs ignore letter case.
+* Both forms require an existing student who is enrolled in the assignment's module. Use `enroll` to enroll the student first. Any class within that module qualifies; enrollment only in another module does not.
+* A rejected assignment request changes no records, including when creating new work: neither the shared definition nor the student's assignment link is created.
 * In the ID, `MODULE` has 2 or 3 letters, 4 digits, and up to 2 final letters (for example, `CS2103T`).
 * `CODE` starts with a letter and then uses only letters and digits (for example, `A1`). Spaces are not allowed in the ID.
 * `n/` gives the assignment a name. Names must not be blank and must be unique within a module, ignoring letter case and repeated spaces.
@@ -188,8 +214,10 @@ Format for existing work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`
 * To assign the same work to another student, use its existing ID without `n/` or `max/`. Repeating the assignment for the same student reports an error and changes nothing.
 * An existing ID or name cannot be used to create a second definition in the same module. A student and assignment ID must already exist when using the shorter form.
 * Editing a student's matriculation number keeps their assignment links. Deleting that student removes their links but leaves the shared definition available for other students.
+* Unenrolling a student keeps their existing assignments and marks. You may still record or update marks for that work, but assigning additional work or reattaching removed work requires enrollment in its module again. Previously saved assignment links without current module enrollment also remain available when loading data.
 
 Examples:
+* These examples assume both students are already enrolled in `CS2103T` using `enroll`.
 * `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20`
 * `assignment m/A2345678Y id/CS2103T:A1`
 
@@ -200,6 +228,7 @@ Records a student's numeric mark for work already assigned to them. Entering ano
 Format: `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`
 
 * The student and assignment must exist, and the assignment must already be attached to that student using `assignment`.
+* Existing assigned work can still be marked, including updating a previous mark, after the student is unenrolled from its module.
 * `MARK` may be zero or a positive decimal, up to the assignment's maximum mark. A recorded `0` is different from an unmarked assignment.
 * A mark's displayed decimal form must also fit within 64 characters.
 * The confirmation includes the score and maximum mark. Updating a recorded score gives a short updated message.
@@ -362,6 +391,126 @@ Examples:
 * `attendance unmark 1 c/CS2103T-T10 d/07-10-2026` removes that student's record for `CS2103T-T10` on `07-10-2026`, leaving any records for other classes unchanged.
 * `attendance unmark m/A1234567X` removes the only attendance record for today's date for the student whose matriculation number is `A1234567X`.
 
+### Recording class participation: `participation`
+
+Records participation points for a student in a particular class on a given
+date. Tutors decide how many points to award; TAssist stores the records
+for later reference when grading.
+
+Participation is separate from attendance. Recording participation does not
+automatically mark the student present.
+
+#### Recording or updating points
+
+Format: `participation INDEX c/MODULE-CLASS d/DATE p/POINTS`
+
+or
+
+`participation m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE p/POINTS`
+
+* Specify either one displayed index or one matriculation number, not both.
+* An index refers to the currently displayed student list. A matriculation
+  number identifies a student in the full stored list.
+* The student must be enrolled in the specified class.
+* The class, date and points are required.
+* The date must be a valid calendar date in `dd-MM-yyyy` format,
+  with a year from 0001 to 9999.
+* Points must contain digits only and be between `0` and `2147483647`,
+  inclusive. Negative numbers and fractional points are not accepted.
+* There is no configurable maximum score per module.
+* One record is stored per student, class and date. Multiple sessions
+  of the same class on the same date are not distinguished.
+* Entering points for an existing record replaces its previous score.
+  It does not add the new points to the old score.
+* A score of `0` is a recorded score, not a missing or deleted record.
+* Do not repeat prefixes within a command.
+* Participation records are saved and remain available after restarting
+  the application.
+
+Examples, assuming the student is enrolled in `CS2103T-T10`:
+
+* `participation 1 c/CS2103T-T10 d/28-10-2026 p/2`
+  records 2 points for the first displayed student.
+* `participation m/A1234567X c/CS2103T-T10 d/28-10-2026 p/3`
+  sets the specified student's score for that class and date to 3.
+  If the previous score was 2, the new score is 3, not 5.
+
+#### Viewing participation history
+
+Format: `participation view INDEX`
+
+or
+
+`participation view m/MATRICULATION_NUMBER`
+
+Shows the student's participation records in the command result panel,
+ordered by class code and then by date. Each entry shows the class, date
+and recorded points. An empty history produces a message saying that
+no participation records were found.
+
+Examples:
+
+* `participation view 1`
+* `participation view m/A1234567X`
+
+Viewing records does not change student data or require current enrollment
+in the recorded classes.
+
+#### Removing an incorrect record
+
+Format: `participation remove INDEX c/MODULE-CLASS d/DATE`
+
+or
+
+`participation remove m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE`
+
+Removes only the participation record for the specified student, class and
+date. Other participation records, attendance and student details are
+preserved.
+
+* The class and date are required. Do not supply `p/`.
+* If the record does not exist, an error is shown without changing the data.
+* Historical records can still be viewed and removed after the student
+  is unenrolled from the class.
+* Setting points to `0` does not remove a record. Use this subcommand
+  to remove it.
+
+Example:
+
+* `participation remove m/A1234567X c/CS2103T-T10 d/28-10-2026`
+
+### Viewing attendance statistics for a class: `attendance stats`
+
+Shows how many students attended a class on a specified date, compared with the total number of students currently enrolled in that class.
+
+Format: `attendance stats c/MODULE-CLASS d/DATE`
+
+* `MODULE-CLASS` is the class to check, such as `CS2103T-T10`.
+* `DATE` must be a valid calendar date in `dd-MM-yyyy` format.
+* Both the class and date must be specified.
+* The number of students attended is based on attendance records for the specified class and date.
+* The total number of students is based on students currently enrolled in the class.
+* Students who are no longer enrolled are not included, even if they have an earlier attendance record for that class.
+* All stored students are considered, including those hidden by the current `find` or `filter` results.
+* If no attendance has been recorded, the attended count is `0`.
+* If no students are enrolled in the class, both counts are `0`.
+* This command only displays statistics and does not change any student or attendance records.
+
+Example:
+
+* `attendance stats c/CS2103T-T10 d/28-10-2026` shows attendance statistics for CS2103T-T10 on 28 October 2026.
+
+Example output:
+
+```text
+Attendance statistics for CS2103T-T10 on 28-10-2026
+Students attended: 8
+Total students: 12
+```
+
+The statistics reflect the current enrollment and stored attendance records. They do not represent a historical enrollment snapshot.
+
+
 ### Filtering students by class/module: `filter`
 
 Filters students enrolled in any of the given modules or classes.
@@ -409,6 +558,7 @@ Format: `unenroll INDEX c/MODULE-CLASS`, or `unenroll INDEX all/`
 
 * If only `c/MODULE-CLASS` is provided, unenrolls the student at the specified `INDEX` from that class.
 * If only `all/` is provided, unenrolls the student at the specified `INDEX` from all classes.
+* Both forms keep existing assignments and marks. Marks for retained assignments can still be recorded or updated after unenrollment.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
 * `MODULE` and `CLASS` are joined by a hyphen, e.g. `CS2103T-T10`.
@@ -512,6 +662,7 @@ Action     | Format, Examples
 **Add**    | `add n/NAME m/MATRICULATION_NUMBER e/EMAIL [t/TAG]... ` <br> e.g., `add n/James Ho m/A1234567A e/jamesho@example.com t/friend t/colleague`
 **Mark attendance** | `attendance INDEX c/MODULE-CLASS [d/DATE]` or `attendance m/MATRICULATION_NUMBER c/MODULE-CLASS [d/DATE]` or `attendance c/MODULE-CLASS [d/DATE]`<br> e.g., `attendance 1 c/CS2103T-T10 d/07-10-2026`, `attendance m/A1234567X c/CS2103T-T10`, `attendance c/CS2103T-T10 d/07-10-2026`
 **Unmark attendance** | `attendance unmark INDEX [c/MODULE-CLASS] [d/DATE]` or `attendance unmark m/MATRICULATION_NUMBER [c/MODULE-CLASS] [d/DATE]`<br> e.g., `attendance unmark 1 d/07-10-2026`, `attendance unmark 1 c/CS2103T-T10 d/07-10-2026`
+**View attendance statistics** | `attendance stats c/MODULE-CLASS d/DATE`<br> e.g., `attendance stats c/CS2103T-T10 d/28-10-2026`
 **Assignment** | `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`<br> e.g., `assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20`
 **Mark** | `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`<br> e.g., `mark m/A1234567A id/CS2103T:A1 mark/17.5`
 **Marks** | `marks id/MODULE:CODE`<br> e.g., `marks id/CS2103T:A1`
@@ -519,7 +670,10 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Undo** | `undo`
 **Redo** | `redo`
-**Delete** | `delete INDEX` or `delete m/MATRICULATION_NUMBER`<br> e.g., `delete 3`, `delete m/A1234567X`
+**Delete** | `delete INDEX [MORE_INDICES]...`<br>or `delete m/MATRICULATION_NUMBER`<br>Examples: `delete 1`, `delete 1 3`, `delete m/A1234567X` |
+**Record/update participation** | `participation INDEX c/MODULE-CLASS d/DATE p/POINTS`<br>or `participation m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE p/POINTS`<br>Example: `participation 1 c/CS2103T-T10 d/28-10-2026 p/2` |
+**View participation** | `participation view INDEX`<br>or `participation view m/MATRICULATION_NUMBER`<br>Example: `participation view 1` |
+**Remove participation record** | `participation remove INDEX c/MODULE-CLASS d/DATE`<br>or `participation remove m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE`<br>Example: `participation remove 1 c/CS2103T-T10 d/28-10-2026` |
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Enroll** | `enroll INDEX c/MODULE-CLASS` <br> e.g., `enroll 1 c/CS2103T-T10`
 **Unenroll** | `unenroll INDEX c/MODULE-CLASS` or `unenroll INDEX all/` <br> e.g., `unenroll 1 c/CS2103T-T10`, `unenroll 1 all/`
