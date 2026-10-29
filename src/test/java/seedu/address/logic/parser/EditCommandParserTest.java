@@ -49,6 +49,23 @@ public class EditCommandParserTest {
     private EditCommandParser parser = new EditCommandParser();
 
     @Test
+    public void parse_emailWithConsecutiveUnderscores_success() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withEmail("john__doe@example.com").build();
+        assertParseSuccess(parser, "1 e/john__doe@example.com", new EditCommand(INDEX_FIRST_PERSON, descriptor));
+    }
+
+    @Test
+    public void parse_emailWithUnquotedSpecialCharacters_success() {
+        String[] emails = {"_john@example.com", "john_@example.com", "john++doe@example.com",
+            "john_.doe@example.com", "o'connor@example.com", "!#$%&'*+/=?^_`{|}~-@example.com"};
+        for (String email : emails) {
+            EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withEmail(email).build();
+            assertParseSuccess(parser, "1 e/" + email, new EditCommand(INDEX_FIRST_PERSON, descriptor));
+        }
+    }
+
+    @Test
     public void parse_missingParts_failure() {
         // no index specified
         assertParseFailure(parser, VALID_NAME_AMY, MESSAGE_INVALID_FORMAT);

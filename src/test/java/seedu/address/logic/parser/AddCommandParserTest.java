@@ -43,6 +43,25 @@ public class AddCommandParserTest {
     private AddCommandParser parser = new AddCommandParser();
 
     @Test
+    public void parse_emailWithConsecutiveUnderscores_success() {
+        Person expectedPerson = new PersonBuilder().withName("John Doe").withMatriculationNumber("A7654321B")
+                .withEmail("john__doe@example.com").withTags().build();
+        assertParseSuccess(parser, " n/John Doe m/A7654321B e/john__doe@example.com",
+                new AddCommand(expectedPerson));
+    }
+
+    @Test
+    public void parse_emailWithUnquotedSpecialCharacters_success() {
+        String[] emails = {"_john@example.com", "john_@example.com", "john++doe@example.com",
+            "john_.doe@example.com", "o'connor@example.com", "!#$%&'*+/=?^_`{|}~-@example.com"};
+        for (String email : emails) {
+            Person expectedPerson = new PersonBuilder().withName("John Doe").withMatriculationNumber("A7654321B")
+                    .withEmail(email).withTags().build();
+            assertParseSuccess(parser, " n/John Doe m/A7654321B e/" + email, new AddCommand(expectedPerson));
+        }
+    }
+
+    @Test
     public void parse_allFieldsPresent_success() {
         Person expectedPerson = new PersonBuilder(BOB).withTags(VALID_TAG_FRIEND).build();
 
