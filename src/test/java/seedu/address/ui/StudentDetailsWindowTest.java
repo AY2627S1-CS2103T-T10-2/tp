@@ -1,9 +1,12 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -17,6 +20,12 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.AddressBookParser;
+import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
+import seedu.address.model.ModelManager;
 import seedu.address.model.gradebook.Assignment;
 import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.gradebook.Gradebook;
@@ -62,20 +71,20 @@ public class StudentDetailsWindowTest {
             Stage owner = new Stage();
             ObservableList<Person> persons =
                     FXCollections.observableArrayList(student, otherStudent, unassignedStudent);
-            StudentDetailsWindow window = new StudentDetailsWindow(owner, persons);
+            StudentDetailsWindow window = new StudentDetailsWindow(owner, persons, () -> new Gradebook(gradebook));
             try {
-                window.showStudent(student, gradebook);
+                window.showStudent(student);
                 assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 8.5/10",
                         "CS2103T:A2 - Project (out of 100)\nMark: Unmarked"), displayedAssignmentRows(window));
 
-                window.showStudent(otherStudent, gradebook);
+                window.showStudent(otherStudent);
                 assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 3/10"),
                         displayedAssignmentRows(window));
 
-                window.showStudent(unassignedStudent, gradebook);
+                window.showStudent(unassignedStudent);
                 assertEquals(List.of("None assigned"), displayedAssignmentRows(window));
 
-                window.showStudent(student, gradebook);
+                window.showStudent(student);
                 assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 8.5/10",
                         "CS2103T:A2 - Project (out of 100)\nMark: Unmarked"), displayedAssignmentRows(window));
             } finally {
@@ -91,6 +100,179 @@ public class StudentDetailsWindowTest {
     private List<String> displayedAssignmentRows(StudentDetailsWindow window) {
         VBox assignments = (VBox) window.getRoot().getScene().lookup("#assignments");
         return assignments.getChildren().stream().map(node -> ((Label) node).getText()).toList();
+    }
+
+    @Test
+    public void showStudent_sameStudent_refreshesMarkAndAssignmentChanges() throws Exception {
+        try (WindowFixture fixture = onFxThread(WindowFixture::new)) {
+            onFxThread(() -> {
+                fixture.execute("find m/" + student.getMatriculationNumber());
+                fixture.execute("view 1");
+                assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 8.5/10"), fixture.rows());
+
+                fixture.execute("mark m/" + student.getMatriculationNumber() + " id/CS2103T:A1 mark/10");
+                fixture.execute("view 1");
+                assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 10/10"), fixture.rows());
+
+                Assignment project = new Assignment(new AssignmentId("CS2103T:A2"), "Project", BigDecimal.TEN);
+                fixture.model.addAssignmentForStudent(project, student.getMatriculationNumber());
+                fixture.execute("view 1");
+                assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 10/10",
+                        "CS2103T:A2 - Project (out of 10)\nMark: Unmarked"), fixture.rows());
+
+                fixture.model.removeAssignment(fixture.quiz.getId());
+                fixture.execute("view 1");
+                assertEquals(List.of("CS2103T:A2 - Project (out of 10)\nMark: Unmarked"), fixture.rows());
+                fixture.model.unassignStudent(student.getMatriculationNumber(), project.getId());
+                AddressBook beforeRefresh = new AddressBook(fixture.model.getAddressBook());
+                fixture.execute("view 1");
+                assertEquals(List.of("None assigned"), fixture.rows());
+                assertEquals(beforeRefresh, fixture.model.getAddressBook());
+                return null;
+            });
+        }
+    }
+
+    @Test
+    public void editMatriculationNumber_refreshesAfterMigrationWithoutChangingData() throws Exception {
+        try (WindowFixture fixture = onFxThread(WindowFixture::new)) {
+            AddressBook afterEdit = onFxThread(() -> {
+                fixture.execute("find m/" + student.getMatriculationNumber());
+                fixture.execute("view 1");
+                fixture.execute("edit 1 m/A9999999Z");
+                return new AddressBook(fixture.model.getAddressBook());
+            });
+            // A second task runs after the queued selection refresh, without another view command.
+            onFxThread(() -> {
+                assertEquals("A9999999Z", fixture.labelText("#matriculationNumber"));
+                assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 8.5/10"), fixture.rows());
+                assertTrue(fixture.window.getRoot().isShowing());
+                assertEquals(afterEdit, fixture.model.getAddressBook());
+                assertTrue(afterEdit.getGradebook().getMarksForStudent(student.getMatriculationNumber()).isEmpty());
+                fixture.execute("view 1");
+                assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 8.5/10"), fixture.rows());
+                return null;
+            });
+        }
+    }
+
+    @Test
+    public void editStudentTwiceBeforeRefresh_displaysLatestDetailsAndMarks() throws Exception {
+        try (WindowFixture fixture = onFxThread(WindowFixture::new)) {
+            onFxThread(() -> {
+                fixture.execute("view 1");
+                fixture.execute("edit 1 m/A9999999Z");
+                fixture.execute("edit 1 m/A9999998Z n/Updated Student e/updated@example.com t/updated");
+                return null;
+            });
+            onFxThread(() -> {
+                assertEquals("A9999998Z", fixture.labelText("#matriculationNumber"));
+                assertEquals("Updated Student", fixture.labelText("#studentName"));
+                assertEquals("updated@example.com", fixture.labelText("#email"));
+                assertEquals("updated", fixture.labelText("#tags"));
+                assertEquals("Student details — Updated Student", fixture.window.getRoot().getTitle());
+                assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 8.5/10"), fixture.rows());
+                return null;
+            });
+        }
+    }
+
+    @Test
+    public void switchStudentWhileRefreshPending_keepsNewStudentVisible() throws Exception {
+        try (WindowFixture fixture = onFxThread(WindowFixture::new)) {
+            onFxThread(() -> {
+                fixture.execute("view 1");
+                fixture.execute("edit 1 m/A9999999Z");
+                Person otherStudent = new PersonBuilder().withName("Other Student")
+                        .withMatriculationNumber("A0123456B").build();
+                fixture.model.addPerson(otherStudent);
+                fixture.model.assignStudent(otherStudent.getMatriculationNumber(), fixture.quiz.getId());
+                fixture.model.recordMark(otherStudent.getMatriculationNumber(), fixture.quiz.getId(),
+                        new Mark(BigDecimal.ZERO));
+                fixture.window.showStudent(otherStudent);
+                return null;
+            });
+            onFxThread(() -> {
+                assertEquals("Other Student", fixture.labelText("#studentName"));
+                assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 0/10"), fixture.rows());
+                assertTrue(fixture.window.getRoot().isShowing());
+                return null;
+            });
+        }
+    }
+
+    @Test
+    public void closeWhileRefreshPending_staysClosedAndCanViewAgain() throws Exception {
+        try (WindowFixture fixture = onFxThread(WindowFixture::new)) {
+            onFxThread(() -> {
+                fixture.execute("view 1");
+                fixture.execute("edit 1 m/A9999999Z");
+                fixture.window.getRoot().close();
+                fixture.execute("edit 1 n/Edited While Closed");
+                return null;
+            });
+            onFxThread(() -> {
+                assertFalse(fixture.window.getRoot().isShowing());
+                fixture.execute("view 1");
+                assertEquals("Edited While Closed", fixture.labelText("#studentName"));
+                assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 8.5/10"), fixture.rows());
+                assertTrue(fixture.window.getRoot().isShowing());
+                return null;
+            });
+        }
+    }
+
+    @Test
+    public void deleteWhileRefreshPending_staysClosedAfterStudentIsAddedAgain() throws Exception {
+        try (WindowFixture fixture = onFxThread(WindowFixture::new)) {
+            onFxThread(() -> {
+                fixture.execute("view 1");
+                fixture.execute("edit 1 m/A9999999Z");
+                fixture.execute("delete 1");
+                fixture.model.addPerson(student);
+                return null;
+            });
+            onFxThread(() -> {
+                assertFalse(fixture.window.getRoot().isShowing());
+                assertEquals(List.of(fixture.quiz), fixture.model.getAddressBook().getGradebook().getAssignments());
+                fixture.execute("view 1");
+                assertEquals(List.of("None assigned"), fixture.rows());
+                return null;
+            });
+        }
+    }
+
+    @Test
+    public void undoAndRedoWhileRefreshPending_closeWindowAndViewRestoredMarks() throws Exception {
+        try (WindowFixture fixture = onFxThread(WindowFixture::new)) {
+            onFxThread(() -> {
+                fixture.execute("view 1");
+                fixture.execute("edit 1 m/A9999999Z");
+                fixture.execute("undo");
+                return null;
+            });
+            onFxThread(() -> {
+                assertFalse(fixture.window.getRoot().isShowing());
+                fixture.execute("view 1");
+                assertEquals(student.getMatriculationNumber().toString(), fixture.labelText("#matriculationNumber"));
+                assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 8.5/10"), fixture.rows());
+                fixture.execute("redo");
+                return null;
+            });
+            onFxThread(() -> {
+                assertFalse(fixture.window.getRoot().isShowing());
+                fixture.execute("view 1");
+                assertEquals("A9999999Z", fixture.labelText("#matriculationNumber"));
+                assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 8.5/10"), fixture.rows());
+                return null;
+            });
+        }
+    }
+
+    private <T> T onFxThread(Callable<T> action) throws Exception {
+        FutureTask<T> task = new FutureTask<>(action);
+        Platform.runLater(task);
+        return task.get(10, TimeUnit.SECONDS);
     }
 
     @Test
@@ -138,5 +320,50 @@ public class StudentDetailsWindowTest {
         Assignment assignment = new Assignment(new AssignmentId(id), name, new BigDecimal(maximum));
         gradebook.addAssignment(assignment);
         return assignment;
+    }
+
+    /**
+     * Exercises real commands and model snapshots with the same view and restoration wiring as MainWindow.
+     */
+    private class WindowFixture implements AutoCloseable {
+        private final ModelManager model = new ModelManager();
+        private final Stage owner = new Stage();
+        private final Assignment quiz = new Assignment(new AssignmentId("CS2103T:A1"), "Quiz", BigDecimal.TEN);
+        private final StudentDetailsWindow window;
+
+        WindowFixture() {
+            model.addPerson(student);
+            model.addAssignmentForStudent(quiz, student.getMatriculationNumber());
+            model.recordMark(student.getMatriculationNumber(), quiz.getId(), new Mark(new BigDecimal("8.5")));
+            model.commitAddressBook();
+            window = new StudentDetailsWindow(owner, model.getAddressBook().getPersonList(),
+                    model.getAddressBook()::getGradebook);
+            model.addressBookRestoreCountProperty().addListener((observable, previous, current) -> {
+                window.getRoot().hide();
+            });
+        }
+
+        private void execute(String text) throws CommandException, ParseException {
+            CommandResult result = new AddressBookParser().parseCommand(text).execute(model);
+            model.commitAddressBook();
+            result.getPersonToView().ifPresent(window::showStudent);
+        }
+
+        private List<String> rows() {
+            return displayedAssignmentRows(window);
+        }
+
+        private String labelText(String selector) {
+            return ((Label) window.getRoot().getScene().lookup(selector)).getText();
+        }
+
+        @Override
+        public void close() throws Exception {
+            onFxThread(() -> {
+                window.getRoot().close();
+                owner.close();
+                return null;
+            });
+        }
     }
 }
