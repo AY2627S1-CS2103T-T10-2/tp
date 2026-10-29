@@ -13,7 +13,9 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -84,6 +86,7 @@ public class LogicManagerTest {
     @Test
     public void execute_assignmentCommand_savesAssignmentAndStudentLink() throws Exception {
         model.addPerson(AMY);
+        logic.execute("enroll 1 c/CS2103T-T10");
         String command = "assignment m/" + AMY.getMatriculationNumber()
                 + " id/CS2103T:A1 n/Assignment One max/20.5";
         AssignmentId id = new AssignmentId("CS2103T:A1");
@@ -100,6 +103,7 @@ public class LogicManagerTest {
     @Test
     public void execute_markCommand_recordsUpdatesAndRestoresMark() throws Exception {
         model.addPerson(AMY);
+        logic.execute("enroll 1 c/CS2103T-T10");
         String student = AMY.getMatriculationNumber().toString();
         String assignment = " id/CS2103T:A1";
         logic.execute("assignment m/" + student + assignment + " n/Assignment One max/20");
@@ -125,6 +129,7 @@ public class LogicManagerTest {
     @Test
     public void execute_oversizedGradebookNumbers_rejectsWithoutChangingSavedData() throws Exception {
         model.addPerson(AMY);
+        logic.execute("enroll 1 c/CS2103T-T10");
         String student = AMY.getMatriculationNumber().toString();
         String assignment = " id/CS2103T:A1";
         assertParseException("assignment m/" + student + assignment + " n/Assignment One max/1e1000000",
@@ -147,6 +152,8 @@ public class LogicManagerTest {
         Person anotherStudent = new PersonBuilder(AMY).withName("Another Student")
                 .withMatriculationNumber("A2345678Y").build();
         model.addPerson(anotherStudent);
+        logic.execute("enroll 1 c/CS2103T-T10");
+        logic.execute("enroll 2 c/CS2103T-T11");
         String amyNumber = AMY.getMatriculationNumber().toString();
         String anotherNumber = anotherStudent.getMatriculationNumber().toString();
         AssignmentId id = new AssignmentId("CS2103T:A1");
@@ -176,6 +183,31 @@ public class LogicManagerTest {
         assertTrue(restored.getGradebook().getAssignments().isEmpty());
         assertTrue(restored.getGradebook().getMarksForStudent(anotherStudent.getMatriculationNumber()).isEmpty());
         assertCommandException("marks id/CS2103T:A1", Gradebook.MESSAGE_UNKNOWN_ASSIGNMENT);
+    }
+
+    @Test
+    public void execute_assignmentWithoutEnrollment_rejectsBothFormsWithoutChangingSavedData() throws Exception {
+        model.addPerson(AMY);
+        logic.execute("enroll 1 c/CS2103T-T10");
+        String student = AMY.getMatriculationNumber().toString();
+        AssignmentId existingId = new AssignmentId("CS2103T:A1");
+        logic.execute("assignment m/" + student + " id/" + existingId + " n/Assignment One max/20");
+        logic.execute("mark m/" + student + " id/" + existingId + " mark/10");
+        logic.execute("unenroll 1 all/");
+        Path filePath = temporaryFolder.resolve("addressBook.json");
+        String saved = Files.readString(filePath);
+
+        AssignmentId newId = new AssignmentId("CS2103T:A2");
+        assertCommandException("assignment m/" + student + " id/" + newId + " n/Assignment Two max/20",
+                String.format(AssignmentCommand.MESSAGE_STUDENT_NOT_ENROLLED,
+                        newId, student, newId.getModuleCode()));
+        assertEquals(saved, Files.readString(filePath));
+        logic.execute("removeassignment m/" + student + " id/" + existingId);
+        saved = Files.readString(filePath);
+        assertCommandException("assignment m/" + student + " id/" + existingId,
+                String.format(AssignmentCommand.MESSAGE_STUDENT_NOT_ENROLLED,
+                        existingId, student, existingId.getModuleCode()));
+        assertEquals(saved, Files.readString(filePath));
     }
 
     @Test
@@ -216,6 +248,24 @@ public class LogicManagerTest {
     public void execute_storageThrowsAdException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
+    }
+
+    @Test
+    public void getPersonList_filterAndEdit_retainsFullObservableList() {
+        model.addPerson(AMY);
+        var persons = logic.getPersonList();
+        model.updateFilteredPersonList(person -> false);
+        assertEquals(List.of(AMY), persons);
+        Person edited = new PersonBuilder(AMY).withName("Updated Amy").build();
+        model.setPerson(AMY, edited);
+        assertEquals(List.of(edited), persons);
+        model.deletePerson(edited);
+        assertTrue(persons.isEmpty());
+    }
+
+    @Test
+    public void getPersonList_modifyList_throwsUnsupportedOperationException() {
+        assertThrows(UnsupportedOperationException.class, () -> logic.getPersonList().add(AMY));
     }
 
     @Test

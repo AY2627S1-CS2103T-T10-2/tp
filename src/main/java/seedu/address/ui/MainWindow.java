@@ -203,7 +203,7 @@ public class MainWindow extends UiPart<Stage> {
 
             commandResult.getPersonToView().ifPresent(person -> {
                 if (studentDetailsWindow == null) {
-                    studentDetailsWindow = new StudentDetailsWindow(primaryStage);
+                    studentDetailsWindow = new StudentDetailsWindow(primaryStage, logic.getPersonList());
                 }
                 studentDetailsWindow.showStudent(person);
             });
