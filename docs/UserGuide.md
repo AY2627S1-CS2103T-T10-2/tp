@@ -98,7 +98,7 @@ Examples:
 
 Shows a list of all students in the address book.
 
-Students appear in alphabetical name order. `list` clears any active search and sort.
+Students appear in alphabetical name order. `list` clears any active `find`, `filter` and sort.
 
 Format: `list`
 
@@ -133,13 +133,15 @@ Format: `find KEYWORD [MORE_KEYWORDS]...`
 * Both partial and full words match.
 * Students matching at least one keyword are returned.
 * This form searches names only.
-* This search layers upon filters performed by the `filter` command.
+* If a `filter` is active, the name search and the filter apply together, so only students matching both are shown. This works in either order.
+* A new name search replaces the previous one.
 
 Examples:
 
 * `find John` returns students whose names contain `John`.
 * `find alex david` returns students whose names contain `alex` or `david`.
 * `find august` matches names such as `August` and `Augustine`.
+* `filter CS3230` followed by `find John` returns only students named `John` who are in `CS3230`.
 
 **Search by matriculation number**
 
@@ -147,7 +149,7 @@ Format: `find m/MATRICULATION_NUMBER`
 
 * Enter one complete matriculation number: `A`, followed by 7 digits, and a final letter.
 * Matriculation number matching is exact and case-insensitive.
-* The search includes students hidden by the current filter.
+* The search covers all students. Any active `filter` or name search is cleared, not just bypassed for this search.
 * A valid matriculation number with no matching student produces zero results.
 * Do not combine name keywords with a matriculation number or repeat the `m/` prefix.
 
@@ -405,7 +407,9 @@ Filters students enrolled in any of the given modules or classes.
 Format: `filter KEYWORD [MORE_KEYWORDS]`
 
 * The search is case-insensitive; for example, `cs2103t` matches `CS2103T`.
-* Each `filter` command searches the entire address book and replaces the previous filter.
+* A new `filter` replaces the previous filter.
+* An active `find` stays in effect, so the `find` and the `filter` apply together. This works in either order.
+* Use `list` to clear both the filter and the `find`.
 * This command layers on filters performed by `find`.
 * `KEYWORD` must be either a `MODULE` or `CLASS`.
 * `MODULE` is a module code: 2 to 3 letters, followed by 4 digits and an optional suffix of up to 2 letters (e.g. `CS2103T`), with no spaces.
@@ -416,6 +420,7 @@ Format: `filter KEYWORD [MORE_KEYWORDS]`
 Examples:
 * `filter CS2103` returns students in `CS2103`.
 * `filter CS2103T-T10 CS3230` returns students in `CS2103T-T10` tutorial group, as well as all students enrolled in the module `CS3230`.
+* `find John` followed by `filter CS3230` returns only students named `John` who are in `CS3230`.
 
 ### Enrolling a student in a class: `enroll`
 
