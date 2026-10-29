@@ -53,6 +53,7 @@
         "common-classes": "Common classes",
         "implementation": "Implementation",
         "assignment-mark-feature": "Assignment mark feature",
+        "student-profile-assignment-marks": "Student profile assignment marks",
         "sorting-displayed-students": "Sorting displayed students",
         "keeping-the-student-details-window-up-to-date": "Keeping the student details window up to date",
         "attendance-feature": "Attendance feature",
@@ -80,6 +81,7 @@
         "assigning-work-to-a-student": "Assigning work to a student",
         "recording-an-assignment-mark": "Recording an assignment mark",
         "viewing-assignment-marks": "Viewing assignment marks",
+        "viewing-marks-in-a-student-profile": "Viewing marks in a student profile",
         "removing-assignments": "Removing assignments",
         "saving-data": "Saving data"
       },
