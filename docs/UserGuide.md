@@ -188,14 +188,15 @@ Format: `view INDEX`
 * The index refers to the number shown in the displayed student list.
 * Details are organised into Particulars, Classes and modules, Assignments and marks, and Attendance sections.
 * Classes are listed by module code and class group. Students without classes show `No classes enrolled`.
-* Running `view` again updates the same window to the selected student. Press `Esc` to close the window.
-* While the window is open, edits to that student's particulars, class enrolments, or attendance automatically refresh the displayed details. This includes changes to their matriculation number.
+* Running `view` again updates the same window with the selected student's latest details, even when selecting the same student. Press `Esc` to close the window.
+* While the window is open, successful changes to that student's particulars, class enrolments, attendance, assignments, or marks automatically refresh the displayed details without taking keyboard focus from the main window. Editing their matriculation number preserves the visible assignments and recorded marks.
 * Deleting the displayed student or clearing all students closes the details window.
+* Successful `undo` and `redo` also close the details window. Run `view` again to inspect the restored records. A manually closed window stays closed when later commands change the student or their marks.
 * Finding, filtering, or sorting students keeps the window on the same student, even if that student is no longer in the displayed list. Changes to other students do not switch the window to another student.
 * Attendance records show the date and class, ordered from newest to oldest, then by class code for records on the same date. If there are no attendance records, the Attendance section shows `None recorded`.
 * The Assignments and marks section shows only assignments attached to the selected student, ordered by assignment ID. Each entry includes its ID, name, maximum mark, and score (for example, `Mark: 8.5/10`).
 * An assignment without a recorded score shows `Mark: Unmarked`. A recorded zero shows a score such as `Mark: 0/10`. If the student has no assignments, the section shows `None assigned`.
-* Run `view` again after adding or removing assignments or changing marks to refresh the details. The open window does not refresh automatically.
+* After `assignment`, `mark`, or `removeassignment` succeeds, the open window immediately shows the updated assignments and scores. You do not need to run `view` again.
 * Use `marks id/MODULE:CODE` to see all students' results for one assignment.
 
 Example: `view 1` displays the first student in the current list.
@@ -217,6 +218,7 @@ Format for existing work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`
 * `max/` is a positive numeric maximum mark; decimals are allowed.
 * Values whose displayed decimal form would exceed 64 characters are rejected. This prevents very large or very precise values from slowing the app when it displays or saves them.
 * The assignment begins without a recorded mark. A mark of zero, when later recorded, is different from an unmarked assignment.
+* If that student's details window is open, the new assignment appears immediately with `Mark: Unmarked`.
 * To assign the same work to another student, use its existing ID without `n/` or `max/`. Repeating the assignment for the same student reports an error and changes nothing.
 * An existing ID or name cannot be used to create a second definition in the same module. A student and assignment ID must already exist when using the shorter form.
 * Editing a student's matriculation number keeps their assignment links. Deleting that student removes their links but leaves the shared definition available for other students.
@@ -238,6 +240,7 @@ Format: `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`
 * `MARK` may be zero or a positive decimal, up to the assignment's maximum mark. A recorded `0` is different from an unmarked assignment.
 * A mark's displayed decimal form must also fit within 64 characters.
 * The confirmation includes the score and maximum mark. Updating a recorded score gives a short updated message.
+* If that student's details window is open, its score updates immediately after the command succeeds, without another `view` command.
 * The student's matriculation number identifies them even when they are absent from the current search results. Use `mark` to change a score; `edit` changes student details and does not accept marks.
 
 Examples:
@@ -274,6 +277,7 @@ Format for all students: `removeassignment id/MODULE:CODE`
 * With `m/`, only that student's assignment link and recorded mark are removed. The shared assignment stays available for other students and can be assigned to this student again.
 * Without `m/`, the assignment definition and every student's link and mark for it are removed. You can then create a new assignment using the same ID or name.
 * Neither form deletes or edits student details, other assignments, or their marks. The student is found by matriculation number even if hidden from the current list.
+* An affected student's open details window immediately removes the assignment. If no assignments remain, it shows `None assigned`.
 * An unknown assignment or student, or an assignment not attached to the specified student, gives an error without changing records. A successful removal is saved in TAssist's data file and can be undone during the current session using `undo`. There is no separate assignment archive.
 
 Examples:
