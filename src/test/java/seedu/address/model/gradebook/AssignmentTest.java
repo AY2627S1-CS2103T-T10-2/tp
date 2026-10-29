@@ -2,6 +2,7 @@ package seedu.address.model.gradebook;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.GradebookNumberTestData.OVERSIZED_INPUTS;
 
 import java.math.BigDecimal;
 
@@ -61,9 +62,8 @@ public class AssignmentTest {
     }
 
     @Test
-    public void constructor_extremeScientificNotation_throwsLengthConstraint() {
-        String[] inputs = {"100e2147483647", "100e2147483646", "10e2147483647", "1e-2147483647"};
-        for (String input : inputs) {
+    public void constructor_oversizedScientificNotation_throwsLengthConstraint() {
+        for (String input : OVERSIZED_INPUTS) {
             assertThrows(IllegalArgumentException.class, Assignment.MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS, () ->
                     new Assignment(id, "Assignment One", new BigDecimal(input)));
         }

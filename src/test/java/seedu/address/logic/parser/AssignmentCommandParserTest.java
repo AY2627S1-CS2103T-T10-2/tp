@@ -7,6 +7,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_MAX_MARK;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
+import static seedu.address.testutil.GradebookNumberTestData.INVALID_EXPONENT_INPUTS;
+import static seedu.address.testutil.GradebookNumberTestData.OVERSIZED_INPUTS;
 
 import java.math.BigDecimal;
 
@@ -50,10 +52,17 @@ public class AssignmentCommandParserTest {
 
     @Test
     public void parse_oversizedScientificNotation_failure() {
-        String[] inputs = {"100e2147483647", "1e1000000", "1e64", "1e-63"};
-        for (String input : inputs) {
+        for (String input : OVERSIZED_INPUTS) {
             assertParseFailure(parser, required + " n/Assignment One max/" + input,
                     Assignment.MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS);
+        }
+    }
+
+    @Test
+    public void parse_invalidExponent_failure() {
+        for (String input : INVALID_EXPONENT_INPUTS) {
+            assertParseFailure(parser, required + " n/Assignment One max/" + input,
+                    AssignmentCommandParser.MESSAGE_INVALID_MAX_MARK);
         }
     }
 

@@ -6,6 +6,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_MARK;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
+import static seedu.address.testutil.GradebookNumberTestData.INVALID_EXPONENT_INPUTS;
+import static seedu.address.testutil.GradebookNumberTestData.OVERSIZED_INPUTS;
 
 import java.math.BigDecimal;
 
@@ -50,10 +52,17 @@ public class MarkCommandParserTest {
 
     @Test
     public void parse_oversizedScientificNotation_failure() {
-        String[] inputs = {"100e2147483647", "1e1000000", "1e64", "1e-63"};
-        for (String input : inputs) {
+        for (String input : OVERSIZED_INPUTS) {
             assertParseFailure(parser, " m/A1234567X id/CS2103T:A1 mark/" + input,
                     Mark.MESSAGE_LENGTH_CONSTRAINTS);
+        }
+    }
+
+    @Test
+    public void parse_invalidExponent_failure() {
+        for (String input : INVALID_EXPONENT_INPUTS) {
+            assertParseFailure(parser, " m/A1234567X id/CS2103T:A1 mark/" + input,
+                    MarkCommandParser.MESSAGE_INVALID_MARK);
         }
     }
 

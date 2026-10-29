@@ -8,6 +8,8 @@ import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.MATRICULATION_NUMBER_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.GradebookNumberTestData.INVALID_EXPONENT_INPUTS;
+import static seedu.address.testutil.GradebookNumberTestData.OVERSIZED_INPUTS;
 import static seedu.address.testutil.TypicalPersons.AMY;
 
 import java.io.IOException;
@@ -30,6 +32,8 @@ import seedu.address.logic.commands.MarkCommand;
 import seedu.address.logic.commands.MarksCommand;
 import seedu.address.logic.commands.RemoveAssignmentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.AssignmentCommandParser;
+import seedu.address.logic.parser.MarkCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -127,7 +131,7 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_oversizedGradebookNumbers_rejectsWithoutChangingSavedData() throws Exception {
+    public void execute_invalidGradebookNumbers_rejectsWithoutChangingSavedData() throws Exception {
         model.addPerson(AMY);
         logic.execute("enroll 1 c/CS2103T-T10");
         String student = AMY.getMatriculationNumber().toString();
@@ -139,19 +143,19 @@ public class LogicManagerTest {
         JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
         ReadOnlyAddressBook original = storage.readAddressBook().orElseThrow();
 
-        String[] inputs = {"100e2147483647", "1e1000000", "1e64", "1e-63"};
-        for (String input : inputs) {
-            assertParseException("mark m/" + student + assignment + " mark/" + input,
-                    Mark.MESSAGE_LENGTH_CONSTRAINTS);
-            assertEquals(original, model.getAddressBook());
-            assertEquals(saved, Files.readString(filePath));
-            assertEquals(original, storage.readAddressBook().orElseThrow());
-
-            assertParseException("assignment m/" + student + " id/CS2103T:A2 n/Assignment Two max/" + input,
-                    Assignment.MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS);
-            assertEquals(original, model.getAddressBook());
-            assertEquals(saved, Files.readString(filePath));
-            assertEquals(original, storage.readAddressBook().orElseThrow());
+        for (String input : OVERSIZED_INPUTS) {
+            assertParseExceptionWithoutChangingSavedData("mark m/" + student + assignment + " mark/" + input,
+                    Mark.MESSAGE_LENGTH_CONSTRAINTS, original, saved);
+            assertParseExceptionWithoutChangingSavedData(
+                    "assignment m/" + student + " id/CS2103T:A2 n/Assignment Two max/" + input,
+                    Assignment.MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS, original, saved);
+        }
+        for (String input : INVALID_EXPONENT_INPUTS) {
+            assertParseExceptionWithoutChangingSavedData("mark m/" + student + assignment + " mark/" + input,
+                    MarkCommandParser.MESSAGE_INVALID_MARK, original, saved);
+            assertParseExceptionWithoutChangingSavedData(
+                    "assignment m/" + student + " id/CS2103T:A2 n/Assignment Two max/" + input,
+                    AssignmentCommandParser.MESSAGE_INVALID_MAX_MARK, original, saved);
         }
         assertEquals(Optional.of(new Mark(BigDecimal.TEN)), original.getGradebook()
                 .getMarksForStudent(AMY.getMatriculationNumber()).get(new AssignmentId("CS2103T:A1")));
@@ -307,6 +311,18 @@ public class LogicManagerTest {
      */
     private void assertParseException(String inputCommand, String expectedMessage) {
         assertCommandFailure(inputCommand, ParseException.class, expectedMessage);
+    }
+
+    /**
+     * Checks that a parse failure preserves the model, saved file contents, and restored records.
+     */
+    private void assertParseExceptionWithoutChangingSavedData(String inputCommand, String expectedMessage,
+            ReadOnlyAddressBook original, String saved) throws Exception {
+        assertParseException(inputCommand, expectedMessage);
+        assertEquals(original, model.getAddressBook());
+        Path filePath = temporaryFolder.resolve("addressBook.json");
+        assertEquals(saved, Files.readString(filePath));
+        assertEquals(original, new JsonAddressBookStorage(filePath).readAddressBook().orElseThrow());
     }
 
     /**
