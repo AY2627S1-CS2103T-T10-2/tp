@@ -185,6 +185,8 @@ The `Gradebook` separately maps each student's matriculation number and assignme
 
 `GradebookNumber` checks the length of a normalized value's plain decimal form using its precision and scale, before creating that string. `Assignment` and `Mark` both reject values that would display as more than 64 characters. The check is in the domain constructors, so commands and restored JSON data follow the same limit. Parsers turn this validation failure into a normal input error. This prevents short scientific-notation inputs with enormous exponents from expanding during display or JSON saving.
 
+The helper handles zero first, so even extreme scientific representations of zero normalize to `0`. For nonzero values, it rejects numbers requiring more than 64 integer digits before calling `BigDecimal.stripTrailingZeros()`. The preliminary check uses `long` arithmetic for precision minus scale, preventing overflow both in the check and during subsequent normalization. The remaining values are normalized and checked against the full plain decimal length, including the leading zero and decimal point for fractions. This preserves valid scientific notation and trailing-zero normalization while rejecting inputs such as `100e2147483647` with the existing length validation message.
+
 `AddressBook` coordinates student and gradebook changes. Creating an assignment for a student adds its definition and the student's unmarked entry as one operation. Editing a student's matriculation number moves their assignment entries and marks; editing other details leaves them in place. Deleting a student removes their entries but keeps shared assignment definitions. Replacing the student list removes entries for students no longer present, while resetting or clearing the whole address book replaces the gradebook too. A failed student replacement leaves the original gradebook unchanged. `ReadOnlyAddressBook#getGradebook()` returns an independent snapshot so callers cannot mutate the stored gradebook through a read-only view.
 
 JSON storage keeps shared definitions in `assignments` and each student's link to a definition in `studentAssignments`. An assignment stores its ID, name, and decimal maximum mark. A student assignment stores a matriculation number, assignment ID, and decimal `mark`; a `null` mark means the assignment is unmarked, while `"0"` means a recorded zero. Decimal values are written as strings to preserve exact fractional marks. On restoration, students are loaded first, followed by definitions and student assignments. The storage adapter rejects invalid or duplicate definitions, unknown students or assignments, duplicate student links, and marks outside the allowed range. Files created before these two JSON arrays existed load with an empty gradebook. A failed restoration leaves the saved file unchanged.
@@ -1403,8 +1405,12 @@ Use test data for the cases below, as some steps change student enrollment and a
       Expected: TAssist reports the duplicate and preserves the existing assignments.
    1. Enter `assignment m/A1234567X id/CS2103T:A3 n/Extreme max/1e1000000`.<br>
       Expected: TAssist rejects the maximum as too long for display, and does not create `CS2103T:A3`.
+   1. Repeat the command with `max/100e2147483647`.<br>
+      Expected: TAssist shows `Maximum mark's displayed decimal form must be at most 64 characters.` Existing assignments and saved data remain unchanged, and `CS2103T:A3` is not created.
    1. Close and reopen TAssist. Enter `marks id/CS2103T:A1`.<br>
       Expected: Both assigned students appear as `Unmarked`, confirming their links were restored.
+   1. Enter `marks id/CS2103T:A3`.<br>
+      Expected: TAssist reports an unknown assignment, confirming the rejected definition was not saved.
 
 ### Recording an assignment mark
 
@@ -1416,6 +1422,14 @@ Use test data for the cases below, as some steps change student enrollment and a
    Expected: TAssist rejects the score because it exceeds the maximum. The previous score remains stored after reopening the app.
 1. Enter the same command with `mark/1e1000000`.<br>
    Expected: TAssist rejects the score as too long for display. The previous score remains stored.
+1. Repeat with `mark/100e2147483647`.<br>
+   Expected: TAssist shows `Mark's displayed decimal form must be at most 64 characters.` The existing mark and saved data remain unchanged.
+1. Close and reopen TAssist. Enter `marks id/CS2103T:A1`.<br>
+   Expected: The student's score remains `17.5/20`.
+1. Record the mark with `mark m/A1234567X id/CS2103T:A1 mark/1.7500e1`.<br>
+   Expected: TAssist accepts the scientific notation and confirms a normalized score of `17.5/20`.
+1. Repeat with `mark/0e2147483647`.<br>
+   Expected: TAssist accepts the zero mark and confirms a score of `0/20`.
 
 ### Viewing assignment marks
 
