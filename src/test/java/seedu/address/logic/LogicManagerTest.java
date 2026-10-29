@@ -39,6 +39,7 @@ import seedu.address.model.gradebook.Assignment;
 import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.gradebook.Gradebook;
 import seedu.address.model.gradebook.Mark;
+import seedu.address.model.gradebook.ReadOnlyGradebook;
 import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
@@ -62,6 +63,24 @@ public class LogicManagerTest {
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
         StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
         logic = new LogicManager(model, storage);
+    }
+
+    @Test
+    public void getGradebook_afterMarkChanges_returnsFreshSnapshot() {
+        model.addPerson(AMY);
+        Assignment assignment = new Assignment(new AssignmentId("CS2103T:A1"), "Quiz", new BigDecimal("20"));
+        model.addAssignmentForStudent(assignment, AMY.getMatriculationNumber());
+        ReadOnlyGradebook originalSnapshot = logic.getGradebook();
+        assertEquals(Optional.empty(), originalSnapshot.getMarksForStudent(AMY.getMatriculationNumber())
+                .get(assignment.getId()));
+
+        Mark mark = new Mark(new BigDecimal("17.5"));
+        model.recordMark(AMY.getMatriculationNumber(), assignment.getId(), mark);
+        assertEquals(Optional.of(assignment), logic.getGradebook().findAssignment(assignment.getId()));
+        assertEquals(Optional.of(mark), logic.getGradebook().getMarksForStudent(AMY.getMatriculationNumber())
+                .get(assignment.getId()));
+        assertEquals(Optional.empty(), originalSnapshot.getMarksForStudent(AMY.getMatriculationNumber())
+                .get(assignment.getId()));
     }
 
     @Test

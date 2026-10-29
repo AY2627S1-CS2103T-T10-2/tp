@@ -205,7 +205,7 @@ public class MainWindow extends UiPart<Stage> {
                 if (studentDetailsWindow == null) {
                     studentDetailsWindow = new StudentDetailsWindow(primaryStage, logic.getPersonList());
                 }
-                studentDetailsWindow.showStudent(person);
+                studentDetailsWindow.showStudent(person, logic.getGradebook());
             });
 
             if (commandResult.isExit()) {
