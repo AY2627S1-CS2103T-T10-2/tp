@@ -185,7 +185,9 @@ The `Gradebook` separately maps each student's matriculation number and assignme
 
 JSON storage keeps shared definitions in `assignments` and each student's link to a definition in `studentAssignments`. An assignment stores its ID, name, and decimal maximum mark. A student assignment stores a matriculation number, assignment ID, and decimal `mark`; a `null` mark means the assignment is unmarked, while `"0"` means a recorded zero. Decimal values are written as strings to preserve exact fractional marks. On restoration, students are loaded first, followed by definitions and student assignments. The storage adapter rejects invalid or duplicate definitions, unknown students or assignments, duplicate student links, and marks outside the allowed range. Files created before these two JSON arrays existed load with an empty gradebook. A failed restoration leaves the saved file unchanged.
 
-`AssignmentCommandParser` accepts a student's matriculation number and assignment ID, plus a name and maximum mark together when defining new work. `AssignmentCommand` resolves the student against all stored students, independently of the displayed list. For new work, it calls `Model#addAssignmentForStudent`, which validates and publishes the definition and student link as one change. For existing work, it calls `Model#assignStudent` using the stored definition. The gradebook rejects a duplicate ID or name in the module and prevents assigning the same work twice to one student. Neither command form records a mark.
+`AssignmentCommandParser` accepts a student's matriculation number and assignment ID, plus a name and maximum mark together when defining new work. `AssignmentCommand` resolves the student against all stored students, independently of the displayed list. Both forms require the student to be enrolled in the assignment's module: at least one of the student's class codes must have the same module code as the assignment ID. Module comparison ignores letter case and uses the entire module code. The command checks student existence, an existing definition for the shorter form, and module enrollment before making any changes. For new work, it calls `Model#addAssignmentForStudent`, which validates and publishes the definition and student link as one change. For existing work, it calls `Model#assignStudent` using the stored definition. The gradebook rejects a duplicate ID or name in the module and prevents assigning the same work twice to one student. Neither command form records a mark.
+
+Module enrollment is a prerequisite for the `assignment` command, rather than a persistent gradebook constraint. Unenrolling from the last class in a module, including through `unenroll INDEX all/`, preserves existing assignment links and marks, and `mark` can still record or update those results. Storage restores historical links without requiring current enrollment. Removing a link and later reassigning the work through `assignment` requires current enrollment again.
 
 `MarkCommandParser` accepts a matriculation number, an assignment ID, and a nonnegative decimal score. `MarkCommand` checks that the student, shared definition, and student's assignment link exist before calling `Model#recordMark`. The gradebook rejects scores above the shared maximum. `recordMark` returns the previous optional value, allowing the command to distinguish the first recorded mark from an update; a previous zero is present and therefore produces the updated response. The command changes only that student's score. `edit` remains for student particulars, and `view` remains focused on profile details.
 
@@ -788,7 +790,7 @@ Use case ends.
 
   Use case resumes at step 2.
 
-* 1b. The student does not exist, the new assignment ID or name already exists in its module, or the existing assignment is already attached to the student.
+* 1b. The student does not exist or is not enrolled in the assignment's module, the new assignment ID or name already exists in its module, or the existing assignment is already attached to the student.
 
   * 1b1. TAssist reports the problem and changes no records.
 
@@ -1119,7 +1121,9 @@ testers are expected to do more *exploratory* testing.
 
 1. Sorting by one assignment's mark
 
-   1. In a fresh data folder with the original sample students, create an assignment and attach it to two students using `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20` and `assignment m/A6789012U id/CS2103T:A1`. Record `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
+   1. Prerequisites: Start in a fresh data folder with the original six sample students. Run `list`, then `enroll 1 c/CS2103T-T10` and `enroll 6 c/CS2103T-T10` to enroll Alex Yeoh (`A1234567X`) and Roy Balakrishnan (`A6789012U`) in `CS2103T`.
+
+   1. Create an assignment and attach it to two students using `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20` and `assignment m/A6789012U id/CS2103T:A1`. Record `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
       Expected: One student has a recorded zero, one is unmarked, and at least one other sample student is not assigned.
 
    1. Run `sort mark id/CS2103T:A1 desc`.<br>
@@ -1373,7 +1377,10 @@ Use test data for the cases below, as some steps change student enrollment and a
 
 ### Assigning work to a student
 
-1. Add two students with different matriculation numbers, then assign the same work to each.
+1. Assign the same work to two enrolled students.
+
+   1. Prerequisites: Start in a fresh data folder with the original six sample students. Run `list`, then `enroll 1 c/CS2103T-T10` and `enroll 2 c/CS2103T-T10` to enroll Alex Yeoh (`A1234567X`) and Bernice Yu (`A2345678Y`) in `CS2103T`.
+
    1. Test case: `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20`<br>
       Expected: TAssist confirms the assignment was attached to the first student without a mark.
    1. Test case: `assignment m/A2345678Y id/CS2103T:A1`<br>
