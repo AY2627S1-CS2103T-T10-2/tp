@@ -43,6 +43,10 @@
               </GridPane>
             </VBox>
             <VBox spacing="12" styleClass="section">
+              <Label text="Assignments and marks" styleClass="section-title" />
+              <VBox fx:id="assignments" spacing="12" />
+            </VBox>
+            <VBox spacing="12" styleClass="section">
               <Label text="Attendance" styleClass="section-title" />
               <Label fx:id="attendanceSummary" styleClass="field-label" />
               <VBox fx:id="attendanceDates" spacing="8" />
