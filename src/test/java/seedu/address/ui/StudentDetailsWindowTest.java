@@ -12,6 +12,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -58,7 +60,9 @@ public class StudentDetailsWindowTest {
 
         FutureTask<Void> checkWindow = new FutureTask<>(() -> {
             Stage owner = new Stage();
-            StudentDetailsWindow window = new StudentDetailsWindow(owner);
+            ObservableList<Person> persons =
+                    FXCollections.observableArrayList(student, otherStudent, unassignedStudent);
+            StudentDetailsWindow window = new StudentDetailsWindow(owner, persons);
             try {
                 window.showStudent(student, gradebook);
                 assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 8.5/10",

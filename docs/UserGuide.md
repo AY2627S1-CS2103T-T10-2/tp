@@ -35,7 +35,7 @@ TAssist is a **desktop application for managing students, optimized for use thro
 
    * `delete 3` : Deletes the 3rd student shown in the current list.
 
-   * `clear` : Deletes all students.
+   * `clear` : Deletes all students and their associated records, all shared assignment definitions, and all recorded marks.
 
    * `exit` : Exits the app.
 
@@ -118,7 +118,7 @@ TAssist checks the address format only; it does not check whether the domain or 
 
 Shows a list of all students in the address book.
 
-Students appear in alphabetical name order. `list` clears any active search and sort.
+Students appear in alphabetical name order. `list` clears any active `find`, `filter` and sort.
 
 Format: `list`
 
@@ -154,12 +154,15 @@ Format: `find KEYWORD [MORE_KEYWORDS]...`
 * Both partial and full words match.
 * Students matching at least one keyword are returned.
 * This form searches names only.
+* If a `filter` is active, the name search and the filter apply together, so only students matching both are shown. This works in either order.
+* A new name search replaces the previous one.
 
 Examples:
 
 * `find John` returns students whose names contain `John`.
 * `find alex david` returns students whose names contain `alex` or `david`.
 * `find august` matches names such as `August` and `Augustine`.
+* `filter CS3230` followed by `find John` returns only students named `John` who are in `CS3230`.
 
 **Search by matriculation number**
 
@@ -167,7 +170,7 @@ Format: `find m/MATRICULATION_NUMBER`
 
 * Enter one complete matriculation number: `A`, followed by 7 digits, and a final letter.
 * Matriculation number matching is exact and case-insensitive.
-* The search includes students hidden by the current filter.
+* The search covers all students. Any active `filter` or name search is cleared, not just bypassed for this search.
 * A valid matriculation number with no matching student produces zero results.
 * Do not combine name keywords with a matriculation number or repeat the `m/` prefix.
 
@@ -521,7 +524,10 @@ Filters students enrolled in any of the given modules or classes.
 Format: `filter KEYWORD [MORE_KEYWORDS]`
 
 * The search is case-insensitive; for example, `cs2103t` matches `CS2103T`.
-* Each `filter` command searches the entire address book and replaces the previous filter.
+* A new `filter` replaces the previous filter.
+* An active `find` stays in effect, so the `find` and the `filter` apply together. This works in either order.
+* Use `list` to clear both the filter and the `find`.
+* This command layers on filters performed by `find`.
 * `KEYWORD` must be either a `MODULE` or `CLASS`.
 * `MODULE` is a module code: 2 to 3 letters, followed by 4 digits and an optional suffix of up to 2 letters (e.g. `CS2103T`), with no spaces.
 * `CLASS` is a full class code in the format `MODULE-GROUP` (e.g. `CS2103T-T10`). `GROUP` contains 1 to 5 letters or digits, with no spaces or symbols.
@@ -531,6 +537,7 @@ Format: `filter KEYWORD [MORE_KEYWORDS]`
 Examples:
 * `filter CS2103` returns students in `CS2103`.
 * `filter CS2103T-T10 CS3230` returns students in `CS2103T-T10` tutorial group, as well as all students enrolled in the module `CS3230`.
+* `find John` followed by `filter CS3230` returns only students named `John` who are in `CS3230`.
 
 ### Enrolling a student in a class: `enroll`
 
@@ -581,9 +588,11 @@ Examples:
 
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Deletes all students and their associated records, all shared assignment definitions, and all recorded marks.
 
 Format: `clear`
+
+You can undo this change during the current session using [`undo`](#undoing-a-change-undo). Undo history is discarded when TAssist closes.
 
 ### Undoing a change: `undo`
 
@@ -676,6 +685,7 @@ Action     | Format, Examples
 **Undo** | `undo`
 **Redo** | `redo`
 **Delete** | `delete INDEX [MORE_INDICES]...`<br>or `delete m/MATRICULATION_NUMBER`<br>Examples: `delete 1`, `delete 1 3`, `delete m/A1234567X` |
+**View student details** | `view INDEX`<br> e.g., `view 1`
 **Record/update participation** | `participation INDEX c/MODULE-CLASS d/DATE p/POINTS`<br>or `participation m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE p/POINTS`<br>Example: `participation 1 c/CS2103T-T10 d/28-10-2026 p/2` |
 **View participation** | `participation view INDEX`<br>or `participation view m/MATRICULATION_NUMBER`<br>Example: `participation view 1` |
 **Remove participation record** | `participation remove INDEX c/MODULE-CLASS d/DATE`<br>or `participation remove m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE`<br>Example: `participation remove 1 c/CS2103T-T10 d/28-10-2026` |
@@ -687,3 +697,4 @@ Action     | Format, Examples
 **Sort**   | `sort`, `sort FIELD [asc\|desc]`, or `sort mark id/MODULE:CODE [asc\|desc]`<br> e.g., `sort matric desc`, `sort mark id/CS2103T:A1 desc`
 **Filter** | `filter KEYWORD [MORE_KEYWORDS]`<br> e.g., `filter CS2103T-T10 CS3230`
 **Help**   | `help`
+**Exit** | `exit`
