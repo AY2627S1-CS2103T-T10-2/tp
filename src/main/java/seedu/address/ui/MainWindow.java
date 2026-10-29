@@ -209,6 +209,10 @@ public class MainWindow extends UiPart<Stage> {
                 studentDetailsWindow.showStudent(person);
             });
 
+            if (studentDetailsWindow != null && commandResult.getPersonToView().isEmpty()) {
+                studentDetailsWindow.refreshIfShowing();
+            }
+
             if (commandResult.isExit()) {
                 handleExit();
             }

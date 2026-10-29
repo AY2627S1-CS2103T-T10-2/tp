@@ -101,6 +101,18 @@ public class StudentDetailsWindow extends UiPart<Stage> {
     }
 
     /**
+     * Refreshes an open window after a command has finished updating and saving the model.
+     * Does not reopen a closed window or move keyboard focus away from the command box.
+     */
+    public void refreshIfShowing() {
+        if (!getRoot().isShowing()) {
+            return;
+        }
+        cancelPendingRefresh();
+        refreshSelectedStudent();
+    }
+
+    /**
      * Hides a deleted student's window or schedules a refresh for a replacement student.
      */
     private void handleSelectionChange(Person current) {

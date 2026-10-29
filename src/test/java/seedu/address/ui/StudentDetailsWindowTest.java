@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -13,13 +14,17 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
@@ -31,12 +36,18 @@ import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.gradebook.Gradebook;
 import seedu.address.model.gradebook.Mark;
 import seedu.address.model.person.Person;
+import seedu.address.storage.JsonAddressBookStorage;
+import seedu.address.storage.JsonUserPrefsStorage;
+import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PersonBuilder;
 
 /**
  * Tests the assignment rows displayed in the student details window.
  */
 public class StudentDetailsWindowTest {
+    @TempDir
+    public Path temporaryFolder;
+
     private final Person student = new PersonBuilder().build();
     private final Gradebook gradebook = new Gradebook();
 
@@ -98,8 +109,70 @@ public class StudentDetailsWindowTest {
     }
 
     private List<String> displayedAssignmentRows(StudentDetailsWindow window) {
-        VBox assignments = (VBox) window.getRoot().getScene().lookup("#assignments");
+        return displayedAssignmentRows(window.getRoot());
+    }
+
+    private List<String> displayedAssignmentRows(Stage stage) {
+        VBox assignments = (VBox) stage.getScene().lookup("#assignments");
         return assignments.getChildren().stream().map(node -> ((Label) node).getText()).toList();
+    }
+
+    @Test
+    public void mainWindow_assignmentCommands_refreshOpenDetailsWithoutAnotherView() throws Exception {
+        onFxThread(() -> {
+            ModelManager model = new ModelManager();
+            Person enrolled = new PersonBuilder(student).withClassCodes("CS2103T-T10").build();
+            model.addPerson(enrolled);
+            Path dataFile = temporaryFolder.resolve("addressbook.json");
+            JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(dataFile);
+            StorageManager storage = new StorageManager(addressBookStorage,
+                    new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json")));
+            Stage primaryStage = new Stage();
+            MainWindow mainWindow = new MainWindow(primaryStage, new LogicManager(model, storage), dataFile);
+            try {
+                mainWindow.fillInnerParts();
+                mainWindow.show();
+                TextField commandField = (TextField) primaryStage.getScene().lookup("#commandTextField");
+                String studentPrefix = " m/" + enrolled.getMatriculationNumber();
+                enterCommand(commandField, "assignment" + studentPrefix + " id/CS2103T:A1 n/Quiz max/10");
+                enterCommand(commandField, "mark" + studentPrefix + " id/CS2103T:A1 mark/8.5");
+                enterCommand(commandField, "view 1");
+                Stage details = Stage.getWindows().stream().filter(window -> window instanceof Stage)
+                        .map(window -> (Stage) window).filter(stage -> stage.getOwner() == primaryStage)
+                        .filter(stage -> stage.getScene().lookup("#assignments") != null).findFirst().orElseThrow();
+                assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 8.5/10"), displayedAssignmentRows(details));
+
+                enterCommand(commandField, "mark" + studentPrefix + " id/CS2103T:A1 mark/10");
+                assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 10/10"), displayedAssignmentRows(details));
+                assertEquals(model.getAddressBook(), addressBookStorage.readAddressBook().orElseThrow());
+
+                enterCommand(commandField, "assignment" + studentPrefix + " id/CS2103T:A2 n/Homework max/20");
+                assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 10/10",
+                        "CS2103T:A2 - Homework (out of 20)\nMark: Unmarked"), displayedAssignmentRows(details));
+                enterCommand(commandField, "removeassignment" + studentPrefix + " id/CS2103T:A2");
+                assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 10/10"), displayedAssignmentRows(details));
+
+                details.close();
+                enterCommand(commandField, "mark" + studentPrefix + " id/CS2103T:A1 mark/0");
+                assertFalse(details.isShowing());
+                enterCommand(commandField, "view 1");
+                assertEquals(List.of("CS2103T:A1 - Quiz (out of 10)\nMark: 0/10"), displayedAssignmentRows(details));
+                assertTrue(details.isShowing());
+            } finally {
+                Stage.getWindows().stream().filter(window -> window instanceof Stage)
+                        .map(window -> (Stage) window).filter(stage -> stage.getOwner() == primaryStage)
+                        .toList().forEach(Stage::close);
+                primaryStage.close();
+            }
+            return null;
+        });
+    }
+
+    private void enterCommand(TextField commandField, String text) {
+        commandField.setText(text);
+        commandField.fireEvent(new ActionEvent());
+        assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS), text);
+        assertEquals("", commandField.getText());
     }
 
     @Test
