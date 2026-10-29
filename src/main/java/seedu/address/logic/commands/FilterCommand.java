@@ -24,7 +24,9 @@ public class FilterCommand extends Command {
             + COMMAND_WORD + " CS2103T-T10 CS3230";
 
     public static final String MESSAGE_SUCCESS = Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
-    public static final String MESSAGE_NO_MATCHING_STUDENTS = "No student matched the given class/module code(s).";
+    public static final String MESSAGE_NO_MATCHING_STUDENTS =
+            "No student matched the given class/module code(s) together with any active find. "
+                    + "If a find is active, use list to clear it, then filter again.";
 
     private static final Logger logger = LogsCenter.getLogger(FilterCommand.class);
 
@@ -41,7 +43,7 @@ public class FilterCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.updateFilteredPersonList(predicate);
+        model.updateFilterPredicate(predicate);
         int personListSize = model.getFilteredPersonList().size();
         logger.fine("Filter used: " + predicate.toString() + "\nFilter matched " + personListSize + " student(s).");
         return new CommandResult(

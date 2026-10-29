@@ -34,6 +34,7 @@ public class StudentDetailsWindow extends UiPart<Stage> {
     private static final Logger logger = LogsCenter.getLogger(StudentDetailsWindow.class);
 
     private final StudentDetailsSelection selection;
+    private ReadOnlyGradebook gradebook;
 
     @FXML
     private Label studentName;
@@ -80,6 +81,7 @@ public class StudentDetailsWindow extends UiPart<Stage> {
      */
     public void showStudent(Person person, ReadOnlyGradebook gradebook) {
         logger.fine("Showing details for student: " + person.getName());
+        this.gradebook = gradebook;
         selection.select(person);
         getRoot().show();
         getRoot().setIconified(false);
@@ -116,7 +118,9 @@ public class StudentDetailsWindow extends UiPart<Stage> {
         }
 
         assignments.getChildren().clear();
-        List<String> assignmentRows = formatAssignmentRows(person, gradebook);
+        List<String> assignmentRows = gradebook == null
+                ? List.of()
+                : formatAssignmentRows(person, gradebook);
         if (assignmentRows.isEmpty()) {
             assignments.getChildren().add(new Label("None assigned"));
         } else {
