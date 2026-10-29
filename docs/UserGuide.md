@@ -85,6 +85,8 @@ Adds a student to the address book.
 
 Format: `add n/NAME m/MATRICULATION_NUMBER e/EMAIL [t/TAG]... `
 
+The email address must follow the [email constraints](#email-constraints) below.
+
 <box type="tip" seamless>
 
 **Tip:** A student can have any number of tags, including zero.
@@ -93,6 +95,24 @@ Format: `add n/NAME m/MATRICULATION_NUMBER e/EMAIL [t/TAG]... `
 Examples:
 * `add n/John Doe m/A1234567A e/johnd@example.com`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com m/A2345678A t/criminal`
+
+#### Email constraints
+
+These rules apply to the `e/EMAIL` field in both `add` and `edit`.
+
+* The address must have the form `local-part@domain`, with exactly one `@` and no spaces.
+* The local part (before `@`) must contain 1 to 64 ASCII characters. It may contain English letters (`A`–`Z`, `a`–`z`), digits (`0`–`9`), periods (`.`), and these special characters: `` !#$%&'*+/=?^_`{|}~- ``.
+* Periods cannot appear at the start or end of the local part, or consecutively. All other allowed special characters may appear at the start or end, repeat, or appear next to each other.
+* The domain (after `@`) consists of one or more labels separated by periods. Each label must contain 1 to 63 ASCII letters, digits, or hyphens, and must start and end with a letter or digit. Hyphens may repeat within a label. Underscores are not allowed in the domain.
+* The final domain label (the top-level domain for addresses such as `example.com`) must contain at least **2 characters**.
+* The entire address, including `@` and periods, must not exceed **254 characters**.
+* Quoted local parts (such as `"john doe"@example.com`), IP-address domains (such as `john@[127.0.0.1]`), and non-ASCII addresses are not supported.
+
+Accepted examples: `john__doe@example.com`, `_john@example.com`, `john_@example.com`, `john++doe@example.com`, `john_.doe@example.com`, and `o'connor@example.com`.
+
+Rejected examples: `.john@example.com`, `john.@example.com`, `john..doe@example.com`, `john@exam_ple.com`, and `john@example.c`.
+
+TAssist checks the address format only; it does not check whether the domain or mailbox exists.
 
 ### Listing all students: `list`
 
@@ -111,6 +131,7 @@ Format: `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `
 * Edits the student at the specified `INDEX`. The index refers to the index number shown in the displayed student list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
+* An updated email address must follow the same [email constraints](#email-constraints) as `add`.
 * When editing tags, all of the student's existing tags are removed; adding tags is not cumulative.
 * To remove all of a student's tags, enter `t/` without a tag after it.
 
