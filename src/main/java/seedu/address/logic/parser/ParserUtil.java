@@ -27,6 +27,8 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_FUTURE_ATTENDANCE_DATE =
+            "Attendance date %1$s is in the future. Use today or an earlier date.";
     public static final String MESSAGE_MISSING_STUDENT_IDENTIFIER = "Specify the student by either INDEX or "
             + PREFIX_MATRICULATION_NUMBER + "MATRICULATION_NUMBER.\n%1$s";
     public static final String MESSAGE_MULTIPLE_STUDENT_IDENTIFIERS = "Specify the student by either INDEX or "
@@ -113,6 +115,24 @@ public class ParserUtil {
             return Optional.empty();
         }
         return Optional.of(parseAttendanceDate(date.get()));
+    }
+
+    /**
+     * Parses the optional attendance date after d/ and rejects dates later than {@code today}.
+     * Returns an empty {@code Optional} if d/ is absent, so the command can apply its default date.
+     *
+     * @param argMultimap Arguments containing the optional attendance date.
+     * @param today Latest accepted attendance date.
+     * @throws ParseException if the given date is invalid or later than today.
+     */
+    public static Optional<AttendanceDate> parseOptionalPastOrPresentAttendanceDate(ArgumentMultimap argMultimap,
+            AttendanceDate today) throws ParseException {
+        requireNonNull(today);
+        Optional<AttendanceDate> date = parseOptionalAttendanceDate(argMultimap);
+        if (date.isPresent() && date.get().compareTo(today) > 0) {
+            throw new ParseException(String.format(MESSAGE_FUTURE_ATTENDANCE_DATE, date.get()));
+        }
+        return date;
     }
 
     /**
