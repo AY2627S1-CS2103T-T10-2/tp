@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -31,10 +32,14 @@ import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
+import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.gradebook.Assignment;
 import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.gradebook.Gradebook;
 import seedu.address.model.gradebook.Mark;
+import seedu.address.model.person.ParticipationHistory;
+import seedu.address.model.person.ParticipationPoints;
+import seedu.address.model.person.ParticipationRecord;
 import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
@@ -116,6 +121,140 @@ public class StudentDetailsWindowTest {
         VBox assignments = (VBox) stage.getScene().lookup("#assignments");
         return assignments.getChildren().stream().map(node -> ((Label) node).getText()).toList();
     }
+
+    private Person withParticipationRecords(ParticipationRecord... records) {
+        return new Person(student.getName(), student.getMatriculationNumber(), student.getEmail(),
+                student.getTags(), student.getAttendance(), student.getClassCodes(),
+                new ParticipationHistory(List.of(records)));
+    }
+
+    private List<String> displayedParticipationRows(Stage stage) {
+        VBox participation = (VBox) stage.getScene().lookup("#participationRecords");
+        return participation.getChildren().stream()
+                .map(node -> ((Label) node).getText())
+                .toList();
+    }
+
+    @Test
+    public void showStudent_withParticipation_displaysRecordsGroupedAndSorted() throws Exception {
+        Person studentWithRecords = withParticipationRecords(
+                new ParticipationRecord(new ClassCode("CS2103T-T10"),
+                        LocalDate.of(2026, 10, 29), new ParticipationPoints("2")),
+                new ParticipationRecord(new ClassCode("CS2100-T01"),
+                        LocalDate.of(2026, 10, 28), new ParticipationPoints("1")),
+                new ParticipationRecord(new ClassCode("CS2103T-T10"),
+                        LocalDate.of(2026, 10, 28), new ParticipationPoints("3")));
+
+        FutureTask<Void> checkWindow = new FutureTask<>(() -> {
+            Stage owner = new Stage();
+            StudentDetailsWindow window = new StudentDetailsWindow(owner,
+                    FXCollections.observableArrayList(studentWithRecords), () -> new Gradebook());
+            try {
+                window.showStudent(studentWithRecords);
+
+                assertEquals(List.of(
+                                "CS2100-T01",
+                                "28-10-2026  •  1 point",
+                                "CS2103T-T10",
+                                "28-10-2026  •  3 points",
+                                "29-10-2026  •  2 points"),
+                        displayedParticipationRows(window.getRoot()));
+            } finally {
+                window.getRoot().close();
+                owner.close();
+            }
+            return null;
+        });
+
+        Platform.runLater(checkWindow);
+        checkWindow.get(10, TimeUnit.SECONDS);
+    }
+
+    @Test
+    public void showStudent_withoutParticipation_displaysEmptyMessage() throws Exception {
+        FutureTask<Void> checkWindow = new FutureTask<>(() -> {
+            Stage owner = new Stage();
+            StudentDetailsWindow window = new StudentDetailsWindow(owner,
+                    FXCollections.observableArrayList(student), () -> new Gradebook());
+            try {
+                window.showStudent(student);
+
+                assertEquals(List.of("None recorded"),
+                        displayedParticipationRows(window.getRoot()));
+            } finally {
+                window.getRoot().close();
+                owner.close();
+            }
+            return null;
+        });
+
+        Platform.runLater(checkWindow);
+        checkWindow.get(10, TimeUnit.SECONDS);
+    }
+
+
+    @Test
+    public void mainWindow_participationCommands_refreshOpenDetailsWithoutAnotherView() throws Exception {
+        onFxThread(() -> {
+            ModelManager model = new ModelManager();
+            Person enrolled = new PersonBuilder(student).withClassCodes("CS2103T-T10").build();
+            model.addPerson(enrolled);
+
+            Path dataFile = temporaryFolder.resolve("participation-addressbook.json");
+            JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(dataFile);
+            StorageManager storage = new StorageManager(addressBookStorage,
+                    new JsonUserPrefsStorage(temporaryFolder.resolve("participation-preferences.json")));
+            Stage primaryStage = new Stage();
+            MainWindow mainWindow = new MainWindow(primaryStage, new LogicManager(model, storage), dataFile);
+
+            try {
+                mainWindow.fillInnerParts();
+                mainWindow.show();
+
+                TextField commandField = (TextField) primaryStage.getScene().lookup("#commandTextField");
+                String studentPrefix = " m/" + enrolled.getMatriculationNumber();
+
+                enterCommand(commandField, "view 1");
+
+                Stage details = Stage.getWindows().stream()
+                        .filter(window -> window instanceof Stage)
+                        .map(window -> (Stage) window)
+                        .filter(stage -> stage.getOwner() == primaryStage)
+                        .filter(stage -> stage.getScene().lookup("#participationRecords") != null)
+                        .findFirst().orElseThrow();
+
+                assertEquals(List.of("None recorded"), displayedParticipationRows(details));
+
+                enterCommand(commandField, "participation" + studentPrefix
+                        + " c/CS2103T-T10 d/28-10-2026 p/2");
+
+                assertEquals(List.of("CS2103T-T10", "28-10-2026  •  2 points"),
+                        displayedParticipationRows(details));
+
+                enterCommand(commandField, "participation" + studentPrefix
+                        + " c/CS2103T-T10 d/28-10-2026 p/3");
+
+                assertEquals(List.of("CS2103T-T10", "28-10-2026  •  3 points"),
+                        displayedParticipationRows(details));
+
+                enterCommand(commandField, "participation remove" + studentPrefix
+                        + " c/CS2103T-T10 d/28-10-2026");
+
+                assertEquals(List.of("None recorded"), displayedParticipationRows(details));
+
+                assertEquals(model.getAddressBook(), addressBookStorage.readAddressBook().orElseThrow());
+            } finally {
+                Stage.getWindows().stream()
+                        .filter(window -> window instanceof Stage)
+                        .map(window -> (Stage) window)
+                        .filter(stage -> stage.getOwner() == primaryStage)
+                        .toList().forEach(Stage::close);
+                primaryStage.close();
+            }
+            return null;
+        });
+    }
+
 
     @Test
     public void mainWindow_assignmentCommands_refreshOpenDetailsWithoutAnotherView() throws Exception {

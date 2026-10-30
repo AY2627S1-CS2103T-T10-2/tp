@@ -51,6 +51,10 @@
               <Label fx:id="attendanceSummary" styleClass="field-label" />
               <VBox fx:id="attendanceDates" spacing="8" />
             </VBox>
+            <VBox spacing="12" styleClass="section">
+              <Label text="Participation" styleClass="section-title" />
+              <VBox fx:id="participationRecords" spacing="8" />
+            </VBox>
             <Label text="Press Esc to close" styleClass="field-label" />
           </VBox>
         </content>
