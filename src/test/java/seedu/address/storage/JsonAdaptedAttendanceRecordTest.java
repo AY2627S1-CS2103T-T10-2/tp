@@ -18,6 +18,13 @@ public class JsonAdaptedAttendanceRecordTest {
     private static final String VALID_CLASS_CODE = "CS2103T-T10";
 
     @Test
+    public void toModelType_futureDate_returnsRecord() throws Exception {
+        AttendanceRecord expectedRecord = new AttendanceRecord(new AttendanceDate("28-10-2099"),
+                new ClassCode(VALID_CLASS_CODE));
+        assertEquals(expectedRecord, new JsonAdaptedAttendanceRecord("28-10-2099", VALID_CLASS_CODE).toModelType());
+    }
+
+    @Test
     public void toModelType_validRecord_returnsEqualRecord() throws Exception {
         AttendanceRecord record = new AttendanceRecord(new AttendanceDate(VALID_DATE), new ClassCode(VALID_CLASS_CODE));
         assertEquals(record, new JsonAdaptedAttendanceRecord(record).toModelType());

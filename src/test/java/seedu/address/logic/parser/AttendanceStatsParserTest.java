@@ -25,6 +25,12 @@ public class AttendanceStatsParserTest {
     private AttendanceCommandParser parser = new AttendanceCommandParser();
 
     @Test
+    public void parse_futureDate_returnsCommand() {
+        assertParseSuccess(parser, "stats c/CS2103T-T10 d/28-10-2099",
+                new ViewAttendanceStatsCommand(CLASS_T10, new AttendanceDate("28-10-2099")));
+    }
+
+    @Test
     public void parse_validArgs_returnsStatsCommand() {
         ViewAttendanceStatsCommand expectedCommand =
                 new ViewAttendanceStatsCommand(CLASS_T10, DATE);

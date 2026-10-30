@@ -22,7 +22,7 @@ import seedu.address.model.person.AttendanceDate;
 
 /**
  * Parses attendance arguments into a mark, unmark, whole-class mark,
- * or statistics command.
+ * or statistics command. Future-date checks do not apply to statistics.
  */
 public class AttendanceCommandParser implements Parser<Command> {
 
@@ -31,6 +31,22 @@ public class AttendanceCommandParser implements Parser<Command> {
 
     private static final Pattern SUBCOMMAND_FORMAT =
             Pattern.compile("(?<subcommandWord>\\S+)(?<arguments>.*)");
+
+    private final AttendanceDate today;
+
+    /**
+     * Creates a parser using today's date.
+     */
+    public AttendanceCommandParser() {
+        this(AttendanceDate.today());
+    }
+
+    /**
+     * Creates a parser with a fixed date so tests can control today.
+     */
+    AttendanceCommandParser(AttendanceDate today) {
+        this.today = requireNonNull(today);
+    }
 
     /**
      * Parses attendance command arguments.
@@ -66,7 +82,7 @@ public class AttendanceCommandParser implements Parser<Command> {
     /**
      * Parses a request to mark one student's attendance.
      */
-    private static MarkAttendanceCommand parseMark(ArgumentMultimap argMultimap)
+    private MarkAttendanceCommand parseMark(ArgumentMultimap argMultimap)
             throws ParseException {
         StudentIdentifier targetStudent = ParserUtil.parseStudentIdentifier(argMultimap,
                 MarkAttendanceCommand.MESSAGE_USAGE);
@@ -75,7 +91,7 @@ public class AttendanceCommandParser implements Parser<Command> {
                 .orElseThrow(() -> new ParseException(String.format(
                         MESSAGE_MISSING_CLASS_CODE, MarkAttendanceCommand.MESSAGE_USAGE)));
 
-        Optional<AttendanceDate> date = ParserUtil.parseOptionalAttendanceDate(argMultimap);
+        Optional<AttendanceDate> date = ParserUtil.parseOptionalPastOrPresentAttendanceDate(argMultimap, today);
 
         return new MarkAttendanceCommand(targetStudent, classCode, date);
     }
@@ -92,10 +108,10 @@ public class AttendanceCommandParser implements Parser<Command> {
     /**
      * Parses a request to mark the attendance of a whole class.
      */
-    private static MarkClassAttendanceCommand parseMarkClass(ArgumentMultimap argMultimap)
+    private MarkClassAttendanceCommand parseMarkClass(ArgumentMultimap argMultimap)
             throws ParseException {
         ClassCode classCode = ParserUtil.parseOptionalClassCode(argMultimap).orElseThrow();
-        Optional<AttendanceDate> date = ParserUtil.parseOptionalAttendanceDate(argMultimap);
+        Optional<AttendanceDate> date = ParserUtil.parseOptionalPastOrPresentAttendanceDate(argMultimap, today);
 
         return new MarkClassAttendanceCommand(classCode, date);
     }
@@ -103,7 +119,7 @@ public class AttendanceCommandParser implements Parser<Command> {
     /**
      * Parses a request to unmark one student's attendance.
      */
-    private static UnmarkAttendanceCommand parseUnmark(String args)
+    private UnmarkAttendanceCommand parseUnmark(String args)
             throws ParseException {
         ArgumentMultimap argMultimap = tokenizeAttendanceArguments(args);
 
@@ -111,7 +127,7 @@ public class AttendanceCommandParser implements Parser<Command> {
                 UnmarkAttendanceCommand.MESSAGE_USAGE);
 
         Optional<ClassCode> classCode = ParserUtil.parseOptionalClassCode(argMultimap);
-        Optional<AttendanceDate> date = ParserUtil.parseOptionalAttendanceDate(argMultimap);
+        Optional<AttendanceDate> date = ParserUtil.parseOptionalPastOrPresentAttendanceDate(argMultimap, today);
 
         return new UnmarkAttendanceCommand(targetStudent, classCode, date);
     }
