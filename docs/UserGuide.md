@@ -366,7 +366,7 @@ or
 * The index **must be a positive integer** 1, 2, 3, ...
 * The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
 * The matriculation number can identify a student who is not in the displayed list, for example after `find`.
-* `DATE` must be in `dd-MM-yyyy` format. If omitted, today's date is used.
+* `DATE` must be in `dd-MM-yyyy` format and cannot be later than today. If omitted, today's date is used.
 * When marking a single student, an existing record for that class and date shows an error and changes nothing.
 * The same student can be marked in different classes on one date.
 
@@ -394,9 +394,10 @@ or
 * The index **must be a positive integer** 1, 2, 3, ...
 * The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
 * The matriculation number can identify a student who is not in the displayed list, for example after `find`.
-* `DATE` must be in `dd-MM-yyyy` format. If omitted, today's date is used.
+* `DATE` must be in `dd-MM-yyyy` format and cannot be later than today. If omitted, today's date is used.
 * `unmark` is not case-sensitive.
 * Unmarking a date with no attendance recorded for that student, or specifying a class with no record on that date, shows an error and changes nothing.
+* Attendance records dated later than today, such as those saved by an earlier version of TAssist or added by editing the data file, still load, but `attendance unmark` cannot remove them. To remove one, edit the data file.
 
 Examples:
 * `attendance unmark 1 d/07-10-2026` removes the only attendance record for `07-10-2026` for the 1st student in the displayed list.
