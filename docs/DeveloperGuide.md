@@ -209,22 +209,23 @@ Module enrollment is a prerequisite for the `assignment` command, rather than a 
 
 `StudentDetailsWindow#formatAssignmentRows` looks up assignments by the selected person's matriculation number using `ReadOnlyGradebook#getMarksForStudent()`. It sorts entries by the string form of the assignment ID, resolves each shared definition, and formats the ID, name, maximum mark, and optional score. Recorded scores use plain decimal notation as `Mark: SCORE/MAXIMUM`; a zero remains a recorded score, while an empty mark displays `Mark: Unmarked`. Unassigned definitions and other students' marks are excluded.
 
-The `assignments` container in `StudentDetailsWindow.fxml` holds the rows under Assignments and marks. Each refresh clears the previous rows before displaying the selected student's results or `None assigned`. Labels wrap within the existing scrollable window. `showStudent` explicitly refreshes even when selecting the same `Person`, because an unchanged selection does not fire a property-change event. After other commands execute and save successfully, `MainWindow` calls `refreshIfShowing()` on an existing window. This immediately reflects assignment, mark, removeassignment, and participation record changes without another view command. The refresh only reads the current model snapshot and updates UI controls; it does not alter student data, assignment links, marks, or history.
+The `assignments` container in `StudentDetailsWindow.fxml` holds the rows under Assignments and marks. Each refresh clears the previous rows before displaying the selected student's results or `None assigned`. Labels wrap within the existing scrollable window. `showStudent` explicitly refreshes even when selecting the same `Person`, because an unchanged selection does not fire a property-change event. After other commands execute and save successfully, `MainWindow` calls `refreshIfShowing()` on an existing window. This immediately reflects `assignment`, `mark`, `removeassignment` without another `view` command. The refresh only reads the current model snapshot and updates UI controls; it does not alter student data, assignment links, marks, or history.
 
 `StudentDetailsWindowTest` covers empty assignments, ordering, student isolation, decimal and zero scores, unmarked assignments, and updated or removed entries. Regression cases exercise repeated views, matriculation migration, rapid edits, switching students while a refresh is pending, closing, deletion, undo/redo, and preservation of model data. `mainWindow_assignmentCommands_refreshOpenDetailsWithoutAnotherView` enters commands through the actual `MainWindow` command box and verifies immediate mark, assignment, and removal updates, saved data, and a closed window staying closed. The tests initialize JavaFX and perform window operations on its application thread; Linux CI runs under Xvfb to provide a display. `LogicManagerTest#getGradebook_afterMarkChanges_returnsFreshSnapshot` verifies that a later request reflects a mark update while the earlier snapshot stays unchanged.
 
 
+
 ### Student profile participation history
 
-StudentDetailsWindow displays the selected student's participation history in a separate Participation section below Attendance.
+`StudentDetailsWindow` displays the selected student's participation history in a separate Participation section below Attendance.
 
-The window reads the records directly from Person#getParticipationHistory().getRecords(). It does not require a separate data source or storage mechanism.
+The window reads the records directly from `Person#getParticipationHistory().getRecords()`. It does not require a separate data source or storage mechanism.
 
-StudentDetailsWindow#updateParticipation clears the previous entries and rebuilds the section using the selected student's participation records. Records are sorted by class code and then by date in ascending order. Each class code is displayed as a heading, followed by its participation dates and points. A score of 1 is displayed as 1 point, while other scores use points. If the history is empty, the section displays None recorded.
+`StudentDetailsWindow#updateParticipation` clears the previous entries and rebuilds the section using the selected student's participation records. Records are sorted by class code and then by date in ascending order. Each class code is displayed as a heading, followed by its participation dates and points. A score of 1 is displayed as 1 point, while other scores use points. If the history is empty, the section displays `None recorded`.
 
-The participationRecords container in StudentDetailsWindow.fxml holds these entries below the Attendance section. Each refresh rebuilds the displayed records from the selected Person's current participation history. The method only reads the existing records and does not modify student data.
+The `participationRecords` container in `StudentDetailsWindow.fxml` holds these entries below the Attendance section. Each refresh rebuilds the displayed records from the selected `Person`'s current participation history without modifying the stored records.
 
-StudentDetailsWindowTest covers empty histories, multiple classes, date ordering and point formatting. The tests also verify that participation records are refreshed when points are added, updated or removed through the MainWindow command box without another view command.
+`StudentDetailsWindowTest` covers empty histories, multiple classes, date ordering and point formatting. The tests also verify that participation records are refreshed when points are added, updated or removed through the `MainWindow` command box without another `view` command.
 
 ### Sorting displayed students
 

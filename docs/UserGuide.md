@@ -196,7 +196,7 @@ Format: `view INDEX`
 * Successful `undo` and `redo` also close the details window. Run `view` again to inspect the restored records. A manually closed window stays closed when later commands change the student or their marks.
 * Finding, filtering, or sorting students keeps the window on the same student, even if that student is no longer in the displayed list. Changes to other students do not switch the window to another student.
 * Attendance records show the date and class, ordered from newest to oldest, then by class code for records on the same date. If there are no attendance records, the Attendance section shows `None recorded`.
-* The Participation section groups records by class code. Within each class, records are ordered by date, from earliest to latest. Each record shows its date and awarded points. If the student has no participation records, the section shows None recorded.
+* The Participation section groups records by class code. Within each class, records are ordered by date, from earliest to latest. Each record shows its date and awarded points. If the student has no participation records, the section shows `None recorded`.
 * The Assignments and marks section shows only assignments attached to the selected student, ordered by assignment ID. Each entry includes its ID, name, maximum mark, and score (for example, `Mark: 8.5/10`).
 * An assignment without a recorded score shows `Mark: Unmarked`. A recorded zero shows a score such as `Mark: 0/10`. If the student has no assignments, the section shows `None assigned`.
 * After `assignment`, `mark`, or `removeassignment` succeeds, the open window immediately shows the updated assignments and scores. You do not need to run `view` again.
