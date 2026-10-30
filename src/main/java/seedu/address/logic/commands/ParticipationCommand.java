@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -37,6 +38,9 @@ public class ParticipationCommand extends Command {
     public static final String MESSAGE_NOT_ENROLLED =
             "%1$s is not enrolled in %2$s. Enroll the student in this class first.";
 
+    public static final String MESSAGE_FUTURE_DATE =
+            "Attendance date %s is in the future. Use today or an earlier date.";
+
     private static final Logger logger = LogsCenter.getLogger(ParticipationCommand.class);
 
     private final StudentIdentifier targetStudent;
@@ -59,6 +63,10 @@ public class ParticipationCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
+
+        if (date.toLocalDate().isAfter(LocalDate.now())) {
+            throw new CommandException(String.format(MESSAGE_FUTURE_DATE, date));
+        }
 
         Person student = targetStudent.resolve(model);
         if (!student.isEnrolledIn(classCode)) {
