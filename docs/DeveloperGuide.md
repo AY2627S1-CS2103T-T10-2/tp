@@ -1386,60 +1386,76 @@ Start in a fresh test folder with the original six sample students. Run these st
    1. Test case: `attendance c/CS2103T-T99`<br>
       Expected: The status message shows `No students are enrolled in CS2103T-T99.` No attendance records change.
 
+
 ### Recording class participation
 
-Use test data for the cases below, as some steps change student details or remove participation records.
-
-Replace `MATRIC` with the chosen test student's matriculation number, without the angle brackets or any other placeholder text. `NAME` refers to that student's current name. Run commands one at a time.
+Start in a fresh test folder with the original sample students. Use a fresh copy of the test data for each scenario.
 
 1. Recording and updating participation points
-   1. Prerequisites: Run `list` with at least one student in the list. Use the first student as the test student and note their matriculation number using `view 1`. Enroll them using `enroll 1 c/CS2103T-T10` if they are not already enrolled. The student must have no participation record for CS2103T-T10 on 28-10-2026.
-   2. Test case: `participation 1 c/CS2103T-T10 d/28-10-2026 p/2`, followed by `participation view m/MATRIC`.<br>
+
+   1. Prerequisites: Run `find Yeoh` to display Alex Yeoh. Use `view 1` to verify the matriculation number is `A1234567X`. Enroll Alex Yeoh using `enroll 1 c/CS2103T-T10` if they are not already enrolled. Alex Yeoh must have no participation record for CS2103T-T10 on 28-10-2026.
+   2. Test case: `participation 1 c/CS2103T-T10 d/28-10-2026 p/2`, followed by `participation view m/A1234567X`.<br>
       Expected: The status message confirms that 2 points were recorded. The history contains `CS2103T-T10 | 28-10-2026 | 2 point(s)`. Attendance and other student details are unchanged.
-   3. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3`, followed by `participation view m/MATRIC`.<br>
+   3. Test case: `participation m/A1234567X c/CS2103T-T10 d/28-10-2026 p/3`, followed by `participation view m/A1234567X`.<br>
       Expected: The existing score is replaced. There is one record for that class and date with 3 points, not 5. Other participation records are unchanged.
-   4. Test case: Repeat `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3`, then view the history again.<br>
+   4. Test case: Repeat `participation m/A1234567X c/CS2103T-T10 d/28-10-2026 p/3`, then run `participation view m/A1234567X` again.<br>
       Expected: The score remains 3 and no duplicate record is created.
 
 2. Viewing a student outside the displayed list
-   1. Prerequisites: Have at least two students with distinguishable names. The chosen test student must have a participation record. Run `participation view m/MATRIC` to note their history, then use `find` with a keyword that matches another student only, so the chosen student is not displayed.
-   2. Test case: `participation view m/MATRIC`.<br>
-      Expected: The chosen student's participation history is shown in the command result panel, even though they are not in the displayed list. Entries are ordered by class code and then date. The displayed student list and stored data are unchanged.
+
+   1. Prerequisites: Run `find Yeoh` to display Alex Yeoh. Enroll Alex Yeoh in CS2103T-T10 if they are not already enrolled. Ensure Alex Yeoh has a participation record by running `participation m/A1234567X c/CS2103T-T10 d/28-10-2026 p/3`. Run `find Balakrishnan` to display Roy Balakrishnan instead, so Alex Yeoh is no longer in the displayed list.
+
+   2. Test case: `participation view m/A1234567X`.<br>
+      Expected: Alex Yeoh's participation history is shown in the command result panel, even though Alex Yeoh is not in the displayed list. Entries are ordered by class code and then date. The displayed student list and stored data are unchanged.
 
 3. Rejecting invalid or incomplete input
-   1. Prerequisites: The chosen student is enrolled in CS2103T-T10. Run `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3`, then `participation view m/MATRIC` to note the existing records. After each rejected command below, view the history again to check that it is unchanged.
-   2. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/-1`.<br>
+
+   1. Prerequisites: Run `find Yeoh` and ensure Alex Yeoh is enrolled in CS2103T-T10. Run `participation m/A1234567X c/CS2103T-T10 d/28-10-2026 p/3`, then `participation view m/A1234567X` to note the existing records. After each rejected command below, run `participation view m/A1234567X` again to check that the history is unchanged.
+
+   2. Test case: `participation m/A1234567X c/CS2103T-T10 d/28-10-2026 p/-1`.<br>
       Expected: The status message explains the valid points format and range. The existing score remains 3, and no other participation records change.
+
    3. Test case: Repeat the previous command with each of these point values: `p/2.5`, `p/two`, `p/2147483648`, and an empty `p/`.<br>
       Expected: Each command is rejected without changing any participation records.
-   4. Test case: `participation m/MATRIC c/CS2103T-T10 d/31-02-2026 p/2`.<br>
+
+   4. Test case: `participation m/A1234567X c/CS2103T-T10 d/31-02-2026 p/2`.<br>
       Expected: The status message explains that a valid calendar date in dd-MM-yyyy format is required. No record is added or changed.
-   5. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026`.<br>
+
+   5. Test case: `participation m/A1234567X c/CS2103T-T10 d/28-10-2026`.<br>
       Expected: The status message asks for points using `p/POINTS`. The existing history is unchanged.
-   6. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/2 p/3`.<br>
+
+   6. Test case: `participation m/A1234567X c/CS2103T-T10 d/28-10-2026 p/2 p/3`.<br>
       Expected: The repeated prefix is rejected. Neither value is applied, and the existing history is unchanged.
 
 4. Rejecting a class the student is not enrolled in
-   1. Prerequisites: The chosen student is enrolled in CS2103T-T10 but not CS2103T-T11. Note the student's current participation history.
-   2. Test case: `participation m/MATRIC c/CS2103T-T11 d/28-10-2026 p/2`.<br>
-      Expected: The status message shows `NAME is not enrolled in CS2103T-T11. Enroll the student in this class first.` No student data is changed.
+
+   1. Prerequisites: Run `find Yeoh` to display Alex Yeoh. Ensure Alex Yeoh is enrolled in CS2103T-T10 but not CS2103T-T11. Note Alex Yeoh's current participation history using `participation view m/A1234567X`.
+
+   2. Test case: `participation m/A1234567X c/CS2103T-T11 d/28-10-2026 p/2`.<br>
+      Expected: The status message shows `Alex Yeoh is not enrolled in CS2103T-T11. Enroll the student in this class first.` No student data is changed.
 
 5. Preserving participation after edits, attendance changes and restart
-   1. Prerequisites: Run `list` and use the first student as the test student. Note their matriculation number using `view 1`. Ensure this student is enrolled in CS2103T-T10. Run `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3` to set up the participation record. The student must have no attendance record for that class on 29-10-2026.
-   2. Test case: `edit 1 n/Participation Test Student`, followed by `participation view m/MATRIC`.<br>
-      Expected: The student's name changes, but the participation record still contains 3 points for CS2103T-T10 on 28-10-2026. Other participation records are unchanged.
-   3. Test case: `attendance m/MATRIC c/CS2103T-T10 d/29-10-2026`, followed by `participation view m/MATRIC`.<br>
-      Expected: Attendance is recorded successfully. The participation history is unchanged.
-   4. Test case: Close and reopen TAssist, then run `participation view m/MATRIC`.<br>
-      Expected: The updated student name and participation history are retained, including the score of 3 for CS2103T-T10 on 28-10-2026.
 
+   1. Prerequisites: Run `find Yeoh` to display Alex Yeoh. Use `view 1` to verify the matriculation number is `A1234567X`. Ensure Alex Yeoh is enrolled in CS2103T-T10. Alex Yeoh must have no attendance record for that class on 29-10-2026.
+
+   2. Test case: `participation m/A1234567X c/CS2103T-T10 d/28-10-2026 p/3`, followed by `participation view m/A1234567X`.<br>
+      Expected: A participation record with 3 points is created for CS2103T-T10 on 28-10-2026.
+
+   3. Test case: `edit 1 n/Participation Test Student`, followed by `participation view m/A1234567X`.<br>
+      Expected: Alex Yeoh's name changes to Participation Test Student, but the participation record still contains 3 points for CS2103T-T10 on 28-10-2026. Other participation records are unchanged.
+
+   4. Test case: `attendance m/A1234567X c/CS2103T-T10 d/29-10-2026`, followed by `participation view m/A1234567X`.<br>
+      Expected: Attendance is recorded successfully. The participation history is unchanged.
+
+   5. Test case: Close and reopen TAssist, then run `participation view m/A1234567X`.<br>
+      Expected: The updated student name and participation history are retained, including the score of 3 for CS2103T-T10 on 28-10-2026.
 6. Distinguishing zero points from removing a record
-   1. Prerequisites: The chosen student is enrolled in CS2103T-T10. Run `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3` and `participation m/MATRIC c/CS2103T-T10 d/29-10-2026 p/1`. View the history to confirm both records.
-   2. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/0`, followed by `participation view m/MATRIC`.<br>
+   1. Prerequisites: Run `find Yeoh` to display Alex Yeoh. Ensure Alex Yeoh is enrolled in CS2103T-T10. Run `participation m/A1234567X c/CS2103T-T10 d/28-10-2026 p/3` and `participation m/A1234567X c/CS2103T-T10 d/29-10-2026 p/1`. View the history using `participation view m/A1234567X` to confirm both records.
+   2. Test case: `participation m/A1234567X c/CS2103T-T10 d/28-10-2026 p/0`, followed by `participation view m/A1234567X`.<br>
       Expected: The 28-10-2026 record remains in the history with 0 points. The 29-10-2026 record still has 1 point.
-   3. Test case: `participation remove m/MATRIC c/CS2103T-T10 d/28-10-2026`, followed by `participation view m/MATRIC`.<br>
+   3. Test case: `participation remove m/A1234567X c/CS2103T-T10 d/28-10-2026`, followed by `participation view m/A1234567X`.<br>
       Expected: Only the 28-10-2026 participation record is removed. The 29-10-2026 record, attendance and other student details remain unchanged.
-   4. Test case: Repeat `participation remove m/MATRIC c/CS2103T-T10 d/28-10-2026`, then view the history again.<br>
+   4. Test case: Repeat `participation remove m/A1234567X c/CS2103T-T10 d/28-10-2026`, then run `participation view m/A1234567X` again.<br>
       Expected: The status message reports that no participation record exists for that student, class and date. No further data changes occur.
 
 ### Viewing class attendance statistics
