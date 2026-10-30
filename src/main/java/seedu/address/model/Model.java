@@ -151,8 +151,8 @@ public interface Model {
 
     /**
      * Reverses the most recent change to the address book.
-     * On success, clears the person list filter and resets sorting to {@link #COMPARATOR_NAME_ASC}
-     * with no extra sort detail displayed.
+     * Preserves the current search, class/module filter and sort, refreshing assignment marks from restored data.
+     * If the sorted assignment no longer exists, resets sorting to {@link #COMPARATOR_NAME_ASC} with no extra detail.
      *
      * @throws IllegalStateException if undo is unavailable.
      */
@@ -160,8 +160,8 @@ public interface Model {
 
     /**
      * Reapplies the most recently undone change.
-     * On success, clears the person list filter and resets sorting to {@link #COMPARATOR_NAME_ASC}
-     * with no extra sort detail displayed.
+     * Preserves the current search, class/module filter and sort, refreshing assignment marks from restored data.
+     * If the sorted assignment no longer exists, resets sorting to {@link #COMPARATOR_NAME_ASC} with no extra detail.
      *
      * @throws IllegalStateException if redo is unavailable.
      */

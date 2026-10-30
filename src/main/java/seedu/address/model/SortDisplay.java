@@ -5,7 +5,6 @@ import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.function.Function;
 
-import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.person.Person;
 
 /**
@@ -17,11 +16,11 @@ public final class SortDisplay {
             person -> "Attendance records: " + person.getAttendance().getRecords().size());
 
     private final Optional<Function<Person, String>> detailFormatter;
-    private final Optional<AssignmentId> assignmentId;
+    private final Optional<AssignmentSort> assignmentSort;
 
-    private SortDisplay(Optional<Function<Person, String>> detailFormatter, Optional<AssignmentId> assignmentId) {
+    private SortDisplay(Optional<Function<Person, String>> detailFormatter, Optional<AssignmentSort> assignmentSort) {
         this.detailFormatter = detailFormatter;
-        this.assignmentId = assignmentId;
+        this.assignmentSort = assignmentSort;
     }
 
     /** Creates a display description using the given student detail formatter. */
@@ -30,14 +29,20 @@ public final class SortDisplay {
     }
 
     /** Creates a display description for a sort on one assignment's marks. */
-    public static SortDisplay createForAssignment(AssignmentId assignmentId,
+    public static SortDisplay createForAssignment(AssignmentSort assignmentSort,
             Function<Person, String> detailFormatter) {
-        return new SortDisplay(Optional.of(requireNonNull(detailFormatter)), Optional.of(requireNonNull(assignmentId)));
+        return new SortDisplay(Optional.of(requireNonNull(detailFormatter)),
+                Optional.of(requireNonNull(assignmentSort)));
     }
 
     /** Returns whether this display belongs to a sort on assignment marks. */
     public boolean isAssignmentSort() {
-        return assignmentId.isPresent();
+        return assignmentSort.isPresent();
+    }
+
+    /** Returns the assignment sort to rebuild after restoring student records and marks. */
+    public Optional<AssignmentSort> getAssignmentSort() {
+        return assignmentSort;
     }
 
     /** Returns the extra detail to display for a student, if any. */

@@ -3,18 +3,15 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Comparator;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.model.AssignmentSort;
 import seedu.address.model.Model;
 import seedu.address.model.SortDisplay;
-import seedu.address.model.gradebook.Assignment;
 import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.gradebook.Gradebook;
-import seedu.address.model.gradebook.Mark;
-import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.Person;
 
 /**
@@ -110,27 +107,10 @@ public class SortCommand extends Command {
     private CommandResult sortByMark(Model model) throws CommandException {
         AssignmentId id = assignmentId.orElseThrow();
         var gradebook = model.getAddressBook().getGradebook();
-        Assignment assignment = gradebook.findAssignment(id)
+        gradebook.findAssignment(id)
                 .orElseThrow(() -> new CommandException(Gradebook.MESSAGE_UNKNOWN_ASSIGNMENT));
-        Map<MatriculationNumber, Optional<Mark>> marks = gradebook.getStudentMarks(id);
-        Comparator<Person> comparator = (first, second) -> {
-            Optional<Mark> firstMark = marks.getOrDefault(first.getMatriculationNumber(), Optional.empty());
-            Optional<Mark> secondMark = marks.getOrDefault(second.getMatriculationNumber(), Optional.empty());
-            if (firstMark.isEmpty() || secondMark.isEmpty()) {
-                return Boolean.compare(firstMark.isEmpty(), secondMark.isEmpty());
-            }
-            int result = firstMark.orElseThrow().getValue().compareTo(secondMark.orElseThrow().getValue());
-            return direction == SortDirection.DESC ? -result : result;
-        };
-        String maximum = assignment.getMaxMark().toPlainString();
-        SortDisplay display = SortDisplay.createForAssignment(id, person -> {
-            MatriculationNumber student = person.getMatriculationNumber();
-            String value = marks.containsKey(student)
-                    ? marks.get(student).map(mark -> mark + "/" + maximum).orElse("Unmarked")
-                    : "Not assigned";
-            return id + ": " + value;
-        });
-        model.sortPersons(comparator.thenComparing(Model.COMPARATOR_NAME_ASC), display);
+        AssignmentSort sort = new AssignmentSort(id, direction == SortDirection.DESC);
+        model.sortPersons(sort.createComparator(gradebook), sort.createDisplay(gradebook));
         return new CommandResult(String.format(MESSAGE_SUCCESS, id + " mark", direction.displayName));
     }
 

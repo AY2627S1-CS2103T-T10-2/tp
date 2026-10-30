@@ -223,19 +223,24 @@ public class ModelManager implements Model {
     @Override
     public void undoAddressBook() {
         versionedAddressBook.undo();
-        resetDisplayAfterRestoration();
+        refreshDisplayAfterRestoration();
     }
 
     @Override
     public void redoAddressBook() {
         versionedAddressBook.redo();
-        resetDisplayAfterRestoration();
+        refreshDisplayAfterRestoration();
     }
 
-    private void resetDisplayAfterRestoration() {
-        resetFilteredPersonList();
-        sortPersons(COMPARATOR_NAME_ASC);
-
+    private void refreshDisplayAfterRestoration() {
+        sortDisplay.get().getAssignmentSort().ifPresent(assignmentSort -> {
+            var gradebook = versionedAddressBook.getGradebook();
+            if (gradebook.findAssignment(assignmentSort.getAssignmentId()).isPresent()) {
+                sortPersons(assignmentSort.createComparator(gradebook), assignmentSort.createDisplay(gradebook));
+            } else {
+                sortPersons(COMPARATOR_NAME_ASC);
+            }
+        });
         addressBookRestoreCount.set(addressBookRestoreCount.get() + 1);
     }
 

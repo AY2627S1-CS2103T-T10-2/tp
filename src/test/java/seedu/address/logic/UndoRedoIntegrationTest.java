@@ -130,7 +130,7 @@ public class UndoRedoIntegrationTest {
     }
 
     @Test
-    public void execute_mutatingCommands_supportUndoRedoAndResetDisplay() throws Exception {
+    public void execute_mutatingCommands_supportUndoRedoAndPreserveDisplay() throws Exception {
         ModelManager model = new ModelManager();
         Logic logic = createLogic(model);
         List<String> commands = List.of(
@@ -167,16 +167,119 @@ public class UndoRedoIntegrationTest {
                 assertFalse(logic.execute(historyCommand).isExit());
                 AddressBook expected = historyCommand.equals("undo") ? before : after;
                 assertEquals(expected, model.getAddressBook(), text + ": " + historyCommand);
-                assertEquals(expected.getPersonList().stream().sorted(Model.COMPARATOR_NAME_ASC).toList(),
-                        model.getFilteredPersonList(), text + ": display after " + historyCommand);
-                assertEquals(SortDisplay.NONE, model.sortDisplayProperty().getValue());
+                assertEquals(List.of(), model.getFilteredPersonList(), text + ": display after " + historyCommand);
+                assertEquals(SortDisplay.ATTENDANCE, model.sortDisplayProperty().getValue());
                 assertEquals(restoreCount + 1, model.addressBookRestoreCountProperty().getValue().intValue());
             }
+            logic.execute("list");
         }
         for (int i = 0; i < commands.size(); i++) {
             logic.execute("undo");
         }
         assertEquals(new AddressBook(), model.getAddressBook());
         assertFalse(model.canUndoAddressBook());
+    }
+
+    @Test
+    public void execute_undoRedo_preservesCombinedSearchFilterAndDescendingSort() throws Exception {
+        ModelManager model = new ModelManager();
+        Logic logic = createLogic(model);
+        logic.execute("add n/Alex m/A1234567A e/alex@example.com");
+        logic.execute("add n/Barry m/A2345678B e/barry@example.com");
+        logic.execute("add n/Ben m/A3456789C e/ben@example.com");
+        logic.execute("add n/Brian m/A4567890D e/brian@example.com");
+        logic.execute("enroll 1 c/CS2103T-T10");
+        logic.execute("enroll 2 c/CS2103T-T10");
+        logic.execute("enroll 3 c/CS2103T-T10");
+        logic.execute("enroll 4 c/CS3230-T01");
+        logic.execute("filter CS2103T-T10");
+        logic.execute("find b");
+        logic.execute("sort name desc");
+        assertEquals(List.of("Ben", "Barry"), displayedNames(model));
+
+        logic.execute("unenroll 1 c/CS2103T-T10");
+        assertEquals(List.of("Barry"), displayedNames(model));
+        logic.execute("undo");
+        assertEquals(List.of("Ben", "Barry"), displayedNames(model));
+        logic.execute("redo");
+        assertEquals(List.of("Barry"), displayedNames(model));
+
+        logic.execute("undo");
+        logic.execute("filter CS3230");
+        logic.execute("sort name desc");
+        logic.execute("redo");
+        assertEquals(List.of("Brian"), displayedNames(model));
+    }
+
+    @Test
+    public void execute_undoRedo_refreshesAttendanceSortAndDetails() throws Exception {
+        ModelManager model = new ModelManager();
+        Logic logic = createLogic(model);
+        logic.execute("add n/Amy m/A1234567A e/amy@example.com");
+        logic.execute("add n/Bob m/A2345678B e/bob@example.com");
+        logic.execute("enroll 2 c/CS2103T-T10");
+        logic.execute("attendance m/A2345678B c/CS2103T-T10 d/07-10-2026");
+        logic.execute("sort attendance desc");
+        assertEquals(List.of("Bob", "Amy"), displayedNames(model));
+
+        logic.execute("undo");
+        assertEquals(List.of("Amy", "Bob"), displayedNames(model));
+        assertEquals("Attendance records: 0", model.sortDisplayProperty().getValue()
+                .getDetailFor(model.getFilteredPersonList().get(1)).orElseThrow());
+        logic.execute("redo");
+        assertEquals(List.of("Bob", "Amy"), displayedNames(model));
+        assertEquals("Attendance records: 1", model.sortDisplayProperty().getValue()
+                .getDetailFor(model.getFilteredPersonList().getFirst()).orElseThrow());
+    }
+
+    @Test
+    public void execute_undoRedo_refreshesAssignmentSortAndDetailsFromRestoredMarks() throws Exception {
+        ModelManager model = new ModelManager();
+        Logic logic = createLogic(model);
+        logic.execute("add n/Amy m/A1234567A e/amy@example.com");
+        logic.execute("add n/Bob m/A2345678B e/bob@example.com");
+        logic.execute("enroll 1 c/CS2103T-T10");
+        logic.execute("enroll 2 c/CS2103T-T10");
+        logic.execute("assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20");
+        logic.execute("assignment m/A2345678B id/CS2103T:A1");
+        logic.execute("mark m/A1234567A id/CS2103T:A1 mark/5");
+        logic.execute("mark m/A2345678B id/CS2103T:A1 mark/10");
+        logic.execute("mark m/A1234567A id/CS2103T:A1 mark/15");
+        logic.execute("sort mark id/CS2103T:A1 desc");
+        assertEquals(List.of("Amy", "Bob"), displayedNames(model));
+
+        logic.execute("undo");
+        assertEquals(List.of("Bob", "Amy"), displayedNames(model));
+        assertEquals("CS2103T:A1: 5/20", model.sortDisplayProperty().getValue()
+                .getDetailFor(model.getFilteredPersonList().get(1)).orElseThrow());
+        logic.execute("redo");
+        assertEquals(List.of("Amy", "Bob"), displayedNames(model));
+        assertEquals("CS2103T:A1: 15/20", model.sortDisplayProperty().getValue()
+                .getDetailFor(model.getFilteredPersonList().getFirst()).orElseThrow());
+    }
+
+    @Test
+    public void execute_undoSortedAssignmentCreation_resetsOnlySortWhenAssignmentDisappears() throws Exception {
+        ModelManager model = new ModelManager();
+        Logic logic = createLogic(model);
+        logic.execute("add n/Amy m/A1234567A e/amy@example.com");
+        logic.execute("add n/Bob m/A2345678B e/bob@example.com");
+        logic.execute("enroll 1 c/CS2103T-T10");
+        logic.execute("assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20");
+        logic.execute("filter CS2103T-T10");
+        logic.execute("sort mark id/CS2103T:A1 desc");
+
+        logic.execute("undo");
+        assertTrue(model.getAddressBook().getGradebook().findAssignment(new AssignmentId("CS2103T:A1")).isEmpty());
+        assertEquals(List.of("Amy"), displayedNames(model));
+        assertEquals(SortDisplay.NONE, model.sortDisplayProperty().getValue());
+        logic.execute("redo");
+        assertTrue(model.getAddressBook().getGradebook().findAssignment(new AssignmentId("CS2103T:A1")).isPresent());
+        assertEquals(List.of("Amy"), displayedNames(model));
+        assertEquals(SortDisplay.NONE, model.sortDisplayProperty().getValue());
+    }
+
+    private List<String> displayedNames(Model model) {
+        return model.getFilteredPersonList().stream().map(person -> person.getName().fullName).toList();
     }
 }

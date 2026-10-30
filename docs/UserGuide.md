@@ -609,7 +609,9 @@ Format: `undo`
 * Supports changes to students, enrollment, attendance, assignments and marks, including `delete`, `clear`, and both forms of `removeassignment`.
 * You can repeat `undo` to restore earlier changes in the current session. History starts when TAssist launches and is discarded when it closes.
 * Commands that only change the displayed list, unsuccessful commands that leave records unchanged, and commands that make no change to records do not add history entries.
-* A successful undo shows all students sorted by name in ascending order, clears extra sort details, and closes the student details window. It saves the restored records to the data file.
+* A successful undo keeps the search, class/module filter and sort active immediately before `undo`. The displayed students and sort details update to reflect the restored records, so a restored student may remain hidden by the current search or filter.
+* If you are sorting by an assignment's marks, the order and displayed marks refresh from the restored records. If that assignment no longer exists, the list returns to ascending name order and removes the mark details; the search and class/module filter remain active.
+* A successful undo closes the student details window and saves the restored records to the data file.
 * If there is no earlier change, TAssist reports `No commands to undo.` and leaves records and the displayed list unchanged.
 * If saving fails after a change or restoration, the in-memory change still takes effect and remains in history; follow the error message before retrying the command.
 
@@ -623,7 +625,7 @@ Format: `redo`
 
 * You can repeat `redo` until all undone changes have been reapplied.
 * A new change to records after `undo` discards the remaining redo history. Commands that only change the display, failed commands that leave records unchanged, and commands that make no change to records preserve redo history.
-* Successful redo resets the displayed list and closes student details in the same way as undo, then saves the restored records.
+* Successful redo keeps the current search, class/module filter and sort, with the same assignment-sort fallback as undo. Display choices made after `undo` remain in effect when you run `redo`. It closes student details and saves the restored records.
 * If there is no change to redo, TAssist reports `No commands to redo.` and leaves records and the displayed list unchanged.
 * Extra parameters after `undo` or `redo` are ignored, as with `clear`.
 
