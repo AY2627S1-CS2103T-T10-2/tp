@@ -9,6 +9,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.SortDisplay;
+import seedu.address.model.gradebook.ReadOnlyGradebook;
 import seedu.address.model.person.Person;
 
 /**
@@ -29,8 +30,14 @@ public interface Logic {
      */
     Optional<String> getStartupErrorMessage();
 
+    /** Returns an unmodifiable observable view of all persons, independent of filtering and sorting. */
+    ObservableList<Person> getPersonList();
+
     /** Returns an unmodifiable view of the filtered list of persons */
     ObservableList<Person> getFilteredPersonList();
+
+    /** Returns a snapshot of assignment definitions and student marks. */
+    ReadOnlyGradebook getGradebook();
 
     /** Returns the extra student detail selected by the active sort. */
     ObservableValue<SortDisplay> sortDisplayProperty();

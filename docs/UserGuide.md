@@ -15,14 +15,16 @@ TAssist is a **desktop application for managing students, optimized for use thro
 
 ## Quick start
 
-1. Ensure that Java `25` or later is installed on your computer.<br>
+1. Ensure that Java `25` is installed on your computer. Run `java -version` in a terminal to check that Java 25 is selected.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
 1. Download the latest `.jar` file from [here](https://github.com/AY2627S1-CS2103T-T10-2/tp/releases).
 
-1. Copy the file to the folder you want to use as the _home folder_ for your TAssist.
+1. Copy the file to the folder you want to use as the _home folder_ for your TAssist.<br>
+   Choose a folder where you have permission to create and update files. TAssist cannot save your records and preferences properly in a write-protected folder.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
+1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar "addressbook.jar"`. If your downloaded file has a different name, substitute that filename inside the quotes.<br>
+   Double-clicking the JAR file may not work on some systems. Use the terminal command above to launch TAssist.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
@@ -35,7 +37,7 @@ TAssist is a **desktop application for managing students, optimized for use thro
 
    * `delete 3` : Deletes the 3rd student shown in the current list.
 
-   * `clear` : Deletes all students.
+   * `clear` : Deletes all students and their associated records, all shared assignment definitions, and all recorded marks.
 
    * `exit` : Exits the app.
 
@@ -85,6 +87,8 @@ Adds a student to the address book.
 
 Format: `add n/NAME m/MATRICULATION_NUMBER e/EMAIL [t/TAG]... `
 
+The email address must follow the [email constraints](#email-constraints) below.
+
 <box type="tip" seamless>
 
 **Tip:** A student can have any number of tags, including zero.
@@ -94,11 +98,29 @@ Examples:
 * `add n/John Doe m/A1234567A e/johnd@example.com`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com m/A2345678A t/criminal`
 
+#### Email constraints
+
+These rules apply to the `e/EMAIL` field in both `add` and `edit`.
+
+* The address must have the form `local-part@domain`, with exactly one `@` and no spaces.
+* The local part (before `@`) must contain 1 to 64 ASCII characters. It may contain English letters (`A`–`Z`, `a`–`z`), digits (`0`–`9`), periods (`.`), and these special characters: `` !#$%&'*+/=?^_`{|}~- ``.
+* Periods cannot appear at the start or end of the local part, or consecutively. All other allowed special characters may appear at the start or end, repeat, or appear next to each other.
+* The domain (after `@`) consists of one or more labels separated by periods. Each label must contain 1 to 63 ASCII letters, digits, or hyphens, and must start and end with a letter or digit. Hyphens may repeat within a label. Underscores are not allowed in the domain.
+* The final domain label (the top-level domain for addresses such as `example.com`) must contain at least **2 characters**.
+* The entire address, including `@` and periods, must not exceed **254 characters**.
+* Quoted local parts (such as `"john doe"@example.com`), IP-address domains (such as `john@[127.0.0.1]`), and non-ASCII addresses are not supported.
+
+Accepted examples: `john__doe@example.com`, `_john@example.com`, `john_@example.com`, `john++doe@example.com`, `john_.doe@example.com`, and `o'connor@example.com`.
+
+Rejected examples: `.john@example.com`, `john.@example.com`, `john..doe@example.com`, `john@exam_ple.com`, and `john@example.c`.
+
+TAssist checks the address format only; it does not check whether the domain or mailbox exists.
+
 ### Listing all students: `list`
 
 Shows a list of all students in the address book.
 
-Students appear in alphabetical name order. `list` clears any active search and sort.
+Students appear in alphabetical name order. `list` clears any active `find`, `filter` and sort.
 
 Format: `list`
 
@@ -111,6 +133,7 @@ Format: `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `
 * Edits the student at the specified `INDEX`. The index refers to the index number shown in the displayed student list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
+* An updated email address must follow the same [email constraints](#email-constraints) as `add`.
 * When editing tags, all of the student's existing tags are removed; adding tags is not cumulative.
 * To remove all of a student's tags, enter `t/` without a tag after it.
 
@@ -133,12 +156,15 @@ Format: `find KEYWORD [MORE_KEYWORDS]...`
 * Both partial and full words match.
 * Students matching at least one keyword are returned.
 * This form searches names only.
+* If a `filter` is active, the name search and the filter apply together, so only students matching both are shown. This works in either order.
+* A new name search replaces the previous one.
 
 Examples:
 
 * `find John` returns students whose names contain `John`.
 * `find alex david` returns students whose names contain `alex` or `david`.
 * `find august` matches names such as `August` and `Augustine`.
+* `filter CS3230` followed by `find John` returns only students named `John` who are in `CS3230`.
 
 **Search by matriculation number**
 
@@ -146,7 +172,7 @@ Format: `find m/MATRICULATION_NUMBER`
 
 * Enter one complete matriculation number: `A`, followed by 7 digits, and a final letter.
 * Matriculation number matching is exact and case-insensitive.
-* The search includes students hidden by the current filter.
+* The search covers all students. Any active `filter` or name search is cleared, not just bypassed for this search.
 * A valid matriculation number with no matching student produces zero results.
 * Do not combine name keywords with a matriculation number or repeat the `m/` prefix.
 
@@ -157,16 +183,23 @@ Examples:
 
 ### Viewing a student's details: `view`
 
-Opens a separate student details window showing particulars, enrolled classes and modules, and attendance records.
+Opens a separate student details window showing particulars, enrolled classes and modules, assignment marks, and attendance records with their dates and classes.
 
 Format: `view INDEX`
 
 * The index refers to the number shown in the displayed student list.
-* Details are organised into Particulars, Classes and modules, and Attendance sections.
+* Details are organised into Particulars, Classes and modules, Assignments and marks, and Attendance sections.
 * Classes are listed by module code and class group. Students without classes show `No classes enrolled`.
-* Running `view` again updates the same window to the selected student. Press `Esc` to close the window.
+* Running `view` again updates the same window with the selected student's latest details, even when selecting the same student. Press `Esc` to close the window.
+* While the window is open, successful changes to that student's particulars, class enrolments, attendance, assignments, or marks automatically refresh the displayed details without taking keyboard focus from the main window. Editing their matriculation number preserves the visible assignments and recorded marks.
+* Deleting the displayed student or clearing all students closes the details window.
+* Successful `undo` and `redo` also close the details window. Run `view` again to inspect the restored records. A manually closed window stays closed when later commands change the student or their marks.
+* Finding, filtering, or sorting students keeps the window on the same student, even if that student is no longer in the displayed list. Changes to other students do not switch the window to another student.
 * Attendance records show the date and class, ordered from newest to oldest, then by class code for records on the same date. If there are no attendance records, the Attendance section shows `None recorded`.
-* Marks are planned for future updates.
+* The Assignments and marks section shows only assignments attached to the selected student, ordered by assignment ID. Each entry includes its ID, name, maximum mark, and score (for example, `Mark: 8.5/10`).
+* An assignment without a recorded score shows `Mark: Unmarked`. A recorded zero shows a score such as `Mark: 0/10`. If the student has no assignments, the section shows `None assigned`.
+* After `assignment`, `mark`, or `removeassignment` succeeds, the open window immediately shows the updated assignments and scores. You do not need to run `view` again.
+* Use `marks id/MODULE:CODE` to see all students' results for one assignment.
 
 Example: `view 1` displays the first student in the current list.
 
@@ -179,17 +212,22 @@ Format for new work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME ma
 Format for existing work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`
 
 * `id/` identifies an assignment within a module, such as `CS2103T:A1`. IDs ignore letter case.
+* Both forms require an existing student who is enrolled in the assignment's module. Use `enroll` to enroll the student first. Any class within that module qualifies; enrollment only in another module does not.
+* A rejected assignment request changes no records, including when creating new work: neither the shared definition nor the student's assignment link is created.
 * In the ID, `MODULE` has 2 or 3 letters, 4 digits, and up to 2 final letters (for example, `CS2103T`).
 * `CODE` starts with a letter and then uses only letters and digits (for example, `A1`). Spaces are not allowed in the ID.
 * `n/` gives the assignment a name. Names must not be blank and must be unique within a module, ignoring letter case and repeated spaces.
 * `max/` is a positive numeric maximum mark; decimals are allowed.
 * Values whose displayed decimal form would exceed 64 characters are rejected. This prevents very large or very precise values from slowing the app when it displays or saves them.
 * The assignment begins without a recorded mark. A mark of zero, when later recorded, is different from an unmarked assignment.
+* If that student's details window is open, the new assignment appears immediately with `Mark: Unmarked`.
 * To assign the same work to another student, use its existing ID without `n/` or `max/`. Repeating the assignment for the same student reports an error and changes nothing.
 * An existing ID or name cannot be used to create a second definition in the same module. A student and assignment ID must already exist when using the shorter form.
 * Editing a student's matriculation number keeps their assignment links. Deleting that student removes their links but leaves the shared definition available for other students.
+* Unenrolling a student keeps their existing assignments and marks. You may still record or update marks for that work, but assigning additional work or reattaching removed work requires enrollment in its module again. Previously saved assignment links without current module enrollment also remain available when loading data.
 
 Examples:
+* These examples assume both students are already enrolled in `CS2103T` using `enroll`.
 * `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20`
 * `assignment m/A2345678Y id/CS2103T:A1`
 
@@ -200,9 +238,11 @@ Records a student's numeric mark for work already assigned to them. Entering ano
 Format: `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`
 
 * The student and assignment must exist, and the assignment must already be attached to that student using `assignment`.
+* Existing assigned work can still be marked, including updating a previous mark, after the student is unenrolled from its module.
 * `MARK` may be zero or a positive decimal, up to the assignment's maximum mark. A recorded `0` is different from an unmarked assignment.
 * A mark's displayed decimal form must also fit within 64 characters.
 * The confirmation includes the score and maximum mark. Updating a recorded score gives a short updated message.
+* If that student's details window is open, its score updates immediately after the command succeeds, without another `view` command.
 * The student's matriculation number identifies them even when they are absent from the current search results. Use `mark` to change a score; `edit` changes student details and does not accept marks.
 
 Examples:
@@ -239,6 +279,7 @@ Format for all students: `removeassignment id/MODULE:CODE`
 * With `m/`, only that student's assignment link and recorded mark are removed. The shared assignment stays available for other students and can be assigned to this student again.
 * Without `m/`, the assignment definition and every student's link and mark for it are removed. You can then create a new assignment using the same ID or name.
 * Neither form deletes or edits student details, other assignments, or their marks. The student is found by matriculation number even if hidden from the current list.
+* An affected student's open details window immediately removes the assignment. If no assignments remain, it shows `None assigned`.
 * An unknown assignment or student, or an assignment not attached to the specified student, gives an error without changing records. A successful removal is saved in TAssist's data file and can be undone during the current session using `undo`. There is no separate assignment archive.
 
 Examples:
@@ -362,6 +403,93 @@ Examples:
 * `attendance unmark 1 c/CS2103T-T10 d/07-10-2026` removes that student's record for `CS2103T-T10` on `07-10-2026`, leaving any records for other classes unchanged.
 * `attendance unmark m/A1234567X` removes the only attendance record for today's date for the student whose matriculation number is `A1234567X`.
 
+### Recording class participation: `participation`
+
+Records participation points for a student in a particular class on a given
+date. Tutors decide how many points to award; TAssist stores the records
+for later reference when grading.
+
+Participation is separate from attendance. Recording participation does not
+automatically mark the student present.
+
+#### Recording or updating points
+
+Format: `participation INDEX c/MODULE-CLASS d/DATE p/POINTS`
+
+or
+
+`participation m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE p/POINTS`
+
+* Specify either one displayed index or one matriculation number, not both.
+* An index refers to the currently displayed student list. A matriculation
+  number identifies a student in the full stored list.
+* The student must be enrolled in the specified class.
+* The class, date and points are required.
+* The date must be a valid calendar date in `dd-MM-yyyy` format,
+  with a year from 0001 to 9999.
+* Points must contain digits only and be between `0` and `2147483647`,
+  inclusive. Negative numbers and fractional points are not accepted.
+* There is no configurable maximum score per module.
+* One record is stored per student, class and date. Multiple sessions
+  of the same class on the same date are not distinguished.
+* Entering points for an existing record replaces its previous score.
+  It does not add the new points to the old score.
+* A score of `0` is a recorded score, not a missing or deleted record.
+* Do not repeat prefixes within a command.
+* Participation records are saved and remain available after restarting
+  the application.
+
+Examples, assuming the student is enrolled in `CS2103T-T10`:
+
+* `participation 1 c/CS2103T-T10 d/28-10-2026 p/2`
+  records 2 points for the first displayed student.
+* `participation m/A1234567X c/CS2103T-T10 d/28-10-2026 p/3`
+  sets the specified student's score for that class and date to 3.
+  If the previous score was 2, the new score is 3, not 5.
+
+#### Viewing participation history
+
+Format: `participation view INDEX`
+
+or
+
+`participation view m/MATRICULATION_NUMBER`
+
+Shows the student's participation records in the command result panel,
+ordered by class code and then by date. Each entry shows the class, date
+and recorded points. An empty history produces a message saying that
+no participation records were found.
+
+Examples:
+
+* `participation view 1`
+* `participation view m/A1234567X`
+
+Viewing records does not change student data or require current enrollment
+in the recorded classes.
+
+#### Removing an incorrect record
+
+Format: `participation remove INDEX c/MODULE-CLASS d/DATE`
+
+or
+
+`participation remove m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE`
+
+Removes only the participation record for the specified student, class and
+date. Other participation records, attendance and student details are
+preserved.
+
+* The class and date are required. Do not supply `p/`.
+* If the record does not exist, an error is shown without changing the data.
+* Historical records can still be viewed and removed after the student
+  is unenrolled from the class.
+* Setting points to `0` does not remove a record. Use this subcommand
+  to remove it.
+
+Example:
+
+* `participation remove m/A1234567X c/CS2103T-T10 d/28-10-2026`
 
 ### Viewing attendance statistics for a class: `attendance stats`
 
@@ -394,6 +522,7 @@ Total students: 12
 
 The statistics reflect the current enrollment and stored attendance records. They do not represent a historical enrollment snapshot.
 
+
 ### Filtering students by class/module: `filter`
 
 Filters students enrolled in any of the given modules or classes.
@@ -401,7 +530,10 @@ Filters students enrolled in any of the given modules or classes.
 Format: `filter KEYWORD [MORE_KEYWORDS]`
 
 * The search is case-insensitive; for example, `cs2103t` matches `CS2103T`.
-* Each `filter` command searches the entire address book and replaces the previous filter.
+* A new `filter` replaces the previous filter.
+* An active `find` stays in effect, so the `find` and the `filter` apply together. This works in either order.
+* Use `list` to clear both the filter and the `find`.
+* This command layers on filters performed by `find`.
 * `KEYWORD` must be either a `MODULE` or `CLASS`.
 * `MODULE` is a module code: 2 to 3 letters, followed by 4 digits and an optional suffix of up to 2 letters (e.g. `CS2103T`), with no spaces.
 * `CLASS` is a full class code in the format `MODULE-GROUP` (e.g. `CS2103T-T10`). `GROUP` contains 1 to 5 letters or digits, with no spaces or symbols.
@@ -411,6 +543,7 @@ Format: `filter KEYWORD [MORE_KEYWORDS]`
 Examples:
 * `filter CS2103` returns students in `CS2103`.
 * `filter CS2103T-T10 CS3230` returns students in `CS2103T-T10` tutorial group, as well as all students enrolled in the module `CS3230`.
+* `find John` followed by `filter CS3230` returns only students named `John` who are in `CS3230`.
 
 ### Enrolling a student in a class: `enroll`
 
@@ -441,6 +574,7 @@ Format: `unenroll INDEX c/MODULE-CLASS`, or `unenroll INDEX all/`
 
 * If only `c/MODULE-CLASS` is provided, unenrolls the student at the specified `INDEX` from that class.
 * If only `all/` is provided, unenrolls the student at the specified `INDEX` from all classes.
+* Both forms keep existing assignments and marks. Marks for retained assignments can still be recorded or updated after unenrollment.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
 * `MODULE` and `CLASS` are joined by a hyphen, e.g. `CS2103T-T10`.
@@ -460,9 +594,11 @@ Examples:
 
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Deletes all students and their associated records, all shared assignment definitions, and all recorded marks.
 
 Format: `clear`
+
+You can undo this change during the current session using [`undo`](#undoing-a-change-undo). Undo history is discarded when TAssist closes.
 
 ### Undoing a change: `undo`
 
@@ -503,9 +639,15 @@ Format: `exit`
 
 TAssist automatically saves data after every command. You do not need to save manually.
 
+If a save fails, TAssist displays an error. The command may already have changed the records in memory, but those changes have not been saved and may be lost when you close the app. For a write-permission error, restore write access to the data file and its folder, then run `list` to retry saving the current records before closing TAssist.
+
 ### Editing the data file
 
-TAssist data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+TAssist data is saved automatically as a JSON file `data/addressbook.json` inside the folder from which you launch the app (the terminal's current folder). Following the Quick start instructions makes this the folder containing the JAR file. If you launch the JAR from another folder, TAssist reads and saves data in that other folder instead. Always launch from the same home folder to use the same records.
+
+Advanced users are welcome to update data directly by editing that data file while TAssist is closed.
+
+The file must contain exactly one JSON object. Spaces, tabs, and line breaks may follow it, but another JSON value or other trailing text causes a restoration failure.
 
 <box type="warning" seamless>
 
@@ -534,6 +676,7 @@ _Details coming soon ..._
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+3. **On macOS, using fullscreen mode for secondary windows**, such as the Help or student details window, may cause unexpected window behaviour. Keep these windows in windowed mode. If you encounter this issue, exit fullscreen mode before continuing.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -552,7 +695,11 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Undo** | `undo`
 **Redo** | `redo`
-**Delete** | `delete INDEX` or `delete m/MATRICULATION_NUMBER`<br> e.g., `delete 3`, `delete m/A1234567X`
+**Delete** | `delete INDEX [MORE_INDICES]...`<br>or `delete m/MATRICULATION_NUMBER`<br>Examples: `delete 1`, `delete 1 3`, `delete m/A1234567X` |
+**View student details** | `view INDEX`<br> e.g., `view 1`
+**Record/update participation** | `participation INDEX c/MODULE-CLASS d/DATE p/POINTS`<br>or `participation m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE p/POINTS`<br>Example: `participation 1 c/CS2103T-T10 d/28-10-2026 p/2` |
+**View participation** | `participation view INDEX`<br>or `participation view m/MATRICULATION_NUMBER`<br>Example: `participation view 1` |
+**Remove participation record** | `participation remove INDEX c/MODULE-CLASS d/DATE`<br>or `participation remove m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE`<br>Example: `participation remove 1 c/CS2103T-T10 d/28-10-2026` |
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Enroll** | `enroll INDEX c/MODULE-CLASS` <br> e.g., `enroll 1 c/CS2103T-T10`
 **Unenroll** | `unenroll INDEX c/MODULE-CLASS` or `unenroll INDEX all/` <br> e.g., `unenroll 1 c/CS2103T-T10`, `unenroll 1 all/`
@@ -561,3 +708,4 @@ Action     | Format, Examples
 **Sort**   | `sort`, `sort FIELD [asc\|desc]`, or `sort mark id/MODULE:CODE [asc\|desc]`<br> e.g., `sort matric desc`, `sort mark id/CS2103T:A1 desc`
 **Filter** | `filter KEYWORD [MORE_KEYWORDS]`<br> e.g., `filter CS2103T-T10 CS3230`
 **Help**   | `help`
+**Exit** | `exit`

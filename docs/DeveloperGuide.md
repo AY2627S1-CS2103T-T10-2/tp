@@ -13,7 +13,9 @@
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+* TAssist is adapted from [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the SE-EDU initiative. We reuse and extend its application architecture, code, tests, build configuration, documentation and diagrams, including the undo/redo design described in its [Developer Guide](https://se-education.org/addressbook-level3/DeveloperGuide.html).
+* Libraries used: [JavaFX](https://openjfx.io/) for the GUI, [Jackson](https://github.com/FasterXML/jackson) for JSON storage, and [JUnit 5](https://github.com/junit-team/junit5) for testing.
+* Documentation tools: [MarkBind](https://markbind.org/) for the website and [PlantUML](https://plantuml.com/) for UML diagrams.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -159,6 +161,10 @@ The `Storage` component,
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
+Both JSON storage classes read through `JsonUtil`, which deserializes one root value and checks that the parser reaches the end of the input. Trailing whitespace is allowed; additional root values and invalid trailing content are rejected. Unknown fields remain ignored, and missing optional fields retain their existing defaults. This check uses the existing Jackson dependency without an upgrade.
+
+For TAssist's saved records, parsing failures propagate as `DataLoadingException` to `MainApp`, which sets a startup error. `LogicManager` then rejects commands before execution or saving, preserving the original data file through startup, attempted commands, and shutdown. The app displays the existing restoration error and recovery instructions. Preference-loading failures retain their existing default-preferences behavior.
+
 ### Common classes
 
 Classes used by multiple components are in the `seedu.address.commons` package.
@@ -171,7 +177,7 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Assignment mark feature
 
-The `seedu.address.model.gradebook` package defines the data model for assignment marks. `AddressBook` owns a `Gradebook`, and `Model` exposes operations for assigning work, recording marks, and removing links or definitions. JSON storage saves and restores this data. The `assignment` command creates and attaches assignments, `mark` records or updates a student's score, `marks` displays the results for one assignment, and `removeassignment` removes one student's link or the entire shared assignment.
+The `seedu.address.model.gradebook` package defines the data model for assignment marks. `AddressBook` owns a `Gradebook`, and `Model` exposes operations for assigning work, recording marks, and removing links or definitions. JSON storage saves and restores this data. The `assignment` command creates and attaches assignments, `mark` records or updates a student's score, `marks` displays the results for one assignment, `view` includes the selected student's assignments and marks in their profile, and `removeassignment` removes one student's link or the entire shared assignment.
 
 <puml src="diagrams/GradebookDomainDiagram.puml" alt="Assignment mark domain model" />
 
@@ -181,23 +187,49 @@ The `Gradebook` separately maps each student's matriculation number and assignme
 
 `GradebookNumber` checks the length of a normalized value's plain decimal form using its precision and scale, before creating that string. `Assignment` and `Mark` both reject values that would display as more than 64 characters. The check is in the domain constructors, so commands and restored JSON data follow the same limit. Parsers turn this validation failure into a normal input error. This prevents short scientific-notation inputs with enormous exponents from expanding during display or JSON saving.
 
+The helper handles zero first, so even extreme scientific representations of zero normalize to `0`. For nonzero values, it rejects numbers requiring more than 64 integer digits before calling `BigDecimal.stripTrailingZeros()`. The preliminary check uses `long` arithmetic for precision minus scale, preventing overflow both in the check and during subsequent normalization. The remaining values are normalized and checked against the full plain decimal length, including the leading zero and decimal point for fractions. This preserves valid scientific notation and trailing-zero normalization while rejecting inputs such as `100e2147483647` with the existing length validation message.
+
 `AddressBook` coordinates student and gradebook changes. Creating an assignment for a student adds its definition and the student's unmarked entry as one operation. Editing a student's matriculation number moves their assignment entries and marks; editing other details leaves them in place. Deleting a student removes their entries but keeps shared assignment definitions. Replacing the student list removes entries for students no longer present, while resetting or clearing the whole address book replaces the gradebook too. A failed student replacement leaves the original gradebook unchanged. `ReadOnlyAddressBook#getGradebook()` returns an independent snapshot so callers cannot mutate the stored gradebook through a read-only view.
 
 JSON storage keeps shared definitions in `assignments` and each student's link to a definition in `studentAssignments`. An assignment stores its ID, name, and decimal maximum mark. A student assignment stores a matriculation number, assignment ID, and decimal `mark`; a `null` mark means the assignment is unmarked, while `"0"` means a recorded zero. Decimal values are written as strings to preserve exact fractional marks. On restoration, students are loaded first, followed by definitions and student assignments. The storage adapter rejects invalid or duplicate definitions, unknown students or assignments, duplicate student links, and marks outside the allowed range. Files created before these two JSON arrays existed load with an empty gradebook. A failed restoration leaves the saved file unchanged.
 
-`AssignmentCommandParser` accepts a student's matriculation number and assignment ID, plus a name and maximum mark together when defining new work. `AssignmentCommand` resolves the student against all stored students, independently of the displayed list. For new work, it calls `Model#addAssignmentForStudent`, which validates and publishes the definition and student link as one change. For existing work, it calls `Model#assignStudent` using the stored definition. The gradebook rejects a duplicate ID or name in the module and prevents assigning the same work twice to one student. Neither command form records a mark.
+`AssignmentCommandParser` accepts a student's matriculation number and assignment ID, plus a name and maximum mark together when defining new work. `AssignmentCommand` resolves the student against all stored students, independently of the displayed list. Both forms require the student to be enrolled in the assignment's module: at least one of the student's class codes must have the same module code as the assignment ID. Module comparison ignores letter case and uses the entire module code. The command checks student existence, an existing definition for the shorter form, and module enrollment before making any changes. For new work, it calls `Model#addAssignmentForStudent`, which validates and publishes the definition and student link as one change. For existing work, it calls `Model#assignStudent` using the stored definition. The gradebook rejects a duplicate ID or name in the module and prevents assigning the same work twice to one student. Neither command form records a mark.
 
-`MarkCommandParser` accepts a matriculation number, an assignment ID, and a nonnegative decimal score. `MarkCommand` checks that the student, shared definition, and student's assignment link exist before calling `Model#recordMark`. The gradebook rejects scores above the shared maximum. `recordMark` returns the previous optional value, allowing the command to distinguish the first recorded mark from an update; a previous zero is present and therefore produces the updated response. The command changes only that student's score. `edit` remains for student particulars, and `view` remains focused on profile details.
+Module enrollment is a prerequisite for the `assignment` command, rather than a persistent gradebook constraint. Unenrolling from the last class in a module, including through `unenroll INDEX all/`, preserves existing assignment links and marks, and `mark` can still record or update those results. Storage restores historical links without requiring current enrollment. Removing a link and later reassigning the work through `assignment` requires current enrollment again.
+
+`MarkCommandParser` accepts a matriculation number, an assignment ID, and a nonnegative decimal score. `MarkCommand` checks that the student, shared definition, and student's assignment link exist before calling `Model#recordMark`. The gradebook rejects scores above the shared maximum. `recordMark` returns the previous optional value, allowing the command to distinguish the first recorded mark from an update; a previous zero is present and therefore produces the updated response. The command changes only that student's score. `edit` remains for student particulars. The student profile also displays these marks, as described below.
 
 `MarksCommandParser` accepts one assignment ID. `MarksCommand` obtains a read-only gradebook snapshot and joins that assignment's student marks to current student names by matriculation number. It sorts rows by matriculation number, independently of the filtered and sorted student list, and formats each score against the shared maximum. A missing `Mark` is printed as `Unmarked`, while a recorded zero is printed as `0/MAX_MARK`. An assignment with no students prints `None assigned.`. This command does not change the model or the displayed student list.
 
 `RemoveAssignmentCommandParser` accepts an assignment ID and an optional matriculation number. With a student number, `RemoveAssignmentCommand` checks that the student and assignment exist, then calls `Model#unassignStudent`; the gradebook removes only that student's link and optional mark. Without a student number, it calls `Model#removeAssignment`, which removes the definition and all links and marks under that ID. Both operations leave `Person` objects and unrelated gradebook entries untouched. Removing a definition releases its ID and name for reuse. The changed address book is saved through the usual command flow, so the removal persists after reopening the app. There is no archive or separate assignment edit operation.
+
+### Student profile assignment marks
+
+`ViewCommand` resolves the displayed index against `Model#getFilteredPersonList()` and returns the selected `Person` in `CommandResult`. `MainWindow` constructs one reusable `StudentDetailsWindow` with the full observable student list and a `Supplier<ReadOnlyGradebook>` bound to `logic::getGradebook`, then passes the selected person to `showStudent(Person)`. `LogicManager` delegates the getter to `ReadOnlyAddressBook#getGradebook()`. The supplier obtains a fresh snapshot for each refresh without exposing the stored gradebook to mutation.
+
+`StudentDetailsWindow#formatAssignmentRows` looks up assignments by the selected person's matriculation number using `ReadOnlyGradebook#getMarksForStudent()`. It sorts entries by the string form of the assignment ID, resolves each shared definition, and formats the ID, name, maximum mark, and optional score. Recorded scores use plain decimal notation as `Mark: SCORE/MAXIMUM`; a zero remains a recorded score, while an empty mark displays `Mark: Unmarked`. Unassigned definitions and other students' marks are excluded.
+
+The `assignments` container in `StudentDetailsWindow.fxml` holds the rows under Assignments and marks. Each refresh clears the previous rows before displaying the selected student's results or `None assigned`. Labels wrap within the existing scrollable window. `showStudent` explicitly refreshes even when selecting the same `Person`, because an unchanged selection does not fire a property-change event. After other commands execute and save successfully, `MainWindow` calls `refreshIfShowing()` on an existing window. This immediately reflects `assignment`, `mark`, and `removeassignment` without another `view` command. The refresh only reads the current model snapshot and updates UI controls; it does not alter student data, assignment links, marks, or history.
+
+`StudentDetailsWindowTest` covers empty assignments, ordering, student isolation, decimal and zero scores, unmarked assignments, and updated or removed entries. Regression cases exercise repeated views, matriculation migration, rapid edits, switching students while a refresh is pending, closing, deletion, undo/redo, and preservation of model data. `mainWindow_assignmentCommands_refreshOpenDetailsWithoutAnotherView` enters commands through the actual `MainWindow` command box and verifies immediate mark, assignment, and removal updates, saved data, and a closed window staying closed. The tests initialize JavaFX and perform window operations on its application thread; Linux CI runs under Xvfb to provide a display. `LogicManagerTest#getGradebook_afterMarkChanges_returnsFreshSnapshot` verifies that a later request reflects a mark update while the earlier snapshot stays unchanged.
 
 ### Sorting displayed students
 
 The `sort` command accepts `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MODULE:CODE [asc|desc]`. `SortCommandParser` ignores letter case for field and direction keywords, and reports the assignment ID constraints for an invalid ID. `SortCommand` sorts the displayed students without changing their stored order. Name and email comparisons ignore case, and an empty attendance history counts as zero. Recorded marks come before `Unmarked` and `Not assigned` in either direction; ties use name and then matriculation number.
 
 `SortDisplay` supplies the optional extra line on each student card. An attendance sort shows the record count. A mark sort shows the assignment ID and each student's mark or missing status. `add`, `find`, and `list` restore name order and remove that line. Assignment, mark, or student detail changes reset an active mark sort so its display does not become stale.
+
+### Keeping the student details window up to date
+
+`ViewCommand` returns the selected `Person` in its `CommandResult`. `MainWindow` creates one reusable `StudentDetailsWindow`, passing it `Logic#getPersonList()` and the gradebook supplier described above, and calls `showStudent` to open or focus it. This list is an unmodifiable observable view of all students from `Model#getAddressBook()`, independent of the filtered and sorted list used by `PersonListPanel`.
+
+`StudentDetailsSelection` observes this full list and exposes the selected student through a read-only object property. Students are immutable: an edit, enrolment change, or attendance change replaces the old `Person` with a new one. When a list change replaces the selected student with one new student, the selection follows that replacement. This also handles edits to the matriculation number, without trying to look up the student by their old number or displayed index. Removing the selected student, including through `clear`, clears the selection. Changes to other students leave it unchanged.
+
+`StudentDetailsWindow` listens to the selection property. A replacement schedules a refresh with `Platform.runLater` rather than fetching the gradebook synchronously in the listener. `AddressBook#setPerson` publishes the replacement `Person` before installing the gradebook with migrated matriculation-number keys. Waiting until the current model operation finishes lets `refreshSelectedStudent()` read the replacement student and the migrated assignments together. `updateStudent` then refreshes particulars, classes, assignments, attendance, and the window title.
+
+Each queued refresh captures `refreshVersion` and checks it again before rendering. A newer edit, explicit view, completed-command refresh, deletion, or window close invalidates older work. `refreshIfShowing()` also checks visibility, so it neither reopens a hidden window nor takes keyboard focus from the main window. An empty selection hides the window; closing it, including with `Esc`, clears the selection. Successful undo/redo closes it through the existing restoration-counter listener. Filtering and sorting preserve the selected student, and changes to other students do not switch the profile.
+
+`StudentDetailsSelectionTest` covers replacements, matriculation number edits followed by deletion, attendance and class changes, clearing, changes to other students, switching the selected student, and updates while the student is hidden by a filter. `LogicManagerTest` checks that the full list remains observable and cannot be modified through the `Logic` API.
 
 ### Attendance feature
 
@@ -352,11 +384,75 @@ The following activity diagram summarizes what happens when a user executes a ne
   * Pros: Will use less memory (e.g. for `delete`, just save the student being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
-_{more aspects and alternatives to be added}_
 
-### \[Proposed\] Data archiving
+### Class participation
 
-_{Explain here how the data archiving feature will be implemented}_
+The participation feature records a student's points for a class on a
+particular date. Participation is stored separately from attendance.
+
+#### Data model
+
+`ParticipationPoints` represents a non-negative whole-number score.
+
+`ParticipationRecord` contains a class code, date and score. Two records
+refer to the same session when their class and date match. Their full
+equality comparison also includes the score.
+
+Each `Person` owns an immutable `ParticipationHistory`. The history
+contains at most one record per class and date. Adding a record for an
+existing session replaces its score rather than adding the scores or
+creating another record.
+
+History updates return a new history. `Person.withParticipationHistory`
+creates an updated student while preserving the other fields.
+
+#### Command execution
+
+`AddressBookParser` delegates participation arguments to
+`ParticipationCommandParser`, which selects the set, view or remove
+operation.
+
+The parser reuses `ParserUtil` for student identifiers, class codes and
+calendar-date validation. Points are validated by `ParticipationPoints`.
+Missing, repeated and invalid arguments are rejected before command
+execution.
+
+`ParticipationCommand` resolves the student through `StudentIdentifier`,
+checks enrollment, creates the updated history and replaces the student
+through the model.
+
+`ViewParticipationCommand` sorts a copy of the records for display without
+changing the stored history.
+
+`RemoveParticipationCommand` checks that the requested record exists
+before updating the student. Viewing and removing historical records do
+not require current enrollment.
+
+#### Persistence and preservation
+
+`JsonAdaptedPerson` stores participation records through
+`JsonAdaptedParticipationRecord`. Participation dates use ISO date strings
+in storage; command input uses `dd-MM-yyyy`.
+
+A missing or null participation list is read as an empty history for
+compatibility with older student files. Null records, invalid record
+fields and duplicate class-date sessions are rejected.
+
+The student-copy paths used for basic edits, attendance marking and
+enrollment changes preserve the participation history.
+
+#### Design decisions
+
+* A score replaces the previous value for the same student, class and date.
+  Repeating a command therefore does not accidentally accumulate points.
+* Zero points and an absent record have different meanings. Removing a
+  record is a separate operation.
+* Participation does not automatically change attendance.
+* Class and date identify a session; multiple sessions of the same class
+  on one date are outside this version's scope.
+* Scores have no configurable module-specific maximum. The supported
+  whole-number range is determined by the integer representation.
+
 
 
 --------------------------------------------------------------------------------------------------------------------
@@ -389,6 +485,8 @@ _{Explain here how the data archiving feature will be implemented}_
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
+Stories describe current capabilities unless marked **Future**. Future stories are retained as requirements for later iterations and do not describe functionality available in this release.
+
 | Priority | As a …                                   | I want to …                                                  | So that I can…                                                  |
 |----------|------------------------------------------|--------------------------------------------------------------|-----------------------------------------------------------------|
 | `* * *`  | tutor                                    | add a student                                                | keep track of the students in my classes                        |
@@ -396,7 +494,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *`  | tutor                                    | edit a student's details                                     | keep their information up to date without re-adding them        |
 | `* * *`  | tutor                                    | list all students                                            | see everyone under my care                                      |
 | `* * *`  | tutor                                    | search for a student by name                                 | find their information quickly                                  |
-| `* * *`  | tutor                                    | view a student's profile                                     | review their particulars, classes and attendance in one place   |
+| `* * *`  | tutor                                    | view a student's profile                                     | review their particulars, classes, assignment marks and attendance in one place   |
 | `* * *`  | tutor teaching multiple modules          | assign students to modules and class sections                | organise the classes I teach                                    |
 | `* * *`  | tutor teaching multiple modules          | filter students by class                                     | see all students from one class                                 |
 | `* * *`  | tutor                                    | record a student's attendance for a specific class session   | keep track of whether they attended class                       |
@@ -413,26 +511,34 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | tutor                                    | redo an undone action                                        | recover from an accidental undo                                 |
 | `* *`    | tutor                                    | have my filters persist across searches                      | avoid retyping the same filters                                 |
 | `*`      | tutor who has finished teaching a class  | delete students in batches                                   | remove a whole class at once                                    |
-| `*`      | tutor teaching a new class               | import students from a file with one command                 | avoid adding them one by one                                    |
-| `*`      | tutor                                    | add notes to a student                                       | remember details about them                                     |
-| `*`      | tutor                                    | colour-code student entries by conditions such as class      | tell my classes apart at a glance                               |
-| `*`      | tutor                                    | see a student's photo                                        | recognise them in class                                         |
-| `*`      | tutor                                    | view a student's grade trend                                 | see their progress over time                                    |
-| `*`      | tutor                                    | record which students are friends                            | ask friends to help students who are struggling                 |
-| `*`      | tutor managing at-risk students          | pin a student entry                                          | find them quickly for special attention                         |
-| `*`      | tutor                                    | open my mail app with a student's email filled in            | email students without copying their addresses                  |
-| `*`      | tutor teaching many modules              | autocomplete course codes                                    | avoid memorising module identifiers                             |
-| `*`      | tutor                                    | view previously executed commands                            | reuse commands without retyping them                            |
-| `*`      | tutor                                    | view my search history                                       | repeat past searches easily                                     |
-| `*`      | tutor                                    | clear my search history                                      | keep only relevant entries                                      |
-| `*`      | experienced user                         | set custom command aliases                                   | type fewer characters                                           |
-| `*`      | experienced user                         | customise the app's appearance                               | match it to my other applications                               |
+| `*`      | tutor teaching a new class               | **Future:** import students from a file with one command | avoid adding them one by one                                    |
+| `*`      | tutor                                    | **Future:** add notes to a student | remember details about them                                     |
+| `*`      | tutor                                    | **Future:** colour-code student entries by conditions such as class | tell my classes apart at a glance                               |
+| `*`      | tutor                                    | **Future:** see a student's photo | recognise them in class                                         |
+| `*`      | tutor                                    | **Future:** view a student's grade trend | see their progress over time                                    |
+| `*`      | tutor                                    | **Future:** record which students are friends                            | ask friends to help students who are struggling                 |
+| `*`      | tutor managing at-risk students          | **Future:** pin a student entry | find them quickly for special attention                         |
+| `*`      | tutor                                    | **Future:** open my mail app with a student's email filled in | email students without copying their addresses                  |
+| `*`      | tutor teaching many modules              | **Future:** autocomplete course codes | avoid memorising module identifiers                             |
+| `*`      | tutor                                    | **Future:** view previously executed commands | reuse commands without retyping them                            |
+| `*`      | tutor                                    | **Future:** view my search history | repeat past searches easily                                     |
+| `*`      | tutor                                    | **Future:** clear my search history | keep only relevant entries                                      |
+| `*`      | experienced user                         | **Future:** set custom command aliases | type fewer characters                                           |
+| `*`      | experienced user                         | **Future:** customise the app's appearance | match it to my other applications                               |
+| `* * *` | tutor | define work and assign it to students enrolled in its module | track who should complete each assignment |
+| `* *` | tutor | view all students' marks for one assignment | compare results and identify unmarked work |
+| `* *` | tutor | remove an assignment from one student or everyone | correct assignment allocation mistakes |
+| `* *` | tutor | unenroll a student from one class or all classes | keep enrollment current while retaining historical records |
+| `* *` | tutor | view and correct participation records | review awarded points and remove incorrect entries |
+| `* *` | tutor | clear all student and assignment records | start with an empty dataset |
+| `* *` | tutor | sort students by name, matriculation number, email or attendance count | locate and compare students using the relevant field |
+| `*` | tutor | **Future:** archive old records | retain past teaching records separately from current work |
 
 ### Use cases
 
 These use cases describe the current program's behavior. For all use cases, the **System** is TAssist, the **Actor** is a university Computer Science tutor, and **MSS** means Main Success Scenario. Unless stated otherwise, TAssist is running and startup has completed without a restoration error. Restoration failures are covered by UC07.
 
-**Common extension (UC01–UC06, UC08–UC14):** If TAssist cannot save the records after processing a request, it reports the save failure instead of confirming success. Any changes already made to student information, assignment marks, or the displayed list remain. The main success scenarios assume saving succeeds.
+**Common extension (UC01–UC06, UC08–UC17):** If TAssist cannot save the records after processing a request, it reports the save failure instead of confirming success. Any changes already made to student information, assignment marks, or the displayed list remain. The main success scenarios assume saving succeeds.
 
 #### UC01: Add a student
 
@@ -461,8 +567,8 @@ Use case ends.
 
 **MSS**
 
-1. Tutor requests to delete a student using their displayed index or matriculation number. The matriculation number can identify a student excluded from the current search results.
-2. TAssist deletes the selected student from TAssist and confirms the deletion.
+1. Tutor requests to delete one or more students using their displayed indices, or one student using their matriculation number. The matriculation number can identify a student excluded from the current search results.
+2. TAssist deletes the selected students from TAssist and confirms the deletion. All indices refer to the list before deletion; if any index is invalid or repeated, no students are deleted.
 
 Use case ends.
 
@@ -495,7 +601,7 @@ Use case ends.
 
 Use case ends.
 
-Matching considers all students and ignores case. A student matches if any supplied keyword occurs within a word in their name. Each matching student appears once, including distinct students with the same name. Non-empty keywords are accepted without student-name validation.
+Name matching considers students satisfying any active class/module filter and ignores case. A new name search replaces the previous name search while keeping that filter. A student matches if any supplied keyword occurs within a word in their name. Each matching student appears once, including distinct students with the same name. Non-empty keywords are accepted without student-name validation.
 
 **Extensions**
 
@@ -510,6 +616,18 @@ Matching considers all students and ignores case. A student matches if any suppl
   * 2a1. TAssist reports zero matches and displays an empty result list.
 
   Use case ends.
+
+* 1b. Tutor supplies one complete matriculation number instead of name keywords.
+
+  * 1b1. TAssist clears the previous search and class/module filter, then searches all stored students for that exact number, ignoring case. It shows the matching student, or an empty list if none matches.
+
+  Use case ends.
+
+* 1c. Tutor combines name keywords with a matriculation number, repeats the matriculation prefix, or supplies an invalid number.
+
+  * 1c1. TAssist rejects the request without changing the displayed list or records.
+
+  Use case resumes at step 1.
 
 #### UC04: Record attendance
 
@@ -606,7 +724,9 @@ The default display order ignores case when comparing names. It does not change 
 **MSS**
 
 1. Tutor requests to view a student's profile using the student's index in the currently displayed list.
-2. TAssist opens or updates a details window showing the selected student's name, matriculation number, email, tags, enrolled classes and attendance records with their dates and classes. Tags are sorted by their text, classes by module and class group, and attendance by date from most recent to oldest, then by class code in ascending order within a date.
+2. TAssist opens or updates a details window showing the selected student's name, matriculation number, email, tags, enrolled classes, assignment marks, and attendance records with their dates and classes. Tags are sorted by their text, classes by module and class group, assignments by assignment ID, and attendance by date from most recent to oldest, then by class code in ascending order within a date. Each assignment shows its ID, name, maximum mark, and recorded score or `Unmarked`. Only assignments attached to the selected student are shown.
+
+While the window remains open, successful changes to the selected student's particulars, classes, attendance, assignments, or marks refresh its contents automatically without another `view` command. A matriculation-number edit preserves the displayed assignments and marks. Repeating `view` for the same student also refreshes all sections. Deleting that student, clearing all students, or successfully undoing or redoing a change closes the window. Searching, filtering, and sorting preserve the selected profile, even if the student is hidden from the displayed list.
 
 Use case ends.
 
@@ -630,9 +750,9 @@ Use case ends.
 
   Use case resumes at step 1.
 
-* 2a. The student has no tags or no recorded attendance.
+* 2a. The student has no tags, enrolled classes, assignments, or recorded attendance.
 
-  * 2a1. TAssist indicates that no tags or attendance have been recorded, as applicable, alongside the student's other details.
+  * 2a1. TAssist shows `No tags`, `No classes enrolled`, `None assigned`, or `None recorded` in the corresponding section, alongside the student's other details.
 
   Use case ends.
 
@@ -708,7 +828,7 @@ Use case ends.
 
   Use case resumes at step 2.
 
-* 1b. The student does not exist, the new assignment ID or name already exists in its module, or the existing assignment is already attached to the student.
+* 1b. The student does not exist or is not enrolled in the assignment's module, the new assignment ID or name already exists in its module, or the existing assignment is already attached to the student.
 
   * 1b1. TAssist reports the problem and changes no records.
 
@@ -876,6 +996,32 @@ Use case ends.
 
   Use case ends.
 
+### UC15: Record class participation points
+
+**Actor:** Tutor
+
+**Main success scenario**
+
+1. The tutor requests to record participation points for a student,
+   specifying the class, date and score.
+2. TAssist records the score, replacing the previous score for the same
+   class and date if one exists, and confirms the update.
+
+Use case ends.
+
+**Extensions**
+
+1a. Required input is missing, repeated or invalid.
+
+    1a1. TAssist explains the input error without changing student data.
+
+    Use case resumes at step 1.
+
+1b. The student cannot be found or is not enrolled in the specified class.
+
+    1b1. TAssist explains the problem without changing student data.
+
+    Use case resumes at step 1.
 
 ### UC16: View attendance statistics for a class
 
@@ -885,7 +1031,7 @@ Use case ends.
 
 1. The tutor requests attendance statistics for a class on a specified date.
 2. TAssist finds all students currently enrolled in that class.
-3. TAssist counts the enrolled students who have an attendance record for that class and date.
+3. TAssist counts enrolled students with an attendance record for that class and date.
 4. TAssist displays the attended count and total enrolled count.
 
 Use case ends.
@@ -904,6 +1050,19 @@ Use case ends.
 
     Use case ends.
 
+#### UC17: Filter students by class or module
+
+**MSS**
+
+1. Tutor supplies one or more complete class or module codes.
+2. TAssist replaces the previous class/module filter and shows students enrolled in any supplied class or module, also satisfying any active search.
+
+Use case ends. Codes ignore case. A later name search retains this filter; `list` clears both, while a matriculation-number search clears the previous filter and search before looking up the number.
+
+**Extensions**
+
+* 1a. Codes are missing or malformed. TAssist reports an input error and preserves the displayed list and records. Use case resumes at step 1.
+* 2a. No student satisfies the combined criteria. TAssist displays an empty list and explains that an active search may restrict the results. Use case ends.
 
 ### Non-Functional Requirements
 
@@ -932,7 +1091,7 @@ Compatibility, packaging and storage requirements follow the [CS2103T project co
 | Student particulars | The identifying and contact details held in a student record. The MVP stores name, matriculation number, and email address. |
 | Matriculation number | The student's unique identifier. In the MVP, it is case-insensitive and consists of `A`, seven digits, and a final letter. It identifies the student for deletion and for recording or removing attendance. |
 | Displayed index | A student's temporary position in the currently displayed list or search results. Profile viewing, deletion, and recording or removing attendance use this index; it is not a permanent identifier. |
-| Student profile | The view of one student's particulars, available class memberships, and attendance records. It displays stored memberships but does not assign students to classes. Later versions may also show assignment and grade information. |
+| Student profile | The view of one student's particulars, available class memberships, assignment marks, and attendance records. It displays stored memberships but does not assign students to classes. |
 | Module | A university course identified by a module code, such as CS2103T. |
 | Class / class section | A tutorial or lab group within a module. A class identifier is interpreted together with its module code. |
 | Class session | One occurrence of a tutorial or lab, identified by its class code and date. |
@@ -962,19 +1121,71 @@ testers are expected to do more *exploratory* testing.
 
 1. Initial launch
 
-   1. Download the JAR file and copy it into an empty folder.
+   1. Download the JAR file and copy it into an empty folder where you can create and update files. Use a separate test folder to protect your real records.
 
-   1. Double-click the JAR file.<br>
+   1. Open a terminal and `cd` to that folder. Run `java -version` and check that Java 25 is selected. Run `java -jar "addressbook.jar"`, substituting the actual downloaded filename if different.<br>
       Expected: The GUI opens with a set of sample students. The window size may not be optimal.
 
 1. Saving window preferences
 
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
+   1. Relaunch the app with the same terminal command from the same folder.<br>
        Expected: The most recent window size and location are retained.
 
-1. _{ more test cases … }_
+
+### Adding and editing students
+
+Start in a fresh test folder with the original sample students.
+
+1. Run `add n/Zoe Test m/A9900001Z e/zoe@example.com t/tutorial`.<br>
+   Expected: Zoe appears after the six sample students in name order, with the supplied details.
+1. Repeat the command with `n/Another Name` but the same matriculation number.<br>
+   Expected: The duplicate is rejected; only one student has that number.
+1. Run `find m/A9900001Z`, then `edit 1 n/Zoe Updated e/zoe.updated@example.com t/` and `view 1`.<br>
+   Expected: The name and email change and all tags are cleared. The matriculation number remains A9900001Z.
+1. Run `edit 1 m/A1234567X` and `edit 1 e/zoe..test@example.com` separately.<br>
+   Expected: Both requests fail (duplicate matriculation number and invalid email), preserving Zoe's details.
+1. Close and reopen the app from the same folder. Run `find m/A9900001Z` and `view 1`.<br>
+   Expected: Zoe's updated name, email and empty tags are retained.
+
+### Searching and filtering students
+
+Start in a fresh test folder with the six original sample students. Run each step in order.
+
+1. Run `enroll 1 c/CS2103T-T10` and `enroll 2 c/CS3230-T01`.<br>
+   Expected: Alex Yeoh and Bernice Yu are enrolled in their respective classes.
+1. Run `filter cs2103t`, then `find alex`.<br>
+   Expected: Only Alex appears. Run `find Bernice`; the list becomes empty because Bernice does not satisfy the active filter.
+1. Run `list`, `find Bernice`, then `filter CS3230`.<br>
+   Expected: Only Bernice appears, demonstrating that search and filter also combine in this order.
+1. Run `filter CS2103T`.<br>
+   Expected: No students appear: the new filter replaces CS3230, while the Bernice search remains active.
+1. Run `find m/a1234567x`, then `find Bernice`.<br>
+   Expected: The first command finds Alex despite the previous criteria. The second finds Bernice, proving the old filter was cleared.
+1. Run `list`, then `filter CS2103T-T10 CS3230`.<br>
+   Expected: Alex and Bernice appear. Run `list`; all six students return in name order.
+1. Run `find Alex m/A1234567X`, `find m/A1234567X m/A2345678Y`, and `filter invalid` separately.<br>
+   Expected: Each request is rejected and the six-student list is preserved.
+
+### Unenrolling from one or all classes
+
+Start in a fresh test folder with the original sample students. Run these steps in order.
+
+1. Run `enroll 1 c/CS2103T-T10` and `enroll 1 c/CS3230-T01`, then `assignment m/A1234567X id/CS2103T:A1 n/Quiz max/10` and `mark m/A1234567X id/CS2103T:A1 mark/8`.
+1. Run `attendance 1 c/CS2103T-T10 d/28-10-2026` and `participation 1 c/CS2103T-T10 d/28-10-2026 p/2`.
+1. Run `unenroll 1 c/CS2103T-T10`, then `view 1`.<br>
+   Expected: Only CS3230-T01 remains enrolled. The quiz, score and attendance record remain. `participation view 1` still shows 2 points.
+1. Repeat `unenroll 1 c/CS2103T-T10`.<br>
+   Expected: An error reports that the student is not enrolled in that class; records remain unchanged.
+1. Run `unenroll 1 all/`, then `view 1`.<br>
+   Expected: No classes remain, but assignments, marks and attendance remain. `participation view 1` still shows the recorded points.
+1. Run `mark m/A1234567X id/CS2103T:A1 mark/9`.<br>
+   Expected: The retained assignment can still be marked. Run `assignment m/A1234567X id/CS2103T:A2 n/New Quiz max/10`; it is rejected because module enrollment is required for new work.
+1. Run `unenroll 1 all/` and `unenroll 1 c/CS3230-T01 all/` separately.<br>
+   Expected: Both fail without changing records: the first has no enrollment to remove, and the second combines incompatible forms.
+1. Close and reopen the app from the same test folder. Run `view 1` and `participation view 1`.<br>
+   Expected: No classes are enrolled; the quiz score of 9, attendance record and participation points are retained.
 
 ### Sorting the displayed students
 
@@ -1014,7 +1225,9 @@ testers are expected to do more *exploratory* testing.
 
 1. Sorting by one assignment's mark
 
-   1. In a fresh data folder with the original sample students, create an assignment and attach it to two students using `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20` and `assignment m/A6789012U id/CS2103T:A1`. Record `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
+   1. Prerequisites: Start in a fresh data folder with the original six sample students. Run `list`, then `enroll 1 c/CS2103T-T10` and `enroll 6 c/CS2103T-T10` to enroll Alex Yeoh (`A1234567X`) and Roy Balakrishnan (`A6789012U`) in `CS2103T`.
+
+   1. Create an assignment and attach it to two students using `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20` and `assignment m/A6789012U id/CS2103T:A1`. Record `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
       Expected: One student has a recorded zero, one is unmarked, and at least one other sample student is not assigned.
 
    1. Run `sort mark id/CS2103T:A1 desc`.<br>
@@ -1025,6 +1238,67 @@ testers are expected to do more *exploratory* testing.
 
    1. Record another mark using `mark m/A6789012U id/CS2103T:A1 mark/15`.<br>
       Expected: The list returns to name order and the assignment result line disappears. Running `sort mark id/CS2103T:A1 desc` again shows the student with 15 first.
+
+### Keeping an open student profile current
+
+Run the following scenarios in order in a test data folder. Keep the details window open and enter commands in the main window unless instructed otherwise.
+
+1. Refreshing details after edits
+
+   1. Prerequisites: Have at least two students. The first student must not be enrolled in CS2103T-T10 and must have no attendance records for that class. Ensure A9999999Z is unused. Run `list`, then `view 1`.
+
+   2. Run `edit 1 n/Aaron Updated m/A9999999Z e/aaron.updated@example.com t/updated`.<br>
+      Expected: The existing details window immediately shows the new name, matriculation number, email and tag, and its title uses the new name. It does not take keyboard focus from the main window.
+
+   3. Run `find m/A9999999Z`, then `enroll 1 c/CS2103T-T10`.<br>
+      Expected: Aaron is the only displayed student. The class immediately appears in the open details window.
+
+   4. Run `attendance m/A9999999Z c/CS2103T-T10 d/07-10-2026`.<br>
+      Expected: An attendance record for 07-10-2026 and CS2103T-T10 appears in the open window, and the attendance count increases without another `view` command.
+
+   5. Run `attendance unmark m/A9999999Z c/CS2103T-T10 d/07-10-2026`.<br>
+      Expected: The attendance record disappears and the attendance count decreases immediately.
+
+   6. Run `unenroll 1 c/CS2103T-T10`.<br>
+      Expected: The class disappears from the open details window.
+
+   7. Run `enroll 1 c/CS2103T-T10` again.<br>
+      Expected: The class reappears. Leave Aaron enrolled for the next scenario.
+
+2. Preserving the selected profile through list changes
+
+   1. With Aaron's profile still open, run `list`, then `sort matric desc`.<br>
+      Expected: The list is sorted, and the details window continues to show Aaron.
+
+   2. Run `find` with a name keyword matching only another student.<br>
+      Expected: The details window continues to show Aaron, even while Aaron is absent from the displayed list.
+
+   3. Run `attendance m/A9999999Z c/CS2103T-T10 d/07-10-2026`.<br>
+      Expected: Aaron's open profile shows the new attendance record and updated count while the student remains hidden from the list.
+
+   4. Edit a different student using their current displayed index.<br>
+      Expected: Aaron's details window stays open and continues to show Aaron.
+
+3. Closing the profile after deletion or clearing
+
+   1. Run `find m/A9999999Z`, then `delete 1`.<br>
+      Expected: Aaron is deleted and the details window closes, including after the earlier matriculation number edit.
+
+   2. Run `list`, then `view 1` for a remaining student, then `clear`.<br>
+      Expected: The student list becomes empty and the details window closes.
+
+4. Keeping a manually closed profile closed
+
+   1. Run `add n/Profile Test m/A9999999Z e/profile.test@example.com`, then `view 1`.
+
+   2. Close the details window with `Esc`, then run `edit 1 n/Profile Updated`.<br>
+      Expected: The details window stays closed.
+
+   3. Run `view 1` again.<br>
+      Expected: The window opens with the updated name and title.
+
+   4. Close the window with its close button, then run `edit 1 n/Profile Final`.<br>
+      Expected: The details window stays closed. Running `view 1` again opens it with the latest name and title.
 
 ### Deleting a student
 
@@ -1041,7 +1315,21 @@ testers are expected to do more *exploratory* testing.
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.
 
-1. _{ more test cases … }_
+
+### Deleting multiple students or a hidden student
+
+Start in a fresh test folder with the original six sample students. Run these steps in order.
+
+1. Run `delete 1 1`, then `delete 1 99`.<br>
+   Expected: Each command fails without deleting anyone. Run `list` to confirm all six students remain.
+1. Run `delete 1 3`.<br>
+   Expected: Alex Yeoh and Charlotte Oliveiro are deleted using their original displayed indices. Bernice Yu remains.
+1. Run `undo`.<br>
+   Expected: All six students return in name order. Run `redo`; Alex and Charlotte disappear again. Run `undo` to restore them.
+1. Run `find Alex`, then `delete m/A2345678Y`.<br>
+   Expected: Bernice is deleted even though only Alex was displayed. Run `list` to confirm Bernice is absent and the other five students remain.
+1. Run `delete m/A2345678Y` again.<br>
+   Expected: An error reports that the student was not found; no additional students are deleted.
 
 ### Recording attendance
 
@@ -1098,6 +1386,62 @@ testers are expected to do more *exploratory* testing.
    1. Test case: `attendance c/CS2103T-T99`<br>
       Expected: The status message shows `No students are enrolled in CS2103T-T99.` No attendance records change.
 
+### Recording class participation
+
+Use test data for the cases below, as some steps change student details or remove participation records.
+
+Replace `MATRIC` with the chosen test student's matriculation number, without the angle brackets or any other placeholder text. `NAME` refers to that student's current name. Run commands one at a time.
+
+1. Recording and updating participation points
+   1. Prerequisites: Run `list` with at least one student in the list. Use the first student as the test student and note their matriculation number using `view 1`. Enroll them using `enroll 1 c/CS2103T-T10` if they are not already enrolled. The student must have no participation record for CS2103T-T10 on 28-10-2026.
+   2. Test case: `participation 1 c/CS2103T-T10 d/28-10-2026 p/2`, followed by `participation view m/MATRIC`.<br>
+      Expected: The status message confirms that 2 points were recorded. The history contains `CS2103T-T10 | 28-10-2026 | 2 point(s)`. Attendance and other student details are unchanged.
+   3. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3`, followed by `participation view m/MATRIC`.<br>
+      Expected: The existing score is replaced. There is one record for that class and date with 3 points, not 5. Other participation records are unchanged.
+   4. Test case: Repeat `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3`, then view the history again.<br>
+      Expected: The score remains 3 and no duplicate record is created.
+
+2. Viewing a student outside the displayed list
+   1. Prerequisites: Have at least two students with distinguishable names. The chosen test student must have a participation record. Run `participation view m/MATRIC` to note their history, then use `find` with a keyword that matches another student only, so the chosen student is not displayed.
+   2. Test case: `participation view m/MATRIC`.<br>
+      Expected: The chosen student's participation history is shown in the command result panel, even though they are not in the displayed list. Entries are ordered by class code and then date. The displayed student list and stored data are unchanged.
+
+3. Rejecting invalid or incomplete input
+   1. Prerequisites: The chosen student is enrolled in CS2103T-T10. Run `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3`, then `participation view m/MATRIC` to note the existing records. After each rejected command below, view the history again to check that it is unchanged.
+   2. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/-1`.<br>
+      Expected: The status message explains the valid points format and range. The existing score remains 3, and no other participation records change.
+   3. Test case: Repeat the previous command with each of these point values: `p/2.5`, `p/two`, `p/2147483648`, and an empty `p/`.<br>
+      Expected: Each command is rejected without changing any participation records.
+   4. Test case: `participation m/MATRIC c/CS2103T-T10 d/31-02-2026 p/2`.<br>
+      Expected: The status message explains that a valid calendar date in dd-MM-yyyy format is required. No record is added or changed.
+   5. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026`.<br>
+      Expected: The status message asks for points using `p/POINTS`. The existing history is unchanged.
+   6. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/2 p/3`.<br>
+      Expected: The repeated prefix is rejected. Neither value is applied, and the existing history is unchanged.
+
+4. Rejecting a class the student is not enrolled in
+   1. Prerequisites: The chosen student is enrolled in CS2103T-T10 but not CS2103T-T11. Note the student's current participation history.
+   2. Test case: `participation m/MATRIC c/CS2103T-T11 d/28-10-2026 p/2`.<br>
+      Expected: The status message shows `NAME is not enrolled in CS2103T-T11. Enroll the student in this class first.` No student data is changed.
+
+5. Preserving participation after edits, attendance changes and restart
+   1. Prerequisites: Run `list` and use the first student as the test student. Note their matriculation number using `view 1`. Ensure this student is enrolled in CS2103T-T10. Run `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3` to set up the participation record. The student must have no attendance record for that class on 29-10-2026.
+   2. Test case: `edit 1 n/Participation Test Student`, followed by `participation view m/MATRIC`.<br>
+      Expected: The student's name changes, but the participation record still contains 3 points for CS2103T-T10 on 28-10-2026. Other participation records are unchanged.
+   3. Test case: `attendance m/MATRIC c/CS2103T-T10 d/29-10-2026`, followed by `participation view m/MATRIC`.<br>
+      Expected: Attendance is recorded successfully. The participation history is unchanged.
+   4. Test case: Close and reopen TAssist, then run `participation view m/MATRIC`.<br>
+      Expected: The updated student name and participation history are retained, including the score of 3 for CS2103T-T10 on 28-10-2026.
+
+6. Distinguishing zero points from removing a record
+   1. Prerequisites: The chosen student is enrolled in CS2103T-T10. Run `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3` and `participation m/MATRIC c/CS2103T-T10 d/29-10-2026 p/1`. View the history to confirm both records.
+   2. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/0`, followed by `participation view m/MATRIC`.<br>
+      Expected: The 28-10-2026 record remains in the history with 0 points. The 29-10-2026 record still has 1 point.
+   3. Test case: `participation remove m/MATRIC c/CS2103T-T10 d/28-10-2026`, followed by `participation view m/MATRIC`.<br>
+      Expected: Only the 28-10-2026 participation record is removed. The 29-10-2026 record, attendance and other student details remain unchanged.
+   4. Test case: Repeat `participation remove m/MATRIC c/CS2103T-T10 d/28-10-2026`, then view the history again.<br>
+      Expected: The status message reports that no participation record exists for that student, class and date. No further data changes occur.
+
 ### Viewing class attendance statistics
 
 Start in a fresh test folder with the original sample students.
@@ -1148,9 +1492,13 @@ Start in a fresh test folder with the original sample students.
    4. Test case: `attendance stats c/CS2103T-T11 d/30-10-2026`\
       Expected: The attendance recorded on 29-10-2026 is not counted for 30-10-2026.
 
+
 ### Assigning work to a student
 
-1. Add two students with different matriculation numbers, then assign the same work to each.
+1. Assign the same work to two enrolled students.
+
+   1. Prerequisites: Start in a fresh data folder with the original six sample students. Run `list`, then `enroll 1 c/CS2103T-T10` and `enroll 2 c/CS2103T-T10` to enroll Alex Yeoh (`A1234567X`) and Bernice Yu (`A2345678Y`) in `CS2103T`.
+
    1. Test case: `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20`<br>
       Expected: TAssist confirms the assignment was attached to the first student without a mark.
    1. Test case: `assignment m/A2345678Y id/CS2103T:A1`<br>
@@ -1159,8 +1507,12 @@ Start in a fresh test folder with the original sample students.
       Expected: TAssist reports the duplicate and preserves the existing assignments.
    1. Enter `assignment m/A1234567X id/CS2103T:A3 n/Extreme max/1e1000000`.<br>
       Expected: TAssist rejects the maximum as too long for display, and does not create `CS2103T:A3`.
+   1. Repeat the command with `max/100e2147483647`.<br>
+      Expected: TAssist shows `Maximum mark's displayed decimal form must be at most 64 characters.` Existing assignments and saved data remain unchanged, and `CS2103T:A3` is not created.
    1. Close and reopen TAssist. Enter `marks id/CS2103T:A1`.<br>
       Expected: Both assigned students appear as `Unmarked`, confirming their links were restored.
+   1. Enter `marks id/CS2103T:A3`.<br>
+      Expected: TAssist reports an unknown assignment, confirming the rejected definition was not saved.
 
 ### Recording an assignment mark
 
@@ -1172,6 +1524,14 @@ Start in a fresh test folder with the original sample students.
    Expected: TAssist rejects the score because it exceeds the maximum. The previous score remains stored after reopening the app.
 1. Enter the same command with `mark/1e1000000`.<br>
    Expected: TAssist rejects the score as too long for display. The previous score remains stored.
+1. Repeat with `mark/100e2147483647`.<br>
+   Expected: TAssist shows `Mark's displayed decimal form must be at most 64 characters.` The existing mark and saved data remain unchanged.
+1. Close and reopen TAssist. Enter `marks id/CS2103T:A1`.<br>
+   Expected: The student's score remains `17.5/20`.
+1. Record the mark with `mark m/A1234567X id/CS2103T:A1 mark/1.7500e1`.<br>
+   Expected: TAssist accepts the scientific notation and confirms a normalized score of `17.5/20`.
+1. Repeat with `mark/0e2147483647`.<br>
+   Expected: TAssist accepts the zero mark and confirms a score of `0/20`.
 
 ### Viewing assignment marks
 
@@ -1179,6 +1539,39 @@ Start in a fresh test folder with the original sample students.
    Expected: TAssist shows the assignment name and maximum, then every assigned student in matriculation number order. Recorded scores appear as `MARK/MAX_MARK`; students without a score appear as `Unmarked`.
 1. Run `find` so some assigned students are hidden, then enter `marks id/CS2103T:A1` again.<br>
    Expected: The marks result still contains all assigned students, and the current student list remains filtered.
+
+### Viewing marks in a student profile
+
+Run these steps in order in a test data folder. Ensure matriculation numbers `A9900204Z`, `A9900205Z`, and `A9900206Z`, assignment IDs `CS2103T:TEST204A` and `CS2103T:TEST204B`, and assignment names `Refresh Quiz` and `Refresh Homework` are unused. No pre-existing assignments or marks are needed. Keep the details window open and enter commands in the main window unless instructed otherwise.
+
+1. Enter `add n/Refresh Test m/A9900204Z e/refresh204@example.com` and `add n/Other Profile m/A9900206Z e/other204@example.com`. Enter `find m/A9900204Z`, `enroll 1 c/CS2103T-T10`, then `view 1`.<br>
+   Expected: Refresh Test is the only displayed student. The details window shows `None assigned`.
+1. Enter `assignment m/A9900204Z id/CS2103T:TEST204A n/Refresh Quiz max/10`.<br>
+   Expected: The open window immediately shows the quiz and `Mark: Unmarked`, without another `view`.
+1. Enter `mark m/A9900204Z id/CS2103T:TEST204A mark/8.5`, then `mark m/A9900204Z id/CS2103T:TEST204A mark/10`.<br>
+   Expected: The visible mark changes to `8.5/10`, then `10/10`, immediately after each successful command. Keyboard focus stays in the main window.
+1. Enter `view 1` again without closing the window.<br>
+   Expected: The same window shows the latest score, `Mark: 10/10`, with no duplicate assignment rows.
+1. Enter `assignment m/A9900204Z id/CS2103T:TEST204B n/Refresh Homework max/20`.<br>
+   Expected: The homework immediately appears as `Mark: Unmarked` after the quiz in assignment ID order. The quiz still shows `Mark: 10/10`.
+1. Enter `edit 1 m/A9900205Z`.<br>
+   Expected: Without another `view`, the open window shows `A9900205Z`, both assignments, and the quiz's `10/10` mark. Enter `marks id/CS2103T:TEST204A` to confirm the saved result is associated with the new number.
+1. Enter `undo`.<br>
+   Expected: The details window closes. Enter `find m/A9900204Z`, then `view 1`; both assignments and the quiz's `10/10` mark appear under the original number.
+1. Enter `redo`.<br>
+   Expected: The window closes again. Enter `find m/A9900205Z`, then `view 1`; both assignments and the quiz's `10/10` mark appear under the new number.
+1. Enter `find m/A9900206Z`, then `view 1`.<br>
+   Expected: The reused window shows Other Profile and `None assigned`, with no rows left over from Refresh Test. Enter `find m/A9900205Z`, then `view 1`; Refresh Test's two assignments and `10/10` mark reappear.
+1. Enter `removeassignment id/CS2103T:TEST204B m/A9900205Z`.<br>
+   Expected: The homework disappears immediately; the quiz remains with `Mark: 10/10`.
+1. Enter `removeassignment id/CS2103T:TEST204A`.<br>
+   Expected: The quiz definition is removed and the open profile immediately shows `None assigned`.
+1. Close the details window with `Esc`. Enter `assignment m/A9900205Z id/CS2103T:TEST204B`, then `mark m/A9900205Z id/CS2103T:TEST204B mark/0`.<br>
+   Expected: Both commands succeed and the window stays closed. Enter `view 1`; the homework appears with `Mark: 0/20`.
+1. Enter `delete 1`.<br>
+   Expected: The details window closes. Enter `marks id/CS2103T:TEST204B`; its shared definition remains, but its results show `None assigned.`.
+1. Enter `undo`, `find m/A9900205Z`, then `view 1`.<br>
+   Expected: The restored student has the homework and `Mark: 0/20`. Close and reopen TAssist, then repeat `find m/A9900205Z` and `view 1`; the same assignment and mark remain stored.
 
 ### Removing assignments
 
@@ -1209,9 +1602,19 @@ Start in a fresh test folder with the original sample students.
       (e.g., `31-02-2026`), a duplicate attendance record for the same class and date, a date-only attendance entry
       (e.g., `"attendance": ["07-10-2026"]`), or an assignment mark above its maximum.<br>
       Expected: The same command block and file preservation apply, with the corresponding validation error.
+   1. Close TAssist and restore the valid backup. Prepend `{"persons":[]}` to the file, keeping the original
+      contents immediately afterward. Reopen TAssist, attempt `list`, and close the app. Repeat with a newline
+      separating the two objects.<br>
+      Expected: Both files cause a restoration failure and commands remain blocked. Compare the file with a copy
+      taken immediately after prepending the empty object: every byte remains unchanged through startup,
+      the command attempt, and shutdown, including the original student records in the second object.
+   1. Repeat with the valid backup followed by another JSON value (e.g., `true`) or invalid text
+      (e.g., `garbage`).<br>
+      Expected: The same restoration error, command block, and file preservation apply.
+   1. Close TAssist, restore the valid backup, and append only spaces, tabs, and line breaks. Reopen TAssist,
+      run `list`, and close and reopen the app.<br>
+      Expected: Records load normally, commands remain available, and the saved records survive reopening.
    1. Close TAssist, correct the file or replace it with the valid backup, and reopen TAssist.<br>
       Expected: The saved student and attendance records are restored, the command box is enabled,
       and `list` executes successfully without a restoration failure message.
       Alternatively, delete the file while the app is closed and reopen it to start with sample records.
-
-1. _{ more test cases … }_

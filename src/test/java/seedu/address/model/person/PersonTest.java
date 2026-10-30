@@ -246,11 +246,16 @@ public class PersonTest {
 
     @Test
     public void toStringMethod() {
-        String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", matriculationNumber="
-                + ALICE.getMatriculationNumber()
-                + ", email=" + ALICE.getEmail() + ", tags=" + ALICE.getTags()
+        String expected = Person.class.getCanonicalName()
+                + "{name=" + ALICE.getName()
+                + ", matriculationNumber=" + ALICE.getMatriculationNumber()
+                + ", email=" + ALICE.getEmail()
+                + ", tags=" + ALICE.getTags()
                 + ", attendance=" + ALICE.getAttendance()
-                + ", classCodes=" + ALICE.getClassCodes() + "}";
+                + ", classCodes=" + ALICE.getClassCodes()
+                + ", participationHistory=" + ALICE.getParticipationHistory()
+                + "}";
+
         assertEquals(expected, ALICE.toString());
     }
 }

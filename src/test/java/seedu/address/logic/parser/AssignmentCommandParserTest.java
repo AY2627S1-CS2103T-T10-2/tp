@@ -7,6 +7,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_MAX_MARK;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
+import static seedu.address.testutil.GradebookNumberTestData.INVALID_EXPONENT_INPUTS;
+import static seedu.address.testutil.GradebookNumberTestData.OVERSIZED_INPUTS;
 
 import java.math.BigDecimal;
 
@@ -31,6 +33,45 @@ public class AssignmentCommandParserTest {
                 new AssignmentCommand(student, assignment));
         assertParseSuccess(parser, " max/20.5 n/Assignment One id/cs2103t:a1 m/a1234567x",
                 new AssignmentCommand(student, assignment));
+    }
+
+    @Test
+    public void parse_validScientificNotation_success() {
+        String[][] cases = {
+            {"1.7500e1", "17.5"},
+            {"100e-2", "1"},
+            {"1e63", "1" + "0".repeat(63)},
+            {"1e-62", "0." + "0".repeat(61) + "1"}
+        };
+        for (String[] testCase : cases) {
+            Assignment assignment = new Assignment(id, "Assignment One", new BigDecimal(testCase[1]));
+            assertParseSuccess(parser, required + " n/Assignment One max/" + testCase[0],
+                    new AssignmentCommand(student, assignment));
+        }
+    }
+
+    @Test
+    public void parse_oversizedScientificNotation_failure() {
+        for (String input : OVERSIZED_INPUTS) {
+            assertParseFailure(parser, required + " n/Assignment One max/" + input,
+                    Assignment.MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS);
+        }
+    }
+
+    @Test
+    public void parse_invalidExponent_failure() {
+        for (String input : INVALID_EXPONENT_INPUTS) {
+            assertParseFailure(parser, required + " n/Assignment One max/" + input,
+                    AssignmentCommandParser.MESSAGE_INVALID_MAX_MARK);
+        }
+    }
+
+    @Test
+    public void parse_scientificZeroMaximum_failure() {
+        for (String input : new String[] {"0e2147483647", "0e-2147483647"}) {
+            assertParseFailure(parser, required + " n/Assignment One max/" + input,
+                    Assignment.MESSAGE_MAX_MARK_CONSTRAINTS);
+        }
     }
 
     @Test

@@ -8,12 +8,16 @@ import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.MATRICULATION_NUMBER_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.GradebookNumberTestData.INVALID_EXPONENT_INPUTS;
+import static seedu.address.testutil.GradebookNumberTestData.OVERSIZED_INPUTS;
 import static seedu.address.testutil.TypicalPersons.AMY;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +32,8 @@ import seedu.address.logic.commands.MarkCommand;
 import seedu.address.logic.commands.MarksCommand;
 import seedu.address.logic.commands.RemoveAssignmentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.AssignmentCommandParser;
+import seedu.address.logic.parser.MarkCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -37,6 +43,7 @@ import seedu.address.model.gradebook.Assignment;
 import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.gradebook.Gradebook;
 import seedu.address.model.gradebook.Mark;
+import seedu.address.model.gradebook.ReadOnlyGradebook;
 import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
@@ -63,6 +70,24 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void getGradebook_afterMarkChanges_returnsFreshSnapshot() {
+        model.addPerson(AMY);
+        Assignment assignment = new Assignment(new AssignmentId("CS2103T:A1"), "Quiz", new BigDecimal("20"));
+        model.addAssignmentForStudent(assignment, AMY.getMatriculationNumber());
+        ReadOnlyGradebook originalSnapshot = logic.getGradebook();
+        assertEquals(Optional.empty(), originalSnapshot.getMarksForStudent(AMY.getMatriculationNumber())
+                .get(assignment.getId()));
+
+        Mark mark = new Mark(new BigDecimal("17.5"));
+        model.recordMark(AMY.getMatriculationNumber(), assignment.getId(), mark);
+        assertEquals(Optional.of(assignment), logic.getGradebook().findAssignment(assignment.getId()));
+        assertEquals(Optional.of(mark), logic.getGradebook().getMarksForStudent(AMY.getMatriculationNumber())
+                .get(assignment.getId()));
+        assertEquals(Optional.empty(), originalSnapshot.getMarksForStudent(AMY.getMatriculationNumber())
+                .get(assignment.getId()));
+    }
+
+    @Test
     public void execute_invalidCommandFormat_throwsParseException() {
         String invalidCommand = "uicfhmowqewca";
         assertParseException(invalidCommand, MESSAGE_UNKNOWN_COMMAND);
@@ -84,6 +109,7 @@ public class LogicManagerTest {
     @Test
     public void execute_assignmentCommand_savesAssignmentAndStudentLink() throws Exception {
         model.addPerson(AMY);
+        logic.execute("enroll 1 c/CS2103T-T10");
         String command = "assignment m/" + AMY.getMatriculationNumber()
                 + " id/CS2103T:A1 n/Assignment One max/20.5";
         AssignmentId id = new AssignmentId("CS2103T:A1");
@@ -100,6 +126,7 @@ public class LogicManagerTest {
     @Test
     public void execute_markCommand_recordsUpdatesAndRestoresMark() throws Exception {
         model.addPerson(AMY);
+        logic.execute("enroll 1 c/CS2103T-T10");
         String student = AMY.getMatriculationNumber().toString();
         String assignment = " id/CS2103T:A1";
         logic.execute("assignment m/" + student + assignment + " n/Assignment One max/20");
@@ -123,22 +150,37 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_oversizedGradebookNumbers_rejectsWithoutChangingSavedData() throws Exception {
+    public void execute_invalidGradebookNumbers_rejectsWithoutChangingSavedData() throws Exception {
         model.addPerson(AMY);
+        logic.execute("enroll 1 c/CS2103T-T10");
         String student = AMY.getMatriculationNumber().toString();
         String assignment = " id/CS2103T:A1";
-        assertParseException("assignment m/" + student + assignment + " n/Assignment One max/1e1000000",
-                Assignment.MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS);
-        assertTrue(model.getAddressBook().getGradebook().getAssignments().isEmpty());
-
         logic.execute("assignment m/" + student + assignment + " n/Assignment One max/20");
-        assertParseException("mark m/" + student + assignment + " mark/1e1000000",
-                Mark.MESSAGE_LENGTH_CONSTRAINTS);
-        assertEquals(Optional.empty(), model.getAddressBook().getGradebook()
-                .getMarksForStudent(AMY.getMatriculationNumber()).get(new AssignmentId("CS2103T:A1")));
+        logic.execute("mark m/" + student + assignment + " mark/10");
+        Path filePath = temporaryFolder.resolve("addressBook.json");
+        String saved = Files.readString(filePath);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+        ReadOnlyAddressBook original = storage.readAddressBook().orElseThrow();
 
-        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
-        assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
+        for (String input : OVERSIZED_INPUTS) {
+            assertParseExceptionWithoutChangingSavedData("mark m/" + student + assignment + " mark/" + input,
+                    Mark.MESSAGE_LENGTH_CONSTRAINTS, original, saved);
+            assertParseExceptionWithoutChangingSavedData(
+                    "assignment m/" + student + " id/CS2103T:A2 n/Assignment Two max/" + input,
+                    Assignment.MESSAGE_MAX_MARK_LENGTH_CONSTRAINTS, original, saved);
+        }
+        for (String input : INVALID_EXPONENT_INPUTS) {
+            assertParseExceptionWithoutChangingSavedData("mark m/" + student + assignment + " mark/" + input,
+                    MarkCommandParser.MESSAGE_INVALID_MARK, original, saved);
+            assertParseExceptionWithoutChangingSavedData(
+                    "assignment m/" + student + " id/CS2103T:A2 n/Assignment Two max/" + input,
+                    AssignmentCommandParser.MESSAGE_INVALID_MAX_MARK, original, saved);
+        }
+        assertEquals(Optional.of(new Mark(BigDecimal.TEN)), original.getGradebook()
+                .getMarksForStudent(AMY.getMatriculationNumber()).get(new AssignmentId("CS2103T:A1")));
+        assertEquals(new BigDecimal("20"), original.getGradebook()
+                .findAssignment(new AssignmentId("CS2103T:A1")).orElseThrow().getMaxMark().setScale(0));
+        assertTrue(original.getGradebook().findAssignment(new AssignmentId("CS2103T:A2")).isEmpty());
     }
 
     @Test
@@ -147,6 +189,8 @@ public class LogicManagerTest {
         Person anotherStudent = new PersonBuilder(AMY).withName("Another Student")
                 .withMatriculationNumber("A2345678Y").build();
         model.addPerson(anotherStudent);
+        logic.execute("enroll 1 c/CS2103T-T10");
+        logic.execute("enroll 2 c/CS2103T-T11");
         String amyNumber = AMY.getMatriculationNumber().toString();
         String anotherNumber = anotherStudent.getMatriculationNumber().toString();
         AssignmentId id = new AssignmentId("CS2103T:A1");
@@ -176,6 +220,31 @@ public class LogicManagerTest {
         assertTrue(restored.getGradebook().getAssignments().isEmpty());
         assertTrue(restored.getGradebook().getMarksForStudent(anotherStudent.getMatriculationNumber()).isEmpty());
         assertCommandException("marks id/CS2103T:A1", Gradebook.MESSAGE_UNKNOWN_ASSIGNMENT);
+    }
+
+    @Test
+    public void execute_assignmentWithoutEnrollment_rejectsBothFormsWithoutChangingSavedData() throws Exception {
+        model.addPerson(AMY);
+        logic.execute("enroll 1 c/CS2103T-T10");
+        String student = AMY.getMatriculationNumber().toString();
+        AssignmentId existingId = new AssignmentId("CS2103T:A1");
+        logic.execute("assignment m/" + student + " id/" + existingId + " n/Assignment One max/20");
+        logic.execute("mark m/" + student + " id/" + existingId + " mark/10");
+        logic.execute("unenroll 1 all/");
+        Path filePath = temporaryFolder.resolve("addressBook.json");
+        String saved = Files.readString(filePath);
+
+        AssignmentId newId = new AssignmentId("CS2103T:A2");
+        assertCommandException("assignment m/" + student + " id/" + newId + " n/Assignment Two max/20",
+                String.format(AssignmentCommand.MESSAGE_STUDENT_NOT_ENROLLED,
+                        newId, student, newId.getModuleCode()));
+        assertEquals(saved, Files.readString(filePath));
+        logic.execute("removeassignment m/" + student + " id/" + existingId);
+        saved = Files.readString(filePath);
+        assertCommandException("assignment m/" + student + " id/" + existingId,
+                String.format(AssignmentCommand.MESSAGE_STUDENT_NOT_ENROLLED,
+                        existingId, student, existingId.getModuleCode()));
+        assertEquals(saved, Files.readString(filePath));
     }
 
     @Test
@@ -219,6 +288,24 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void getPersonList_filterAndEdit_retainsFullObservableList() {
+        model.addPerson(AMY);
+        var persons = logic.getPersonList();
+        model.updateFilteredPersonList(person -> false);
+        assertEquals(List.of(AMY), persons);
+        Person edited = new PersonBuilder(AMY).withName("Updated Amy").build();
+        model.setPerson(AMY, edited);
+        assertEquals(List.of(edited), persons);
+        model.deletePerson(edited);
+        assertTrue(persons.isEmpty());
+    }
+
+    @Test
+    public void getPersonList_modifyList_throwsUnsupportedOperationException() {
+        assertThrows(UnsupportedOperationException.class, () -> logic.getPersonList().add(AMY));
+    }
+
+    @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredPersonList().remove(0));
     }
@@ -243,6 +330,18 @@ public class LogicManagerTest {
      */
     private void assertParseException(String inputCommand, String expectedMessage) {
         assertCommandFailure(inputCommand, ParseException.class, expectedMessage);
+    }
+
+    /**
+     * Checks that a parse failure preserves the model, saved file contents, and restored records.
+     */
+    private void assertParseExceptionWithoutChangingSavedData(String inputCommand, String expectedMessage,
+            ReadOnlyAddressBook original, String saved) throws Exception {
+        assertParseException(inputCommand, expectedMessage);
+        assertEquals(original, model.getAddressBook());
+        Path filePath = temporaryFolder.resolve("addressBook.json");
+        assertEquals(saved, Files.readString(filePath));
+        assertEquals(original, new JsonAddressBookStorage(filePath).readAddressBook().orElseThrow());
     }
 
     /**
