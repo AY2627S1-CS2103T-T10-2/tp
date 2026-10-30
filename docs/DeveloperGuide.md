@@ -1103,14 +1103,52 @@ testers are expected to do more *exploratory* testing.
 Start in a fresh test folder with the original sample students.
 
 1. Viewing statistics when some students attended
-
-   1. Prerequisites: Run `list` and enroll the first three students in CS2103T-T10 using `enroll 1 c/CS2103T-T10`, `enroll 2 c/CS2103T-T10`, and `enroll 3 c/CS2103T-T10`, skipping students who are already enrolled. Ensure none of these students has an attendance record for CS2103T-T10 on 28-10-2026.
-
-   1. Test case: `attendance 1 c/CS2103T-T10 d/28-10-2026`, followed by `attendance 2 c/CS2103T-T10 d/28-10-2026`<br>
+   1. Prerequisites: Run `list` with at least three students. Enroll the first three students in CS2103T-T10 using `enroll 1 c/CS2103T-T10`, `enroll 2 c/CS2103T-T10`, and `enroll 3 c/CS2103T-T10`, skipping any students who are already enrolled. Ensure the students have no attendance records for CS2103T-T10 on 28-10-2026.
+   2. Test case: `attendance 1 c/CS2103T-T10 d/28-10-2026`, followed by `attendance 2 c/CS2103T-T10 d/28-10-2026`.\
       Expected: Attendance is recorded for the first two students.
+   3. Test case: `attendance stats c/CS2103T-T10 d/28-10-2026`\
+      Expected: The result shows 2 students attended. The total equals the number of students currently enrolled in CS2103T-T10, including any students who were already enrolled before testing. No student data is changed.
 
-   1. Test case: `attendance stats c/CS2103T-T10 d/28-10-2026`<br>
-      Expected: The result shows 2 students attended. The total equals the number of students currently enrolled in CS2103T-T10.### Assigning work to a student
+2. Viewing statistics when no attendance is recorded
+   1. Prerequisites: At least one student is enrolled in CS2103T-T10. No student currently enrolled in this class has an attendance record for 30-10-2026.
+   2. Test case: `attendance stats c/CS2103T-T10 d/30-10-2026`\
+      Expected: The result shows 0 students attended. The total still includes every student currently enrolled in CS2103T-T10.
+
+3. Viewing statistics for a class without enrolled students
+   1. Prerequisites: Ensure no students are enrolled in CS2103T-T99.
+   2. Test case: `attendance stats c/CS2103T-T99 d/28-10-2026`\
+      Expected: The result shows 0 students attended and 0 total students. No error occurs and no student data is changed.
+
+4. Checking that statistics are independent of the displayed list
+   1. Prerequisites: Have at least two students enrolled in CS2103T-T10 with attendance recorded on 28-10-2026. Run `attendance stats c/CS2103T-T10 d/28-10-2026` and note both counts.
+   2. Test case: Run `find` using a keyword that displays only one of those students. Then run `attendance stats c/CS2103T-T10 d/28-10-2026`.\
+      Expected: Both counts are unchanged. Statistics include students who are not currently displayed, and the filtered list remains unchanged.
+
+5. Rejecting invalid or incomplete input
+   1. Prerequisites: Run `attendance stats c/CS2103T-T10 d/28-10-2026` and note the result.
+   2. Test case: `attendance stats c/CS2103T-T10`\
+      Expected: The command is rejected because the date is missing. No data is changed.
+   3. Test case: `attendance stats d/28-10-2026`\
+      Expected: The command is rejected because the class code is missing.
+   4. Test case: `attendance stats c/CS2103T-T10 d/31-02-2026`\
+      Expected: The command is rejected because the date is not a valid calendar date.
+   5. Test case: `attendance stats c/CS2103T-T10 c/CS2103T-T11 d/28-10-2026`\
+      Expected: The repeated class prefix is rejected.
+   6. Test case: `attendance stats 1 c/CS2103T-T10 d/28-10-2026`\
+      Expected: The command is rejected because statistics are requested for a class, not an individual student.
+   7. Run `attendance stats c/CS2103T-T10 d/28-10-2026` again.\
+      Expected: The original statistics are unchanged after the invalid commands.
+
+6. Checking different dates and classes
+   1. Prerequisites: Enroll the first student in CS2103T-T10 and CS2103T-T11. Ensure the student has no attendance records for those classes on 29-10-2026.
+   2. Test case: `attendance 1 c/CS2103T-T11 d/29-10-2026`, followed by `attendance stats c/CS2103T-T10 d/29-10-2026`.\
+      Expected: The attendance record for CS2103T-T11 is not counted towards CS2103T-T10.
+   3. Test case: `attendance stats c/CS2103T-T11 d/29-10-2026`\
+      Expected: The first student's attendance is included in the attended count for CS2103T-T11.
+   4. Test case: `attendance stats c/CS2103T-T11 d/30-10-2026`\
+      Expected: The attendance recorded on 29-10-2026 is not counted for 30-10-2026.
+
+### Assigning work to a student
 
 1. Add two students with different matriculation numbers, then assign the same work to each.
    1. Test case: `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20`<br>
