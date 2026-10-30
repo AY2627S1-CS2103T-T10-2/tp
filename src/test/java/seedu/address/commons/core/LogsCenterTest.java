@@ -13,6 +13,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 public class LogsCenterTest {
 
+    // FileHandler treats a limit of 0 as no size limit, so the log file never rotates.
     private static final int LOG_FILE_SIZE_LIMIT = 0;
     private static final int LOG_FILE_COUNT = 2;
 
