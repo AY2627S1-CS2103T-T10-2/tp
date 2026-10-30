@@ -5,7 +5,6 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Arrays;
 import java.util.Locale;
 
 /**
@@ -14,7 +13,7 @@ import java.util.Locale;
 public class StringUtil {
 
     /**
-     * Returns true if the {@code sentence} contains the {@code word}.
+     * Returns true if the {@code sentence} contains the {@code subword}.
      *   Ignores case, both partial and full word matches are allowed.
      *   <br>examples:<pre>
      *       containsSubwordIgnoreCase("ABc def", "abc") == true
@@ -23,7 +22,7 @@ public class StringUtil {
      *       containsSubwordIgnoreCase("ABc def", "g") == false //g not in sentence
      *       </pre>
      * @param sentence cannot be null
-     * @param subword cannot be null, cannot be empty, must be a substring of a single word
+     * @param subword cannot be null or empty after trimming, and must be a single word
      */
     public static boolean containsSubwordIgnoreCase(String sentence, String subword) {
         requireNonNull(sentence);
@@ -34,10 +33,7 @@ public class StringUtil {
         checkArgument(preppedSubWord.split("\\s+").length == 1, "Word parameter should be a single word");
 
         String preppedSentence = sentence.toLowerCase(Locale.ROOT);
-        String[] wordsInPreppedSentence = preppedSentence.split("\\s+");
-
-        return Arrays.stream(wordsInPreppedSentence)
-                .anyMatch(wordInPreppedSentence -> wordInPreppedSentence.contains(preppedSubWord));
+        return preppedSentence.contains(preppedSubWord);
     }
 
     /**
