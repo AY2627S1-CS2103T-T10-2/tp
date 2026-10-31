@@ -1114,6 +1114,8 @@ Given below are instructions to test the app manually.
 
 Commands to enter are formatted like `redo`; messages and text displayed by TAssist are formatted like <samp>Redo successful.</samp>. In output samples, NAME represents the student's name and MARK/MAX_MARK represents the recorded mark and assignment maximum.
 
+Invalid-input tables collect the rejected inputs for each section, including commands that are valid in form but cannot be performed in the current state. Run each case separately at the point indicated in the steps, so its prerequisites are satisfied.
+
 <box type="info" seamless>
 
 **Note:** These instructions only provide a starting point for testers to work on;
@@ -1150,14 +1152,20 @@ Start in a fresh test folder with the original sample students.
 
 1. Run `add n/Zoe Test m/A9900001Z e/zoe@example.com t/tutorial`.<br>
    Expected: Zoe appears after the six sample students in name order, with the supplied details.
-1. Repeat the command with `n/Another Name` but the same matriculation number.<br>
-   Expected: The duplicate is rejected; only one student has that number.
+1. Run case A1 in the invalid-input table below.
 1. Run `find m/A9900001Z`, then `edit 1 n/Zoe Updated e/zoe.updated@example.com t/` and `view 1`.<br>
    Expected: The name and email change and all tags are cleared. The matriculation number remains A9900001Z.
-1. Run `edit 1 m/A1234567X` and `edit 1 e/zoe..test@example.com` separately.<br>
-   Expected: Both requests fail (duplicate matriculation number and invalid email), preserving Zoe's details.
+1. Run cases A2 and A3 in the invalid-input table below.
 1. Close and reopen the app from the same folder. Run `find m/A9900001Z` and `view 1`.<br>
    Expected: Zoe's updated name, email and empty tags are retained.
+
+**Invalid inputs**
+
+| Case | Invalid input | Why it is invalid | Expected result |
+| --- | --- | --- | --- |
+| A1 | `add n/Another Name m/A9900001Z e/zoe@example.com t/tutorial` | Zoe already has matriculation number A9900001Z; matriculation numbers must be unique. | The duplicate is rejected; only Zoe has that number. |
+| A2 | `edit 1 m/A1234567X` | Alex Yeoh already has matriculation number A1234567X. | The duplicate is rejected and Zoe's details remain unchanged. |
+| A3 | `edit 1 e/zoe..test@example.com` | The email's local part contains consecutive periods. | The email is rejected and Zoe's details remain unchanged. |
 
 ### Searching and filtering students
 
@@ -1175,8 +1183,15 @@ Start in a fresh test folder with the six original sample students. Run each ste
    Expected: The first command finds Alex despite the previous criteria. The second finds Bernice, proving the old filter was cleared.
 1. Run `list`, then `filter CS2103T-T10 CS3230`.<br>
    Expected: Alex and Bernice appear. Run `list`; all six students return in name order.
-1. Run `find Alex m/A1234567X`, `find m/A1234567X m/A2345678Y`, and `filter invalid` separately.<br>
-   Expected: Each request is rejected and the six-student list is preserved.
+1. Run each case in the invalid-input table below.
+
+**Invalid inputs**
+
+| Case | Invalid input | Why it is invalid | Expected result |
+| --- | --- | --- | --- |
+| F1 | `find Alex m/A1234567X` | A name search cannot be combined with a matriculation-number search. | The request is rejected and the six-student list is preserved. |
+| F2 | `find m/A1234567X m/A2345678Y` | The `m/` prefix is repeated; only one matriculation number is allowed. | The request is rejected and the six-student list is preserved. |
+| F3 | `filter invalid` | `invalid` matches neither the module-code format nor the class-code format. | The request is rejected and the six-student list is preserved. |
 
 ### Unenrolling from one or all classes
 
@@ -1188,16 +1203,23 @@ Start in a fresh test folder with the original sample students. Run these steps 
    Expected: Alex has an attendance record and 2 participation points for CS2103T-T10 on 28-10-2026.
 1. Run `unenroll 1 c/CS2103T-T10`, then `view 1`.<br>
    Expected: Only CS3230-T01 remains enrolled. The quiz, score and attendance record remain. `participation view 1` still shows 2 points.
-1. Repeat `unenroll 1 c/CS2103T-T10`.<br>
-   Expected: An error reports that the student is not enrolled in that class; records remain unchanged.
+1. Run case E1 in the invalid-input table below.
 1. Run `unenroll 1 all/`, then `view 1`.<br>
    Expected: No classes remain, but assignments, marks and attendance remain. `participation view 1` still shows the recorded points.
 1. Run `mark m/A1234567X id/CS2103T:A1 mark/9`.<br>
-   Expected: The retained assignment can still be marked. Run `assignment m/A1234567X id/CS2103T:A2 n/New Quiz max/10`; it is rejected because module enrollment is required for new work.
-1. Run `unenroll 1 all/` and `unenroll 1 c/CS3230-T01 all/` separately.<br>
-   Expected: Both fail without changing records: the first has no enrollment to remove, and the second combines incompatible forms.
+   Expected: The retained assignment can still be marked.
+1. Run cases E2 to E4 in the invalid-input table below.
 1. Close and reopen the app from the same test folder. Run `view 1` and `participation view 1`.<br>
    Expected: No classes are enrolled; the quiz score of 9, attendance record and participation points are retained.
+
+**Invalid inputs**
+
+| Case | Invalid input | Why it is invalid | Expected result |
+| --- | --- | --- | --- |
+| E1 | `unenroll 1 c/CS2103T-T10` | Alex has already been unenrolled from CS2103T-T10. | An error reports that the student is not enrolled in that class; records remain unchanged. |
+| E2 | `assignment m/A1234567X id/CS2103T:A2 n/New Quiz max/10` | Alex has no remaining enrollment in CS2103T; module enrollment is required for new work. | The assignment is rejected and no records change. |
+| E3 | `unenroll 1 all/` | Alex has no remaining class enrollments to remove. | The request fails without changing records. |
+| E4 | `unenroll 1 c/CS3230-T01 all/` | A specific class and `all/` are mutually exclusive forms. | The request fails without changing records. |
 
 ### Sorting the displayed students
 
@@ -1245,11 +1267,16 @@ Start in a fresh test folder with the original sample students. Run these steps 
    1. Run `sort mark id/CS2103T:A1 desc`.<br>
       Expected: The student with zero appears before the unmarked and unassigned students. Every card shows <samp>CS2103T:A1</samp> with <samp>0/20</samp>, <samp>Unmarked</samp>, or <samp>Not assigned</samp> as appropriate.
 
-   1. Run `sort mark id/CS2103T:A9`.<br>
-      Expected: TAssist reports that the assignment does not exist; the displayed order and card details remain unchanged.
+   1. Run case S1 in the invalid-input table below.
 
    1. Record another mark using `mark m/A6789012U id/CS2103T:A1 mark/15`.<br>
       Expected: The list returns to name order and the assignment result line disappears. Running `sort mark id/CS2103T:A1 desc` again shows the student with 15 first.
+
+**Invalid inputs**
+
+| Case | Invalid input | Why it is invalid | Expected result |
+| --- | --- | --- | --- |
+| S1 | `sort mark id/CS2103T:A9` | No assignment with ID CS2103T:A9 exists in the fresh test data. | TAssist reports that the assignment does not exist; the displayed order and card details remain unchanged. |
 
 ### Keeping an open student profile current
 
@@ -1322,19 +1349,22 @@ Run the following scenarios in order in a test data folder. Keep the details win
    1. Test case: `delete 1`<br>
       Expected: The first student is deleted from the list. The status message shows the deleted student's details.
 
-   1. Test case: `delete 0`<br>
-      Expected: No student is deleted. The status message shows error details.
+   1. Run each case in the invalid-input table below. For D4, replace `N` with an integer larger than the current displayed list size.
 
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
+**Invalid inputs**
 
+| Case | Invalid input | Why it is invalid | Expected result |
+| --- | --- | --- | --- |
+| D1 | `delete 0` | Displayed student indices start at 1. | No student is deleted; the status message shows error details. |
+| D2 | `delete` | No student index or matriculation number is supplied. | No student is deleted; the status message shows error details. |
+| D3 | `delete x` | The literal `x` is not a positive integer index. | No student is deleted; the status message shows error details. |
+| D4 | `delete N` | The supplied integer is larger than the displayed list size. | No student is deleted; the status message shows error details. |
 
 ### Deleting multiple students or a hidden student
 
 Start in a fresh test folder with the original six sample students. Run these steps in order.
 
-1. Run `delete 1 1`, then `delete 1 99`.<br>
-   Expected: Each command fails without deleting anyone. Run `list` to confirm all six students remain.
+1. Run cases D1 and D2 in the invalid-input table below, then run `list` to confirm all six students remain.
 1. Run `delete 1 3`.<br>
    Expected: Alex Yeoh and Charlotte Oliveiro are deleted using their original displayed indices. Bernice Yu remains.
 1. Run `undo`.<br>
@@ -1345,8 +1375,15 @@ Start in a fresh test folder with the original six sample students. Run these st
    Expected: <samp>Undo successful.</samp> is displayed, and all six students return in name order.
 1. Run `find Alex`, then `delete m/A2345678Y`.<br>
    Expected: Bernice is deleted even though only Alex was displayed. Run `list` to confirm Bernice is absent and the other five students remain.
-1. Run `delete m/A2345678Y` again.<br>
-   Expected: An error reports that the student was not found; no additional students are deleted.
+1. Run case D3 in the invalid-input table below.
+
+**Invalid inputs**
+
+| Case | Invalid input | Why it is invalid | Expected result |
+| --- | --- | --- | --- |
+| D1 | `delete 1 1` | Index 1 is repeated; a student cannot be targeted twice in one deletion. | The whole command fails without deleting anyone; all six students remain. |
+| D2 | `delete 1 99` | Index 99 is outside the six-student displayed list. | The whole command fails without deleting anyone, including the student at index 1. |
+| D3 | `delete m/A2345678Y` | Bernice has already been deleted, so no student has matriculation number A2345678Y. | An error reports that the student was not found; no additional students are deleted. |
 
 ### Undoing and redoing changes
 
@@ -1356,8 +1393,8 @@ Start in a fresh test folder with the original six sample students. Run these sc
 
    1. Run `find Alex Bernice`, `sort matric desc`, then `view 1`.<br>
       Expected: Only Bernice and Alex are displayed, in that order, and Bernice's details window opens.
-   1. Run `undo`, then `redo`.<br>
-      Expected: The commands report <samp>No commands to undo.</samp> and <samp>No commands to redo.</samp> respectively. Only Bernice and Alex remain displayed, in that order, and Bernice's details window stays open. No records change.
+   1. Run cases U1 and U2 in the invalid-input table below.<br>
+      Expected: Only Bernice and Alex remain displayed, in that order, and Bernice's details window stays open. No records change.
 
 1. Restoring successive changes in order
 
@@ -1369,8 +1406,7 @@ Start in a fresh test folder with the original six sample students. Run these sc
       Expected: The student has no enrolled classes.
    1. Run `undo` again.<br>
       Expected: <samp>Undo successful.</samp> is displayed. The addition is undone, leaving the original six students, and the details window closes.
-   1. Run `undo` again.<br>
-      Expected: <samp>No commands to undo.</samp> is reported without changing records.
+   1. Run case U3 in the invalid-input table below.
    1. Run `redo`.<br>
       Expected: <samp>Redo successful.</samp> is displayed, and the student *Undo Test* returns.
    1. Run `find m/A9900187Z`, then `view 1`.<br>
@@ -1379,8 +1415,8 @@ Start in a fresh test folder with the original six sample students. Run these sc
       Expected: <samp>Redo successful.</samp> is displayed. Enrollment in CS2103T-T10 returns, all seven students appear in ascending name order, and the details window closes.
    1. Run `find m/A9900187Z`, then `view 1`.<br>
       Expected: The student *Undo Test* is enrolled in CS2103T-T10.
-   1. Run `redo` again.<br>
-      Expected: <samp>No commands to redo.</samp> is reported and the filtered list and details window remain unchanged.
+   1. Run case U4 in the invalid-input table below.<br>
+      Expected: The filtered list and details window remain unchanged.
 
 1. Preserving redo when commands do not change records
 
@@ -1388,8 +1424,8 @@ Start in a fresh test folder with the original six sample students. Run these sc
 
    1. Run `undo`, `find m/A9900187Z`, `sort matric desc`, then `redo`.<br>
       Expected: Undo reports <samp>Undo successful.</samp> Finding and sorting do not discard redo history. Redo reports <samp>Redo successful.</samp> and restores enrollment in CS2103T-T10.
-   1. Run `undo`, `delete 0`, then `redo`.<br>
-      Expected: Undo reports <samp>Undo successful.</samp> Deletion is rejected without changing records. Redo reports <samp>Redo successful.</samp> and restores enrollment.
+   1. Run `undo`, then case U5 in the invalid-input table below, then `redo`.<br>
+      Expected: Undo reports <samp>Undo successful.</samp> Redo reports <samp>Redo successful.</samp> and restores enrollment.
    1. Run `undo`, `find m/A9900187Z`, `edit 1 n/Undo Test`, then `redo`.<br>
       Expected: Undo reports <samp>Undo successful.</samp> Editing the name to its existing value succeeds without changing records. Redo reports <samp>Redo successful.</samp> and restores enrollment.
 
@@ -1397,8 +1433,8 @@ Start in a fresh test folder with the original six sample students. Run these sc
 
    1. Run `undo`, `find m/A9900187Z`, then `edit 1 e/undo.updated@example.com`.<br>
       Expected: Undo reports <samp>Undo successful.</samp> The email changes to `undo.updated@example.com` and the student has no enrolled classes.
-   1. Run `redo`, `find m/A9900187Z`, then `view 1`.<br>
-      Expected: Redo reports <samp>No commands to redo.</samp> The new email remains and the student has no enrolled classes; the previously undone enrollment cannot be redone.
+   1. Run case U6 in the invalid-input table below, then `find m/A9900187Z` and `view 1`.<br>
+      Expected: The new email remains and the student has no enrolled classes; the previously undone enrollment cannot be redone.
    1. Run `undo`, `find m/A9900187Z`, then `view 1`.<br>
       Expected: Undo reports <samp>Undo successful.</samp> The email returns to `undo187@example.com` and no classes are enrolled.
    1. Run `redo`, `find m/A9900187Z`, then `view 1`.<br>
@@ -1410,12 +1446,27 @@ Start in a fresh test folder with the original six sample students. Run these sc
 
    1. Close TAssist and reopen the same JAR from the same test folder. Run `find m/A9900187Z`, then `view 1`.<br>
       Expected: The student *Undo Test* remains saved with email `undo187@example.com` and no enrolled classes.
-   1. Run `undo`, then `redo`.<br>
-      Expected: The commands report <samp>No commands to undo.</samp> and <samp>No commands to redo.</samp> respectively. The restored records, filtered list and details window remain unchanged.
+   1. Run cases U7 and U8 in the invalid-input table below.<br>
+      Expected: The restored records, filtered list and details window remain unchanged.
    1. Run `list`.<br>
       Expected: All seven students remain.
 
 For additional restoration checks involving deleted students, assignment links and marks, follow [Deleting multiple students or a hidden student](#deleting-multiple-students-or-a-hidden-student) and [Viewing marks in a student profile](#viewing-marks-in-a-student-profile).
+
+**Invalid inputs**
+
+Run each case at the point indicated in the scenarios above.
+
+| Case | Invalid input | Why it is invalid | Expected result |
+| --- | --- | --- | --- |
+| U1 | `undo` before any records have changed | Finding, sorting and viewing do not create a change to undo. | <samp>No commands to undo.</samp>; records, displayed order and open profile are unchanged. |
+| U2 | `redo` before any change has been undone | There is no undone change to redo. | <samp>No commands to redo.</samp>; records, displayed order and open profile are unchanged. |
+| U3 | `undo` after undoing both enrollment and student addition | Every recorded change has already been undone. | <samp>No commands to undo.</samp>; the original six students remain. |
+| U4 | `redo` after redoing both student addition and enrollment | Every undone change has already been redone. | <samp>No commands to redo.</samp>; records, filtered list and open profile are unchanged. |
+| U5 | `delete 0` after undoing enrollment | Student indices must be positive integers starting from 1. | Deletion is rejected without changing records or discarding redo history. |
+| U6 | `redo` after changing the email following an undo | A new change discards the previous redo history. | <samp>No commands to redo.</samp>; the new email remains and enrollment is not restored. |
+| U7 | `undo` immediately after restarting TAssist | Undo history is cleared on restart. | <samp>No commands to undo.</samp>; restored records, filtered list and open profile are unchanged. |
+| U8 | `redo` immediately after restarting TAssist | Redo history is cleared on restart. | <samp>No commands to redo.</samp>; restored records, filtered list and open profile are unchanged. |
 
 ### Recording attendance
 
@@ -1429,8 +1480,7 @@ For additional restoration checks involving deleted students, assignment links a
    1. Test case: `attendance unmark 1 c/CS2103T-T10 d/07-10-2026`<br>
       Expected: The status message shows <samp>Unmarked attendance for NAME in CS2103T-T10 on 07-10-2026</samp>. `view 1` no longer lists that record.
 
-   1. Test case: `attendance unmark 1 d/07-10-2026`<br>
-      Expected: Nothing changes. The status message shows <samp>No attendance recorded for NAME on 07-10-2026.</samp>
+   1. Run case AT1 in the invalid-input table below.
 
 1. Identifying a student outside the displayed list
 
@@ -1446,8 +1496,7 @@ For additional restoration checks involving deleted students, assignment links a
 
    1. Prerequisites: Run `list`. The first student is enrolled in CS2103T-T10 but not CS2103T-T11.
 
-   1. Test case: `attendance 1 c/CS2103T-T11 d/07-10-2026`<br>
-      Expected: The status message shows <samp>NAME is not enrolled in CS2103T-T11.</samp> No attendance record is added.
+   1. Run case AT2 in the invalid-input table below.
 
 1. Removing one of two classes on the same date
 
@@ -1456,8 +1505,7 @@ For additional restoration checks involving deleted students, assignment links a
    1. Test case: `attendance 1 c/CS2103T-T10 d/07-10-2026`, then `attendance 1 c/CS2103T-T11 d/07-10-2026`<br>
       Expected: Both succeed. `view 1` shows <samp>2 records</samp>, with CS2103T-T10 before CS2103T-T11 for that date.
 
-   1. Test case: `attendance unmark 1 d/07-10-2026`<br>
-      Expected: The status message shows <samp>NAME has attendance recorded in more than one class on 07-10-2026: CS2103T-T10, CS2103T-T11. Specify the class with c/MODULE-CLASS.</samp> Both records remain.
+   1. Run case AT3 in the invalid-input table below.
 
    1. Test case: `attendance unmark 1 c/CS2103T-T11 d/07-10-2026`, then `attendance unmark 1 d/07-10-2026`<br>
       Expected: The first command removes only the CS2103T-T11 record. The second infers CS2103T-T10 and shows <samp>Unmarked attendance for NAME in CS2103T-T10 on 07-10-2026</samp>. Neither record remains.
@@ -1469,8 +1517,18 @@ For additional restoration checks involving deleted students, assignment links a
    1. Test case: `attendance c/CS2103T-T10 d/07-10-2026`<br>
       Expected: The status message shows <samp>Marked attendance for 1 student in CS2103T-T10 on 07-10-2026</samp>, followed on a second line by <samp>Already recorded, skipped: Alex Yeoh</samp>.
 
-   1. Test case: `attendance c/CS2103T-T99`<br>
-      Expected: The status message shows <samp>No students are enrolled in CS2103T-T99.</samp> No attendance records change.
+   1. Run case AT4 in the invalid-input table below.
+
+**Invalid inputs**
+
+Run each case after its prerequisites in the scenarios above. `NAME` is the selected student's name.
+
+| Case | Invalid input | Why it is invalid | Expected result |
+| --- | --- | --- | --- |
+| AT1 | `attendance unmark 1 d/07-10-2026` after removing the only record on that date | No attendance record remains to remove. | <samp>No attendance recorded for NAME on 07-10-2026.</samp>; no records change. |
+| AT2 | `attendance 1 c/CS2103T-T11 d/07-10-2026` before enrolling the student in CS2103T-T11 | Attendance can only be marked for a class the student is enrolled in. | <samp>NAME is not enrolled in CS2103T-T11.</samp>; no attendance record is added. |
+| AT3 | `attendance unmark 1 d/07-10-2026` while both class records exist | The date matches CS2103T-T10 and CS2103T-T11, so the class is needed to identify which record to remove. | <samp>NAME has attendance recorded in more than one class on 07-10-2026: CS2103T-T10, CS2103T-T11. Specify the class with c/MODULE-CLASS.</samp>; both records remain. |
+| AT4 | `attendance c/CS2103T-T99` with no students enrolled in that class | There are no enrolled students whose attendance can be marked. | <samp>No students are enrolled in CS2103T-T99.</samp>; no attendance records change. |
 
 ### Recording class participation
 
@@ -1493,22 +1551,13 @@ Replace `MATRIC` with the chosen test student's matriculation number, without th
       Expected: The chosen student's participation history is shown in the command result panel, even though they are not in the displayed list. Entries are ordered by class code and then date. The displayed student list and stored data are unchanged.
 
 3. Rejecting invalid or incomplete input
-   1. Prerequisites: The chosen student is enrolled in CS2103T-T10. Run `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3`, then `participation view m/MATRIC` to note the existing records. After each rejected command below, view the history again to check that it is unchanged.
-   2. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/-1`.<br>
-      Expected: The status message explains the valid points format and range. The existing score remains 3, and no other participation records change.
-   3. Test case: Repeat the previous command with each of these point values: `p/2.5`, `p/two`, `p/2147483648`, and an empty `p/`.<br>
-      Expected: Each command is rejected without changing any participation records.
-   4. Test case: `participation m/MATRIC c/CS2103T-T10 d/31-02-2026 p/2`.<br>
-      Expected: The status message explains that a valid calendar date in dd-MM-yyyy format is required. No record is added or changed.
-   5. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026`.<br>
-      Expected: The status message asks for points using `p/POINTS`. The existing history is unchanged.
-   6. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/2 p/3`.<br>
-      Expected: The repeated prefix is rejected. Neither value is applied, and the existing history is unchanged.
+   1. Prerequisites: The chosen student is enrolled in CS2103T-T10. Run `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3`, then `participation view m/MATRIC` to note the existing records.
+   2. Run cases P1 to P8 in the invalid-input table below, one at a time. After each rejected command, run `participation view m/MATRIC`.<br>
+      Expected: The existing score remains 3, and no other participation records change.
 
 4. Rejecting a class the student is not enrolled in
    1. Prerequisites: The chosen student is enrolled in CS2103T-T10 but not CS2103T-T11. Note the student's current participation history.
-   2. Test case: `participation m/MATRIC c/CS2103T-T11 d/28-10-2026 p/2`.<br>
-      Expected: The status message shows <samp>NAME is not enrolled in CS2103T-T11. Enroll the student in this class first.</samp> No student data is changed.
+   2. Run case P9 in the invalid-input table below.
 
 5. Preserving participation after edits, attendance changes and restart
    1. Prerequisites: Run `list` and use the first student as the test student. Note their matriculation number using `view 1`. Ensure this student is enrolled in CS2103T-T10. Run `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3` to set up the participation record. The student must have no attendance record for that class on 29-10-2026.
@@ -1525,8 +1574,24 @@ Replace `MATRIC` with the chosen test student's matriculation number, without th
       Expected: The 28-10-2026 record remains in the history with 0 points. The 29-10-2026 record still has 1 point.
    3. Test case: `participation remove m/MATRIC c/CS2103T-T10 d/28-10-2026`, followed by `participation view m/MATRIC`.<br>
       Expected: Only the 28-10-2026 participation record is removed. The 29-10-2026 record, attendance and other student details remain unchanged.
-   4. Test case: Repeat `participation remove m/MATRIC c/CS2103T-T10 d/28-10-2026`, then view the history again.<br>
-      Expected: The status message reports that no participation record exists for that student, class and date. No further data changes occur.
+   4. Run case P10 in the invalid-input table below, then view the history again.
+
+**Invalid inputs**
+
+Run each case after its prerequisites in the scenarios above. Replace `MATRIC` with the chosen student's matriculation number.
+
+| Case | Invalid input | Why it is invalid | Expected result |
+| --- | --- | --- | --- |
+| P1 | `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/-1` | Points must contain digits only and be between 0 and 2147483647 inclusive; negative points are not allowed. | The status message explains the valid points format and range; existing participation records are unchanged. |
+| P2 | `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/2.5` | Points must be a whole number; decimal values are not allowed. | The command is rejected; existing participation records are unchanged. |
+| P3 | `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/two` | Points must contain digits only. | The command is rejected; existing participation records are unchanged. |
+| P4 | `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/2147483648` | The value exceeds the maximum of 2147483647 points. | The command is rejected; existing participation records are unchanged. |
+| P5 | `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/` | The points value is empty. | The command is rejected; existing participation records are unchanged. |
+| P6 | `participation m/MATRIC c/CS2103T-T10 d/31-02-2026 p/2` | 31 February is not a valid calendar date. | The status message asks for a valid date in dd-MM-yyyy format; no record is added or changed. |
+| P7 | `participation m/MATRIC c/CS2103T-T10 d/28-10-2026` | The required `p/POINTS` argument is missing. | The status message asks for points using `p/POINTS`; existing participation records are unchanged. |
+| P8 | `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/2 p/3` | The points prefix is repeated. | The repeated prefix is rejected; neither value is applied and existing participation records are unchanged. |
+| P9 | `participation m/MATRIC c/CS2103T-T11 d/28-10-2026 p/2` while the student is not enrolled in CS2103T-T11 | Participation can only be recorded for a class the student is enrolled in. | <samp>NAME is not enrolled in CS2103T-T11. Enroll the student in this class first.</samp>; no student data changes. |
+| P10 | `participation remove m/MATRIC c/CS2103T-T10 d/28-10-2026` after that record has been removed | No participation record exists for the student, class and date. | The status message reports the missing record; no further data changes occur. |
 
 ### Viewing class attendance statistics
 
@@ -1556,17 +1621,8 @@ Start in a fresh test folder with the original sample students.
 
 5. Rejecting invalid or incomplete input
    1. Prerequisites: Run `attendance stats c/CS2103T-T10 d/28-10-2026` and note the result.
-   2. Test case: `attendance stats c/CS2103T-T10`\
-      Expected: The command is rejected because the date is missing. No data is changed.
-   3. Test case: `attendance stats d/28-10-2026`\
-      Expected: The command is rejected because the class code is missing.
-   4. Test case: `attendance stats c/CS2103T-T10 d/31-02-2026`\
-      Expected: The command is rejected because the date is not a valid calendar date.
-   5. Test case: `attendance stats c/CS2103T-T10 c/CS2103T-T11 d/28-10-2026`\
-      Expected: The repeated class prefix is rejected.
-   6. Test case: `attendance stats 1 c/CS2103T-T10 d/28-10-2026`\
-      Expected: The command is rejected because statistics are requested for a class, not an individual student.
-   7. Run `attendance stats c/CS2103T-T10 d/28-10-2026` again.\
+   2. Run cases AS1 to AS5 in the invalid-input table below, one at a time.
+   3. Run `attendance stats c/CS2103T-T10 d/28-10-2026` again.\
       Expected: The original statistics are unchanged after the invalid commands.
 
 6. Checking different dates and classes
@@ -1578,6 +1634,17 @@ Start in a fresh test folder with the original sample students.
    4. Test case: `attendance stats c/CS2103T-T11 d/30-10-2026`\
       Expected: The attendance recorded on 29-10-2026 is not counted for 30-10-2026.
 
+**Invalid inputs**
+
+Run these cases during scenario 5. No case should change student data or the displayed student list.
+
+| Case | Invalid input | Why it is invalid | Expected result |
+| --- | --- | --- | --- |
+| AS1 | `attendance stats c/CS2103T-T10` | The required date is missing. | The command is rejected and the required command format is shown. |
+| AS2 | `attendance stats d/28-10-2026` | The required class code is missing. | The command is rejected and the required command format is shown. |
+| AS3 | `attendance stats c/CS2103T-T10 d/31-02-2026` | 31 February is not a valid calendar date. | The command is rejected with a date validation error. |
+| AS4 | `attendance stats c/CS2103T-T10 c/CS2103T-T11 d/28-10-2026` | The class prefix is repeated. | The repeated prefix is rejected. |
+| AS5 | `attendance stats 1 c/CS2103T-T10 d/28-10-2026` | Class statistics do not accept a student index. | The command is rejected with a format error. |
 
 ### Assigning work to a student
 
@@ -1589,16 +1656,21 @@ Start in a fresh test folder with the original sample students.
       Expected: TAssist confirms the assignment was attached to the first student without a mark.
    1. Test case: `assignment m/A2345678Y id/CS2103T:A1`<br>
       Expected: TAssist confirms the same definition was attached to the second student without a mark.
-   1. Repeat either command for the same student, or create `CS2103T:A2` with the name `Assignment One`.<br>
-      Expected: TAssist reports the duplicate and preserves the existing assignments.
-   1. Enter `assignment m/A1234567X id/CS2103T:A3 n/Extreme max/1e1000000`.<br>
-      Expected: TAssist rejects the maximum as too long for display, and does not create `CS2103T:A3`.
-   1. Repeat the command with `max/100e2147483647`.<br>
-      Expected: TAssist shows <samp>Maximum mark's displayed decimal form must be at most 64 characters.</samp> Existing assignments and saved data remain unchanged, and `CS2103T:A3` is not created.
+   1. Run the duplicate and invalid-maximum cases in the table below, entering each command separately.
    1. Close and reopen TAssist. Enter `marks id/CS2103T:A1`.<br>
       Expected: Both assigned students appear as <samp>Unmarked</samp>, confirming their links were restored.
-   1. Enter `marks id/CS2103T:A3`.<br>
-      Expected: TAssist reports an unknown assignment, confirming the rejected definition was not saved.
+   1. Run the unknown-assignment case in the table below to confirm that the rejected definition was not saved.
+
+**Invalid inputs**
+
+| Invalid input | Why it is invalid | Expected result |
+| --- | --- | --- |
+| `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20` | An assignment definition with ID `CS2103T:A1` already exists. | The duplicate is reported; existing assignments are unchanged. |
+| `assignment m/A2345678Y id/CS2103T:A1` | The assignment is already attached to Bernice. | The duplicate is reported; existing assignments are unchanged. |
+| `assignment m/A1234567X id/CS2103T:A2 n/Assignment One max/20` | Another assignment in CS2103T already has the name `Assignment One`. | The duplicate is reported; `CS2103T:A2` is not created. |
+| `assignment m/A1234567X id/CS2103T:A3 n/Extreme max/1e1000000` | The maximum's displayed decimal form exceeds 64 characters. | The maximum is rejected as too long for display; `CS2103T:A3` is not created. |
+| `assignment m/A1234567X id/CS2103T:A3 n/Extreme max/100e2147483647` | The maximum's displayed decimal form exceeds 64 characters. | <samp>Maximum mark's displayed decimal form must be at most 64 characters.</samp> is shown. Existing assignments and saved data are unchanged; `CS2103T:A3` is not created. |
+| `marks id/CS2103T:A3` (after reopening) | The rejected assignment definition does not exist. | An unknown-assignment error confirms that the definition was not saved. |
 
 ### Recording an assignment mark
 
@@ -1606,18 +1678,21 @@ Start in a fresh test folder with the original sample students.
    Expected: TAssist confirms a recorded score of <samp>0/20</samp>.
 1. Enter `mark m/A1234567X id/CS2103T:A1 mark/17.5`.<br>
    Expected: TAssist confirms the score was updated to <samp>17.5/20</samp>.
-1. Enter the same command with `mark/21`.<br>
-   Expected: TAssist rejects the score because it exceeds the maximum. The previous score remains stored after reopening the app.
-1. Enter the same command with `mark/1e1000000`.<br>
-   Expected: TAssist rejects the score as too long for display. The previous score remains stored.
-1. Repeat with `mark/100e2147483647`.<br>
-   Expected: TAssist shows <samp>Mark's displayed decimal form must be at most 64 characters.</samp> The existing mark and saved data remain unchanged.
+1. Run each invalid input in the table below separately.
 1. Close and reopen TAssist. Enter `marks id/CS2103T:A1`.<br>
    Expected: The student's score remains <samp>17.5/20</samp>.
 1. Record the mark with `mark m/A1234567X id/CS2103T:A1 mark/1.7500e1`.<br>
    Expected: TAssist accepts the scientific notation and confirms a normalized score of <samp>17.5/20</samp>.
 1. Repeat with `mark/0e2147483647`.<br>
    Expected: TAssist accepts the zero mark and confirms a score of <samp>0/20</samp>.
+
+**Invalid inputs**
+
+| Invalid input | Why it is invalid | Expected result |
+| --- | --- | --- |
+| `mark m/A1234567X id/CS2103T:A1 mark/21` | The score exceeds the assignment maximum of 20. | The score is rejected; the previous score of `17.5/20` remains stored after reopening. |
+| `mark m/A1234567X id/CS2103T:A1 mark/1e1000000` | The mark's displayed decimal form exceeds 64 characters. | The score is rejected as too long for display; the previous score remains stored. |
+| `mark m/A1234567X id/CS2103T:A1 mark/100e2147483647` | The mark's displayed decimal form exceeds 64 characters. | <samp>Mark's displayed decimal form must be at most 64 characters.</samp> is shown. The existing mark and saved data are unchanged. |
 
 ### Viewing assignment marks
 
@@ -1671,10 +1746,16 @@ Run these steps in order in a test data folder. Ensure matriculation numbers `A9
 
 1. Assign `CS2103T:A1` to two students and record a mark for each. Enter `removeassignment id/CS2103T:A1 m/A1234567X`.<br>
    Expected: TAssist confirms removal from that student. `marks id/CS2103T:A1` still shows the other student's mark, and both student records remain.
-1. Enter the same student removal again.<br>
-   Expected: TAssist reports that the assignment is not attached to that student, with no change to the other mark.
+1. Run the repeated-removal case in the table below.
 1. Enter `removeassignment id/CS2103T:A1` and close and reopen TAssist.<br>
-   Expected: `marks id/CS2103T:A1` reports an unknown assignment. Both students remain, and the same ID and name can be used to create a new assignment.
+   Expected: Both students remain. Run the unknown-assignment case in the table below, then check that the same ID and name can be used to create a new assignment.
+
+**Invalid inputs**
+
+| Invalid input | Why it is invalid | Expected result |
+| --- | --- | --- |
+| `removeassignment id/CS2103T:A1 m/A1234567X` (after the first removal) | The assignment is no longer attached to this student. | TAssist reports that the assignment is not attached; the other student's mark is unchanged. |
+| `marks id/CS2103T:A1` (after removing the definition and reopening) | The assignment definition has been removed. | TAssist reports an unknown assignment; both student records remain. |
 
 ### Saving data
 
@@ -1683,28 +1764,22 @@ Run these steps in order in a test data folder. Ensure matriculation numbers `A9
    1. Close TAssist and back up `data/addressbook.json` before testing.
    1. Move the data file out of the `data` folder and reopen TAssist.<br>
       Expected: Sample student records appear and commands can be executed.
-   1. Close TAssist, restore the backup, and make the JSON invalid (e.g., remove its closing brace).
-      Reopen TAssist.<br>
-      Expected: The result display reports the file path, failure reason, and recovery instructions.
-      The command box is disabled. The data file is unchanged after startup and after closing the app
-      using the window's close button.
-   1. While TAssist is showing the restoration failure, click the command box and attempt to type `list`
-      and press Enter.<br>
-      Expected: The command box does not accept input or execute a command. The failure message remains
-      visible; scroll the result display to read the full recovery instructions if necessary.
-   1. Repeat with valid JSON containing an invalid student email, an invalid attendance record date
-      (e.g., `31-02-2026`), a duplicate attendance record for the same class and date, a date-only attendance entry
-      (e.g., `"attendance": ["07-10-2026"]`), or an assignment mark above its maximum.<br>
-      Expected: The same command block and file preservation apply, with the corresponding validation error.
-   1. Close TAssist and restore the valid backup. Prepend `{"persons":[]}` to the file, keeping the original
-      contents immediately afterward. Reopen TAssist, attempt `list`, and close the app. Repeat with a newline
-      separating the two objects.<br>
-      Expected: Both files cause a restoration failure and commands remain blocked. Compare the file with a copy
-      taken immediately after prepending the empty object: every byte remains unchanged through startup,
-      the command attempt, and shutdown, including the original student records in the second object.
-   1. Repeat with the valid backup followed by another JSON value (e.g., `true`) or invalid text
-      (e.g., `garbage`).<br>
-      Expected: The same restoration error, command block, and file preservation apply.
+   1. Test each row in the invalid-data table below separately. Complete all three checks for one row before
+      moving to the next row:
+
+      1. Close TAssist, restore the valid backup, apply only the change in that row, and make a copy of the
+         modified file. Reopen TAssist.<br>
+         Expected: The result display reports the file path, failure reason, and recovery instructions.
+         The command box is disabled. The data file is unchanged after startup.
+      1. Click the command box, attempt to type `list`, and press Enter.<br>
+         Expected: The command box does not accept input or execute a command. The failure message remains
+         visible; scroll the result display to read the full recovery instructions if necessary. `list` is a valid
+         command, but commands are unavailable while restoration has failed.
+      1. Close the app using the window's close button, and compare the data file with the copy made
+         immediately after modification.<br>
+         Expected: Every byte remains unchanged through startup, the command attempt, and shutdown. For the
+         two prepended-object cases, this includes the original student records in the second object.
+
    1. Close TAssist, restore the valid backup, and append only spaces, tabs, and line breaks. Reopen TAssist,
       run `list`, and close and reopen the app.<br>
       Expected: Records load normally, commands remain available, and the saved records survive reopening.
@@ -1712,3 +1787,18 @@ Run these steps in order in a test data folder. Ensure matriculation numbers `A9
       Expected: The saved student and attendance records are restored, the command box is enabled,
       and `list` executes successfully without a restoration failure message.
       Alternatively, delete the file while the app is closed and reopen it to start with sample records.
+
+**Invalid data**
+
+| Invalid input in `data/addressbook.json` | Why it is invalid | Expected result |
+| --- | --- | --- |
+| Remove the JSON object's closing brace. | The file is no longer syntactically valid JSON. | A restoration failure reports the malformed JSON; commands remain blocked and the file is preserved. |
+| Replace a student's email with `zoe..test@example.com`, keeping the JSON valid. | Consecutive dots are not permitted in the email's local part. | A restoration failure reports the invalid email; commands remain blocked and the file is preserved. |
+| Replace an attendance record's date with `31-02-2026`, keeping the JSON valid. | 31 February is not a valid calendar date. | A restoration failure reports the invalid date; commands remain blocked and the file is preserved. |
+| Duplicate one student's attendance record for the same class and date. | A student cannot have two attendance records for the same class and date. | A restoration failure reports the duplicate record; commands remain blocked and the file is preserved. |
+| Use a date-only attendance entry, e.g., `"attendance": ["07-10-2026"]`. | Attendance entries must contain both a date and a class code, rather than a date-only string. | A restoration failure reports the invalid attendance data; commands remain blocked and the file is preserved. |
+| Set an assignment mark above that assignment's maximum. | A recorded mark cannot exceed its assignment maximum. | A restoration failure reports the invalid mark; commands remain blocked and the file is preserved. |
+| Prepend `{"persons":[]}` directly before the valid backup's contents. | The file contains two root JSON values instead of one. | A restoration failure rejects the additional root value; commands remain blocked and both objects are preserved byte for byte. |
+| Prepend `{"persons":[]}` and a newline before the valid backup's contents. | A newline does not make multiple root JSON values valid. | A restoration failure rejects the additional root value; commands remain blocked and both objects are preserved byte for byte. |
+| Append `true` to the valid backup. | The Boolean is an additional root JSON value after the saved data. | A restoration failure rejects the additional root value; commands remain blocked and the file is preserved. |
+| Append `garbage` to the valid backup. | Non-whitespace text after the root JSON value is invalid trailing content. | A restoration failure rejects the trailing content; commands remain blocked and the file is preserved. |
