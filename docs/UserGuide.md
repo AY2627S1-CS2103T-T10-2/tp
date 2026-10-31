@@ -427,6 +427,7 @@ or
 * The class, date and points are required.
 * The date must be a valid calendar date in `dd-MM-yyyy` format,
   with a year from 0001 to 9999.
+* The date cannot be in the future. Today and earlier dates are accepted.
 * Points must contain digits only and be between `0` and `2147483647`,
   inclusive. Negative numbers and fractional points are not accepted.
 * There is no configurable maximum score per module.
