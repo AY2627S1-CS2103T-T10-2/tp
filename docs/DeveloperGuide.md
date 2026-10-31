@@ -1111,6 +1111,8 @@ Compatibility, packaging and storage requirements follow the [CS2103T project co
 
 Given below are instructions to test the app manually.
 
+Commands to enter are formatted like `redo`; messages and text displayed by TAssist are formatted like <samp>Redo successful.</samp>. In output samples, NAME represents the student's name and MARK/MAX_MARK represents the recorded mark and assignment maximum.
+
 <box type="info" seamless>
 
 **Note:** These instructions only provide a starting point for testers to work on;
@@ -1172,8 +1174,10 @@ Start in a fresh test folder with the six original sample students. Run each ste
 
 Start in a fresh test folder with the original sample students. Run these steps in order.
 
-1. Run `enroll 1 c/CS2103T-T10` and `enroll 1 c/CS3230-T01`, then `assignment m/A1234567X id/CS2103T:A1 n/Quiz max/10` and `mark m/A1234567X id/CS2103T:A1 mark/8`.
-1. Run `attendance 1 c/CS2103T-T10 d/28-10-2026` and `participation 1 c/CS2103T-T10 d/28-10-2026 p/2`.
+1. Run `enroll 1 c/CS2103T-T10` and `enroll 1 c/CS3230-T01`, then `assignment m/A1234567X id/CS2103T:A1 n/Quiz max/10` and `mark m/A1234567X id/CS2103T:A1 mark/8`.<br>
+   Expected: Alex Yeoh is enrolled in both classes and has a quiz mark of `8/10`.
+1. Run `attendance 1 c/CS2103T-T10 d/28-10-2026` and `participation 1 c/CS2103T-T10 d/28-10-2026 p/2`.<br>
+   Expected: Alex has an attendance record and 2 participation points for CS2103T-T10 on 28-10-2026.
 1. Run `unenroll 1 c/CS2103T-T10`, then `view 1`.<br>
    Expected: Only CS3230-T01 remains enrolled. The quiz, score and attendance record remain. `participation view 1` still shows 2 points.
 1. Repeat `unenroll 1 c/CS2103T-T10`.<br>
@@ -1215,10 +1219,10 @@ Start in a fresh test folder with the original sample students. Run these steps 
 1. Sorting by attendance record count
 
    1. In a fresh data folder with the original sample students, run `sort attendance desc`.<br>
-      Expected: Every student card shows `Attendance records: 0`, and students remain in name order.
+      Expected: Every student card shows <samp>Attendance records: 0</samp>, and students remain in name order.
 
    1. Run `enroll 6 c/CS2103T-T10` to enroll Roy Balakrishnan, then `attendance m/A6789012U c/CS2103T-T10 d/07-10-2026`.<br>
-      Expected: Roy Balakrishnan moves to the first position and shows `Attendance records: 1`.
+      Expected: Roy Balakrishnan moves to the first position and shows <samp>Attendance records: 1</samp>.
 
    1. Run `list`.<br>
       Expected: Students return to name order and the attendance count line disappears.
@@ -1231,7 +1235,7 @@ Start in a fresh test folder with the original sample students. Run these steps 
       Expected: One student has a recorded zero, one is unmarked, and at least one other sample student is not assigned.
 
    1. Run `sort mark id/CS2103T:A1 desc`.<br>
-      Expected: The student with zero appears before the unmarked and unassigned students. Every card shows `CS2103T:A1` with `0/20`, `Unmarked`, or `Not assigned` as appropriate.
+      Expected: The student with zero appears before the unmarked and unassigned students. Every card shows <samp>CS2103T:A1</samp> with <samp>0/20</samp>, <samp>Unmarked</samp>, or <samp>Not assigned</samp> as appropriate.
 
    1. Run `sort mark id/CS2103T:A9`.<br>
       Expected: TAssist reports that the assignment does not exist; the displayed order and card details remain unchanged.
@@ -1289,7 +1293,8 @@ Run the following scenarios in order in a test data folder. Keep the details win
 
 4. Keeping a manually closed profile closed
 
-   1. Run `add n/Profile Test m/A9999999Z e/profile.test@example.com`, then `view 1`.
+   1. Run `add n/Profile Test m/A9999999Z e/profile.test@example.com`, then `view 1`.<br>
+      Expected: The student *Profile Test* is added and their details window opens.
 
    2. Close the details window with `Esc`, then run `edit 1 n/Profile Updated`.<br>
       Expected: The details window stays closed.
@@ -1325,11 +1330,11 @@ Start in a fresh test folder with the original six sample students. Run these st
 1. Run `delete 1 3`.<br>
    Expected: Alex Yeoh and Charlotte Oliveiro are deleted using their original displayed indices. Bernice Yu remains.
 1. Run `undo`.<br>
-   Expected: `Undo successful.` is displayed, and all six students return in name order.
+   Expected: <samp>Undo successful.</samp> is displayed, and all six students return in name order.
 1. Run `redo`.<br>
-   Expected: `Redo successful.` is displayed, and Alex and Charlotte disappear again.
+   Expected: <samp>Redo successful.</samp> is displayed, and Alex and Charlotte disappear again.
 1. Run `undo`.<br>
-   Expected: `Undo successful.` is displayed, and all six students return in name order.
+   Expected: <samp>Undo successful.</samp> is displayed, and all six students return in name order.
 1. Run `find Alex`, then `delete m/A2345678Y`.<br>
    Expected: Bernice is deleted even though only Alex was displayed. Run `list` to confirm Bernice is absent and the other five students remain.
 1. Run `delete m/A2345678Y` again.<br>
@@ -1341,63 +1346,64 @@ Start in a fresh test folder with the original six sample students. Run these sc
 
 1. Rejecting undo and redo when history is empty
 
-   1. Run `find Alex Bernice`, `sort matric desc`, then `view 1`.
+   1. Run `find Alex Bernice`, `sort matric desc`, then `view 1`.<br>
+      Expected: Only Bernice and Alex are displayed, in that order, and Bernice's details window opens.
    1. Run `undo`, then `redo`.<br>
-      Expected: The commands report `No commands to undo.` and `No commands to redo.` respectively. Only Bernice and Alex remain displayed, in that order, and Bernice's details window stays open. No records change.
+      Expected: The commands report <samp>No commands to undo.</samp> and <samp>No commands to redo.</samp> respectively. Only Bernice and Alex remain displayed, in that order, and Bernice's details window stays open. No records change.
 
 1. Restoring successive changes in order
 
    1. Run `add n/Undo Test m/A9900187Z e/undo187@example.com`, `find m/A9900187Z`, `enroll 1 c/CS2103T-T10`, then `view 1`.<br>
       Expected: The student *Undo Test* exists and is enrolled in CS2103T-T10.
    1. Run `sort attendance`, then `undo`.<br>
-      Expected: `Undo successful.` is displayed. Enrollment is undone, but the student *Undo Test* remains. All seven students appear in ascending name order, the attendance records row disappears, and the details window closes.
+      Expected: <samp>Undo successful.</samp> is displayed. Enrollment is undone, but the student *Undo Test* remains. All seven students appear in ascending name order, the attendance records row disappears, and the details window closes.
    1. Run `find m/A9900187Z`, then `view 1`.<br>
       Expected: The student has no enrolled classes.
    1. Run `undo` again.<br>
-      Expected: `Undo successful.` is displayed. The addition is undone, leaving the original six students, and the details window closes.
+      Expected: <samp>Undo successful.</samp> is displayed. The addition is undone, leaving the original six students, and the details window closes.
    1. Run `undo` again.<br>
-      Expected: `No commands to undo.` is reported without changing records.
+      Expected: <samp>No commands to undo.</samp> is reported without changing records.
    1. Run `redo`.<br>
-      Expected: `Redo successful.` is displayed, and the student *Undo Test* returns.
+      Expected: <samp>Redo successful.</samp> is displayed, and the student *Undo Test* returns.
    1. Run `find m/A9900187Z`, then `view 1`.<br>
       Expected: The student's email is `undo187@example.com` and no classes are enrolled.
    1. Run `redo` again.<br>
-      Expected: `Redo successful.` is displayed. Enrollment in CS2103T-T10 returns, all seven students appear in ascending name order, and the details window closes.
+      Expected: <samp>Redo successful.</samp> is displayed. Enrollment in CS2103T-T10 returns, all seven students appear in ascending name order, and the details window closes.
    1. Run `find m/A9900187Z`, then `view 1`.<br>
       Expected: The student *Undo Test* is enrolled in CS2103T-T10.
    1. Run `redo` again.<br>
-      Expected: `No commands to redo.` is reported and the filtered list and details window remain unchanged.
+      Expected: <samp>No commands to redo.</samp> is reported and the filtered list and details window remain unchanged.
 
 1. Preserving redo when commands do not change records
 
    After each redo below, run `find m/A9900187Z`, then `view 1` to confirm enrollment in CS2103T-T10 is restored.
 
    1. Run `undo`, `find m/A9900187Z`, `sort matric desc`, then `redo`.<br>
-      Expected: Undo reports `Undo successful.` Finding and sorting do not discard redo history. Redo reports `Redo successful.` and restores enrollment in CS2103T-T10.
+      Expected: Undo reports <samp>Undo successful.</samp> Finding and sorting do not discard redo history. Redo reports <samp>Redo successful.</samp> and restores enrollment in CS2103T-T10.
    1. Run `undo`, `delete 0`, then `redo`.<br>
-      Expected: Undo reports `Undo successful.` Deletion is rejected without changing records. Redo reports `Redo successful.` and restores enrollment.
+      Expected: Undo reports <samp>Undo successful.</samp> Deletion is rejected without changing records. Redo reports <samp>Redo successful.</samp> and restores enrollment.
    1. Run `undo`, `find m/A9900187Z`, `edit 1 n/Undo Test`, then `redo`.<br>
-      Expected: Undo reports `Undo successful.` Editing the name to its existing value succeeds without changing records. Redo reports `Redo successful.` and restores enrollment.
+      Expected: Undo reports <samp>Undo successful.</samp> Editing the name to its existing value succeeds without changing records. Redo reports <samp>Redo successful.</samp> and restores enrollment.
 
 1. Discarding redo after a new change
 
    1. Run `undo`, `find m/A9900187Z`, then `edit 1 e/undo.updated@example.com`.<br>
-      Expected: Undo reports `Undo successful.` The email changes to `undo.updated@example.com` and the student has no enrolled classes.
+      Expected: Undo reports <samp>Undo successful.</samp> The email changes to `undo.updated@example.com` and the student has no enrolled classes.
    1. Run `redo`, `find m/A9900187Z`, then `view 1`.<br>
-      Expected: Redo reports `No commands to redo.` The new email remains and the student has no enrolled classes; the previously undone enrollment cannot be redone.
+      Expected: Redo reports <samp>No commands to redo.</samp> The new email remains and the student has no enrolled classes; the previously undone enrollment cannot be redone.
    1. Run `undo`, `find m/A9900187Z`, then `view 1`.<br>
-      Expected: Undo reports `Undo successful.` The email returns to `undo187@example.com` and no classes are enrolled.
+      Expected: Undo reports <samp>Undo successful.</samp> The email returns to `undo187@example.com` and no classes are enrolled.
    1. Run `redo`, `find m/A9900187Z`, then `view 1`.<br>
-      Expected: Redo reports `Redo successful.` The email becomes `undo.updated@example.com` again, and no classes are enrolled.
+      Expected: Redo reports <samp>Redo successful.</samp> The email becomes `undo.updated@example.com` again, and no classes are enrolled.
    1. Run `undo` once more.<br>
-      Expected: `Undo successful.` is displayed. The email returns to `undo187@example.com`. Leave this state for the restart scenario: both an earlier change to undo and the email change to redo are available.
+      Expected: <samp>Undo successful.</samp> is displayed. The email returns to `undo187@example.com`. Leave this state for the restart scenario: both an earlier change to undo and the email change to redo are available.
 
 1. Keeping restored records while clearing history on restart
 
    1. Close TAssist and reopen the same JAR from the same test folder. Run `find m/A9900187Z`, then `view 1`.<br>
       Expected: The student *Undo Test* remains saved with email `undo187@example.com` and no enrolled classes.
    1. Run `undo`, then `redo`.<br>
-      Expected: The commands report `No commands to undo.` and `No commands to redo.` respectively. The restored records, filtered list and details window remain unchanged.
+      Expected: The commands report <samp>No commands to undo.</samp> and <samp>No commands to redo.</samp> respectively. The restored records, filtered list and details window remain unchanged.
    1. Run `list`.<br>
       Expected: All seven students remain.
 
@@ -1410,13 +1416,13 @@ For additional restoration checks involving deleted students, assignment links a
    1. Prerequisites: List all students using the `list` command, then run `enroll 1 c/CS2103T-T10`. The first student has no attendance recorded on 07-10-2026.
 
    1. Test case: `attendance 1 c/CS2103T-T10 d/07-10-2026`<br>
-      Expected: The status message shows `Marked attendance for NAME in CS2103T-T10 on 07-10-2026`, where NAME is the first student's name. `view 1` lists the date and class.
+      Expected: The status message shows <samp>Marked attendance for NAME in CS2103T-T10 on 07-10-2026</samp>, where NAME is the first student's name. `view 1` lists the date and class.
 
    1. Test case: `attendance unmark 1 c/CS2103T-T10 d/07-10-2026`<br>
-      Expected: The status message shows `Unmarked attendance for NAME in CS2103T-T10 on 07-10-2026`. `view 1` no longer lists that record.
+      Expected: The status message shows <samp>Unmarked attendance for NAME in CS2103T-T10 on 07-10-2026</samp>. `view 1` no longer lists that record.
 
    1. Test case: `attendance unmark 1 d/07-10-2026`<br>
-      Expected: Nothing changes. The status message shows `No attendance recorded for NAME on 07-10-2026.`
+      Expected: Nothing changes. The status message shows <samp>No attendance recorded for NAME on 07-10-2026.</samp>
 
 1. Identifying a student outside the displayed list
 
@@ -1433,30 +1439,30 @@ For additional restoration checks involving deleted students, assignment links a
    1. Prerequisites: Run `list`. The first student is enrolled in CS2103T-T10 but not CS2103T-T11.
 
    1. Test case: `attendance 1 c/CS2103T-T11 d/07-10-2026`<br>
-      Expected: The status message shows `NAME is not enrolled in CS2103T-T11.` No attendance record is added.
+      Expected: The status message shows <samp>NAME is not enrolled in CS2103T-T11.</samp> No attendance record is added.
 
 1. Removing one of two classes on the same date
 
    1. Prerequisites: Run `enroll 1 c/CS2103T-T11`. The first student has no attendance recorded on 07-10-2026.
 
    1. Test case: `attendance 1 c/CS2103T-T10 d/07-10-2026`, then `attendance 1 c/CS2103T-T11 d/07-10-2026`<br>
-      Expected: Both succeed. `view 1` shows `2 records`, with CS2103T-T10 before CS2103T-T11 for that date.
+      Expected: Both succeed. `view 1` shows <samp>2 records</samp>, with CS2103T-T10 before CS2103T-T11 for that date.
 
    1. Test case: `attendance unmark 1 d/07-10-2026`<br>
-      Expected: The status message shows `NAME has attendance recorded in more than one class on 07-10-2026: CS2103T-T10, CS2103T-T11. Specify the class with c/MODULE-CLASS.` Both records remain.
+      Expected: The status message shows <samp>NAME has attendance recorded in more than one class on 07-10-2026: CS2103T-T10, CS2103T-T11. Specify the class with c/MODULE-CLASS.</samp> Both records remain.
 
    1. Test case: `attendance unmark 1 c/CS2103T-T11 d/07-10-2026`, then `attendance unmark 1 d/07-10-2026`<br>
-      Expected: The first command removes only the CS2103T-T11 record. The second infers CS2103T-T10 and shows `Unmarked attendance for NAME in CS2103T-T10 on 07-10-2026`. Neither record remains.
+      Expected: The first command removes only the CS2103T-T11 record. The second infers CS2103T-T10 and shows <samp>Unmarked attendance for NAME in CS2103T-T10 on 07-10-2026</samp>. Neither record remains.
 
 1. Marking a whole class
 
    1. Prerequisites: Close TAssist and back up `data/addressbook.json` before testing. Move the data file out of the `data` folder and reopen TAssist. Run `list`, then `enroll 1 c/CS2103T-T10`, `enroll 2 c/CS2103T-T10`, and `attendance 1 c/CS2103T-T10 d/07-10-2026`.
 
    1. Test case: `attendance c/CS2103T-T10 d/07-10-2026`<br>
-      Expected: The status message shows `Marked attendance for 1 student in CS2103T-T10 on 07-10-2026`, followed on a second line by `Already recorded, skipped: Alex Yeoh`.
+      Expected: The status message shows <samp>Marked attendance for 1 student in CS2103T-T10 on 07-10-2026</samp>, followed on a second line by <samp>Already recorded, skipped: Alex Yeoh</samp>.
 
    1. Test case: `attendance c/CS2103T-T99`<br>
-      Expected: The status message shows `No students are enrolled in CS2103T-T99.` No attendance records change.
+      Expected: The status message shows <samp>No students are enrolled in CS2103T-T99.</samp> No attendance records change.
 
 ### Recording class participation
 
@@ -1467,7 +1473,7 @@ Replace `MATRIC` with the chosen test student's matriculation number, without th
 1. Recording and updating participation points
    1. Prerequisites: Run `list` with at least one student in the list. Use the first student as the test student and note their matriculation number using `view 1`. Enroll them using `enroll 1 c/CS2103T-T10` if they are not already enrolled. The student must have no participation record for CS2103T-T10 on 28-10-2026.
    2. Test case: `participation 1 c/CS2103T-T10 d/28-10-2026 p/2`, followed by `participation view m/MATRIC`.<br>
-      Expected: The status message confirms that 2 points were recorded. The history contains `CS2103T-T10 | 28-10-2026 | 2 point(s)`. Attendance and other student details are unchanged.
+      Expected: The status message confirms that 2 points were recorded. The history contains <samp>CS2103T-T10 | 28-10-2026 | 2 point(s)</samp>. Attendance and other student details are unchanged.
    3. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3`, followed by `participation view m/MATRIC`.<br>
       Expected: The existing score is replaced. There is one record for that class and date with 3 points, not 5. Other participation records are unchanged.
    4. Test case: Repeat `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3`, then view the history again.<br>
@@ -1494,7 +1500,7 @@ Replace `MATRIC` with the chosen test student's matriculation number, without th
 4. Rejecting a class the student is not enrolled in
    1. Prerequisites: The chosen student is enrolled in CS2103T-T10 but not CS2103T-T11. Note the student's current participation history.
    2. Test case: `participation m/MATRIC c/CS2103T-T11 d/28-10-2026 p/2`.<br>
-      Expected: The status message shows `NAME is not enrolled in CS2103T-T11. Enroll the student in this class first.` No student data is changed.
+      Expected: The status message shows <samp>NAME is not enrolled in CS2103T-T11. Enroll the student in this class first.</samp> No student data is changed.
 
 5. Preserving participation after edits, attendance changes and restart
    1. Prerequisites: Run `list` and use the first student as the test student. Note their matriculation number using `view 1`. Ensure this student is enrolled in CS2103T-T10. Run `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/3` to set up the participation record. The student must have no attendance record for that class on 29-10-2026.
@@ -1580,35 +1586,35 @@ Start in a fresh test folder with the original sample students.
    1. Enter `assignment m/A1234567X id/CS2103T:A3 n/Extreme max/1e1000000`.<br>
       Expected: TAssist rejects the maximum as too long for display, and does not create `CS2103T:A3`.
    1. Repeat the command with `max/100e2147483647`.<br>
-      Expected: TAssist shows `Maximum mark's displayed decimal form must be at most 64 characters.` Existing assignments and saved data remain unchanged, and `CS2103T:A3` is not created.
+      Expected: TAssist shows <samp>Maximum mark's displayed decimal form must be at most 64 characters.</samp> Existing assignments and saved data remain unchanged, and `CS2103T:A3` is not created.
    1. Close and reopen TAssist. Enter `marks id/CS2103T:A1`.<br>
-      Expected: Both assigned students appear as `Unmarked`, confirming their links were restored.
+      Expected: Both assigned students appear as <samp>Unmarked</samp>, confirming their links were restored.
    1. Enter `marks id/CS2103T:A3`.<br>
       Expected: TAssist reports an unknown assignment, confirming the rejected definition was not saved.
 
 ### Recording an assignment mark
 
 1. After assigning `CS2103T:A1` with maximum `20` to student `A1234567X`, enter `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
-   Expected: TAssist confirms a recorded score of `0/20`.
+   Expected: TAssist confirms a recorded score of <samp>0/20</samp>.
 1. Enter `mark m/A1234567X id/CS2103T:A1 mark/17.5`.<br>
-   Expected: TAssist confirms the score was updated to `17.5/20`.
+   Expected: TAssist confirms the score was updated to <samp>17.5/20</samp>.
 1. Enter the same command with `mark/21`.<br>
    Expected: TAssist rejects the score because it exceeds the maximum. The previous score remains stored after reopening the app.
 1. Enter the same command with `mark/1e1000000`.<br>
    Expected: TAssist rejects the score as too long for display. The previous score remains stored.
 1. Repeat with `mark/100e2147483647`.<br>
-   Expected: TAssist shows `Mark's displayed decimal form must be at most 64 characters.` The existing mark and saved data remain unchanged.
+   Expected: TAssist shows <samp>Mark's displayed decimal form must be at most 64 characters.</samp> The existing mark and saved data remain unchanged.
 1. Close and reopen TAssist. Enter `marks id/CS2103T:A1`.<br>
-   Expected: The student's score remains `17.5/20`.
+   Expected: The student's score remains <samp>17.5/20</samp>.
 1. Record the mark with `mark m/A1234567X id/CS2103T:A1 mark/1.7500e1`.<br>
-   Expected: TAssist accepts the scientific notation and confirms a normalized score of `17.5/20`.
+   Expected: TAssist accepts the scientific notation and confirms a normalized score of <samp>17.5/20</samp>.
 1. Repeat with `mark/0e2147483647`.<br>
-   Expected: TAssist accepts the zero mark and confirms a score of `0/20`.
+   Expected: TAssist accepts the zero mark and confirms a score of <samp>0/20</samp>.
 
 ### Viewing assignment marks
 
 1. After recording marks for `CS2103T:A1`, enter `marks id/CS2103T:A1`.<br>
-   Expected: TAssist shows the assignment name and maximum, then every assigned student in matriculation number order. Recorded scores appear as `MARK/MAX_MARK`; students without a score appear as `Unmarked`.
+   Expected: TAssist shows the assignment name and maximum, then every assigned student in matriculation number order. Recorded scores appear as <samp>MARK/MAX_MARK</samp>; students without a score appear as <samp>Unmarked</samp>.
 1. Run `find` so some assigned students are hidden, then enter `marks id/CS2103T:A1` again.<br>
    Expected: The marks result still contains all assigned students, and the current student list remains filtered.
 
@@ -1617,39 +1623,39 @@ Start in a fresh test folder with the original sample students.
 Run these steps in order in a test data folder. Ensure matriculation numbers `A9900204Z`, `A9900205Z`, and `A9900206Z`, assignment IDs `CS2103T:TEST204A` and `CS2103T:TEST204B`, and assignment names `Refresh Quiz` and `Refresh Homework` are unused. No pre-existing assignments or marks are needed. Keep the details window open and enter commands in the main window unless instructed otherwise.
 
 1. Enter `add n/Refresh Test m/A9900204Z e/refresh204@example.com` and `add n/Other Profile m/A9900206Z e/other204@example.com`. Enter `find m/A9900204Z`, `enroll 1 c/CS2103T-T10`, then `view 1`.<br>
-   Expected: Refresh Test is the only displayed student. The details window shows `None assigned`.
+   Expected: Refresh Test is the only displayed student. The details window shows <samp>None assigned</samp>.
 1. Enter `assignment m/A9900204Z id/CS2103T:TEST204A n/Refresh Quiz max/10`.<br>
-   Expected: The open window immediately shows the quiz and `Mark: Unmarked`, without another `view`.
+   Expected: The open window immediately shows the quiz and <samp>Mark: Unmarked</samp>, without another `view`.
 1. Enter `mark m/A9900204Z id/CS2103T:TEST204A mark/8.5`, then `mark m/A9900204Z id/CS2103T:TEST204A mark/10`.<br>
-   Expected: The visible mark changes to `8.5/10`, then `10/10`, immediately after each successful command. Keyboard focus stays in the main window.
+   Expected: The visible mark changes to <samp>8.5/10</samp>, then <samp>10/10</samp>, immediately after each successful command. Keyboard focus stays in the main window.
 1. Enter `view 1` again without closing the window.<br>
-   Expected: The same window shows the latest score, `Mark: 10/10`, with no duplicate assignment rows.
+   Expected: The same window shows the latest score, <samp>Mark: 10/10</samp>, with no duplicate assignment rows.
 1. Enter `assignment m/A9900204Z id/CS2103T:TEST204B n/Refresh Homework max/20`.<br>
-   Expected: The homework immediately appears as `Mark: Unmarked` after the quiz in assignment ID order. The quiz still shows `Mark: 10/10`.
+   Expected: The homework immediately appears as <samp>Mark: Unmarked</samp> after the quiz in assignment ID order. The quiz still shows <samp>Mark: 10/10</samp>.
 1. Enter `edit 1 m/A9900205Z`.<br>
-   Expected: Without another `view`, the open window shows `A9900205Z`, both assignments, and the quiz's `10/10` mark. Enter `marks id/CS2103T:TEST204A` to confirm the saved result is associated with the new number.
+   Expected: Without another `view`, the open window shows <samp>A9900205Z</samp>, both assignments, and the quiz's <samp>10/10</samp> mark. Enter `marks id/CS2103T:TEST204A` to confirm the saved result is associated with the new number.
 1. Enter `undo`.<br>
-   Expected: `Undo successful.` is displayed, and the details window closes.
+   Expected: <samp>Undo successful.</samp> is displayed, and the details window closes.
 1. Enter `find m/A9900204Z`, then `view 1`.<br>
-   Expected: Both assignments and the quiz's `10/10` mark appear under the original number.
+   Expected: Both assignments and the quiz's <samp>10/10</samp> mark appear under the original number.
 1. Enter `redo`.<br>
-   Expected: `Redo successful.` is displayed, and the window closes again.
+   Expected: <samp>Redo successful.</samp> is displayed, and the window closes again.
 1. Enter `find m/A9900205Z`, then `view 1`.<br>
-   Expected: Both assignments and the quiz's `10/10` mark appear under the new number.
+   Expected: Both assignments and the quiz's <samp>10/10</samp> mark appear under the new number.
 1. Enter `find m/A9900206Z`, then `view 1`.<br>
-   Expected: The reused window shows Other Profile and `None assigned`, with no rows left over from Refresh Test. Enter `find m/A9900205Z`, then `view 1`; Refresh Test's two assignments and `10/10` mark reappear.
+   Expected: The reused window shows Other Profile and <samp>None assigned</samp>, with no rows left over from Refresh Test. Enter `find m/A9900205Z`, then `view 1`; Refresh Test's two assignments and <samp>10/10</samp> mark reappear.
 1. Enter `removeassignment id/CS2103T:TEST204B m/A9900205Z`.<br>
-   Expected: The homework disappears immediately; the quiz remains with `Mark: 10/10`.
+   Expected: The homework disappears immediately; the quiz remains with <samp>Mark: 10/10</samp>.
 1. Enter `removeassignment id/CS2103T:TEST204A`.<br>
-   Expected: The quiz definition is removed and the open profile immediately shows `None assigned`.
+   Expected: The quiz definition is removed and the open profile immediately shows <samp>None assigned</samp>.
 1. Close the details window with `Esc`. Enter `assignment m/A9900205Z id/CS2103T:TEST204B`, then `mark m/A9900205Z id/CS2103T:TEST204B mark/0`.<br>
-   Expected: Both commands succeed and the window stays closed. Enter `view 1`; the homework appears with `Mark: 0/20`.
+   Expected: Both commands succeed and the window stays closed. Enter `view 1`; the homework appears with <samp>Mark: 0/20</samp>.
 1. Enter `delete 1`.<br>
-   Expected: The details window closes. Enter `marks id/CS2103T:TEST204B`; its shared definition remains, but its results show `None assigned.`.
+   Expected: The details window closes. Enter `marks id/CS2103T:TEST204B`; its shared definition remains, but its results show <samp>None assigned.</samp>
 1. Enter `undo`.<br>
-   Expected: `Undo successful.` is displayed, and the deleted student is restored.
+   Expected: <samp>Undo successful.</samp> is displayed, and the deleted student is restored.
 1. Enter `find m/A9900205Z`, then `view 1`.<br>
-   Expected: The restored student has the homework and `Mark: 0/20`.
+   Expected: The restored student has the homework and <samp>Mark: 0/20</samp>.
 1. Close and reopen TAssist, then enter `find m/A9900205Z` and `view 1`.<br>
    Expected: The same assignment and mark remain stored.
 
