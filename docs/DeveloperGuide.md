@@ -210,9 +210,23 @@ Module enrollment is a prerequisite for the `assignment` command, rather than a 
 
 `StudentDetailsWindow#formatAssignmentRows` looks up assignments by the selected person's matriculation number using `ReadOnlyGradebook#getMarksForStudent()`. It sorts entries by the string form of the assignment ID, resolves each shared definition, and formats the ID, name, maximum mark, and optional score. Recorded scores use plain decimal notation as `Mark: SCORE/MAXIMUM`; a zero remains a recorded score, while an empty mark displays `Mark: Unmarked`. Unassigned definitions and other students' marks are excluded.
 
-The `assignments` container in `StudentDetailsWindow.fxml` holds the rows under Assignments and marks. Each refresh clears the previous rows before displaying the selected student's results or `None assigned`. Labels wrap within the existing scrollable window. `showStudent` explicitly refreshes even when selecting the same `Person`, because an unchanged selection does not fire a property-change event. After other commands execute and save successfully, `MainWindow` calls `refreshIfShowing()` on an existing window. This immediately reflects `assignment`, `mark`, and `removeassignment` without another `view` command. The refresh only reads the current model snapshot and updates UI controls; it does not alter student data, assignment links, marks, or history.
+The `assignments` container in `StudentDetailsWindow.fxml` holds the rows under Assignments and marks. Each refresh clears the previous rows before displaying the selected student's results or `None assigned`. Labels wrap within the existing scrollable window. `showStudent` explicitly refreshes even when selecting the same `Person`, because an unchanged selection does not fire a property-change event. After other commands execute and save successfully, `MainWindow` calls `refreshIfShowing()` on an existing window. This immediately reflects `assignment`, `mark`, `removeassignment` without another `view` command. The refresh only reads the current model snapshot and updates UI controls; it does not alter student data, assignment links, marks, or history.
 
 `StudentDetailsWindowTest` covers empty assignments, ordering, student isolation, decimal and zero scores, unmarked assignments, and updated or removed entries. Regression cases exercise repeated views, matriculation migration, rapid edits, switching students while a refresh is pending, closing, deletion, undo/redo, and preservation of model data. `mainWindow_assignmentCommands_refreshOpenDetailsWithoutAnotherView` enters commands through the actual `MainWindow` command box and verifies immediate mark, assignment, and removal updates, saved data, and a closed window staying closed. The tests initialize JavaFX and perform window operations on its application thread; Linux CI runs under Xvfb to provide a display. `LogicManagerTest#getGradebook_afterMarkChanges_returnsFreshSnapshot` verifies that a later request reflects a mark update while the earlier snapshot stays unchanged.
+
+
+
+### Student profile participation history
+
+`StudentDetailsWindow` displays the selected student's participation history in a separate Participation section below Attendance.
+
+The window reads the records directly from `Person#getParticipationHistory().getRecords()`. It does not require a separate data source or storage mechanism.
+
+`StudentDetailsWindow#updateParticipation` clears the previous entries and rebuilds the section using the selected student's participation records. Records are sorted by class code and then by date in ascending order. Each class code is displayed as a heading, followed by its participation dates and points. A score of 1 is displayed as 1 point, while other scores use points. If the history is empty, the section displays `None recorded`.
+
+The `participationRecords` container in `StudentDetailsWindow.fxml` holds these entries below the Attendance section. Each refresh rebuilds the displayed records from the selected `Person`'s current participation history without modifying the stored records.
+
+`StudentDetailsWindowTest` covers empty histories, multiple classes, date ordering and point formatting. The tests also verify that participation records are refreshed when points are added, updated or removed through the `MainWindow` command box without another `view` command.
 
 ### Sorting displayed students
 
@@ -226,7 +240,7 @@ The `sort` command accepts `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MOD
 
 `StudentDetailsSelection` observes this full list and exposes the selected student through a read-only object property. Students are immutable: an edit, enrolment change, or attendance change replaces the old `Person` with a new one. When a list change replaces the selected student with one new student, the selection follows that replacement. This also handles edits to the matriculation number, without trying to look up the student by their old number or displayed index. Removing the selected student, including through `clear`, clears the selection. Changes to other students leave it unchanged.
 
-`StudentDetailsWindow` listens to the selection property. A replacement schedules a refresh with `Platform.runLater` rather than fetching the gradebook synchronously in the listener. `AddressBook#setPerson` publishes the replacement `Person` before installing the gradebook with migrated matriculation-number keys. Waiting until the current model operation finishes lets `refreshSelectedStudent()` read the replacement student and the migrated assignments together. `updateStudent` then refreshes particulars, classes, assignments, attendance, and the window title.
+`StudentDetailsWindow` listens to the selection property. A replacement schedules a refresh with `Platform.runLater` rather than fetching the gradebook synchronously in the listener. `AddressBook#setPerson` publishes the replacement `Person` before installing the gradebook with migrated matriculation-number keys. Waiting until the current model operation finishes lets `refreshSelectedStudent()` read the replacement student and the migrated assignments together. `updateStudent` then refreshes particulars, classes, assignments, attendance, participation, and the window title.
 
 Each queued refresh captures `refreshVersion` and checks it again before rendering. A newer edit, explicit view, completed-command refresh, deletion, or window close invalidates older work. `refreshIfShowing()` also checks visibility, so it neither reopens a hidden window nor takes keyboard focus from the main window. An empty selection hides the window; closing it, including with `Esc`, clears the selection. Successful undo/redo closes it through the existing restoration-counter listener. Filtering and sorting preserve the selected student, and changes to other students do not switch the profile.
 
@@ -1257,7 +1271,7 @@ Run the following scenarios in order in a test data folder. Keep the details win
 
 1. Refreshing details after edits
 
-   1. Prerequisites: Have at least two students. The first student must not be enrolled in CS2103T-T10 and must have no attendance records for that class. Ensure A9999999Z is unused. Run `list`, then `view 1`.
+   1. Prerequisites: Have at least two students. The first student must not be enrolled in CS2103T-T10 and must have no attendance or participation records for that class. Ensure A9999999Z is unused. Run `list`, then `view 1`.
 
    2. Run `edit 1 n/Aaron Updated m/A9999999Z e/aaron.updated@example.com t/updated`.<br>
       Expected: The existing details window immediately shows the new name, matriculation number, email and tag, and its title uses the new name. It does not take keyboard focus from the main window.
@@ -1276,6 +1290,16 @@ Run the following scenarios in order in a test data folder. Keep the details win
 
    7. Run `enroll 1 c/CS2103T-T10` again.<br>
       Expected: The class reappears. Leave Aaron enrolled for the next scenario.
+
+   8. Run `participation m/A9999999Z c/CS2103T-T10 d/07-10-2026 p/2`.
+      Expected: The open student details window displays a Participation section containing CS2103T-T10, 07-10-2026 and 2 points.
+
+   9. Run `participation m/A9999999Z c/CS2103T-T10 d/07-10-2026 p/3`.
+      Expected: The participation record updates immediately to 3 points. The previous score is replaced, not added to it.
+
+   10. Run `participation remove m/A9999999Z c/CS2103T-T10 d/07-10-2026`.
+      Expected: The participation record disappears from the open details window, and the Participation section shows None recorded. No additional view command is required.
+
 
 2. Preserving the selected profile through list changes
 
