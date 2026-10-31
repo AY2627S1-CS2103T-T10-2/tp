@@ -30,6 +30,9 @@ public class CommandTestUtil {
     public static final String VALID_MATRICULATION_NUMBER_BOB = "A2345678Y";
     public static final String VALID_EMAIL_AMY = "amy@example.com";
     public static final String VALID_EMAIL_BOB = "bob@example.com";
+    public static final List<String> VALID_EMAILS_WITH_UNQUOTED_SPECIAL_CHARACTERS = List.of(
+            "_john@example.com", "john_@example.com", "john++doe@example.com",
+            "john_.doe@example.com", "o'connor@example.com", "!#$%&'*+/=?^_`{|}~-@example.com");
     public static final String VALID_TAG_HUSBAND = "husband";
     public static final String VALID_TAG_FRIEND = "friend";
     public static final String VALID_CLASS_CODE_CS2103T_T10 = "CS2103T-T10";
