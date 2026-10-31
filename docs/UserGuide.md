@@ -550,47 +550,59 @@ Examples:
 Enrolls a student in a class.
 
 Format: `enroll INDEX c/MODULE-CLASS`
+or
+`enroll m/MATRICULATION_NUMBER c/MODULE-CLASS`
 
-* Enrolls the student at the specified `INDEX` in the class `CLASS` of the module `MODULE`.
+* Enrolls the student at the specified `INDEX` or with the specified `MATRICULATION_NUMBER` in the class `CLASS` of the module `MODULE`.
+* Specify the student by either `INDEX` or `MATRICULATION_NUMBER`, not both.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
+* The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
+* The matriculation number can identify a student who is not in the displayed list, for example after `find`.
 * `MODULE` and `CLASS` are joined by a hyphen, e.g. `CS2103T-T10`.
 * `MODULE` is a module code: 2 to 3 letters, followed by 4 digits and an optional suffix of up to 2 letters (e.g. `CS2103T`), with no spaces.
 * `CLASS` is a class group: 1 to 5 letters or digits (e.g. `T10`), with no spaces or symbols.
 * Class codes are not case-sensitive: `cs2103t-t10` is saved as `CS2103T-T10`.
 * A student can be enrolled in more than one class, including classes from different modules. Use `enroll` once for each class.
 * Enrolling a student in a class they are already in shows an error and changes nothing.
-* Only one `c/` can be given per command.
+* Only one `c/` and, if used, one `m/` can be given per command.
 
 Examples:
 * `enroll 1 c/CS2103T-T10` enrolls the 1st student in the displayed list in class `T10` of module `CS2103T`.
 * `enroll 2 c/CS3230-T01` enrolls the 2nd student in class `T01` of module `CS3230`.
+* `enroll m/A1234567X c/CS2103T-T10` enrolls the student whose matriculation number is `A1234567X` in class `T10` of module `CS2103T`.
 
-### Unenrolling a student `unenroll`
+### Unenrolling a student: `unenroll`
 
 Unenrolls a student from a class or all classes.
 
-Format: `unenroll INDEX c/MODULE-CLASS`, or `unenroll INDEX all/`
+Format: `unenroll INDEX c/MODULE-CLASS` or `unenroll INDEX all/`
+or
+`unenroll m/MATRICULATION_NUMBER c/MODULE-CLASS` or `unenroll m/MATRICULATION_NUMBER all/`
 
-* If only `c/MODULE-CLASS` is provided, unenrolls the student at the specified `INDEX` from that class.
-* If only `all/` is provided, unenrolls the student at the specified `INDEX` from all classes.
+* If only `c/MODULE-CLASS` is provided, unenrolls the student at the specified `INDEX` or with the specified `MATRICULATION_NUMBER` from that class.
+* If only `all/` is provided, unenrolls that student from all classes.
 * Both forms keep existing assignments and marks. Marks for retained assignments can still be recorded or updated after unenrollment.
+* Specify the student by either `INDEX` or `MATRICULATION_NUMBER`, not both.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
+* The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
+* The matriculation number can identify a student who is not in the displayed list, for example after `find`.
 * `MODULE` and `CLASS` are joined by a hyphen, e.g. `CS2103T-T10`.
 * `MODULE` is a module code: 2 to 3 letters, followed by 4 digits and an optional suffix of up to 2 letters (e.g. `CS2103T`), with no spaces.
 * `CLASS` is a class group: 1 to 5 letters or digits (e.g. `T10`), with no spaces or symbols.
 * Class codes are not case-sensitive: `cs2103t-t10` matches `CS2103T-T10`.
-* If neither `c/MODULE-CLASS` nor `all/` prefixes are provided, it shows an error and changes nothing.
-* If both `c/MODULE-CLASS` and `all/` prefixes are provided, it shows an error and changes nothing.
+* If neither `c/MODULE-CLASS` nor `all/` is provided, it shows an error and changes nothing.
+* If both `c/MODULE-CLASS` and `all/` are provided, it shows an error and changes nothing.
 * Unenrolling a student from a class they are not enrolled in shows an error and changes nothing.
-* If the student is not enrolled in any classes, `unenroll INDEX all/` shows an error and changes nothing.
-* Only one `c/` can be given per command.
-* Only one `all/` can be given per command.
+* If the student is not enrolled in any classes, unenrolling from `all/` shows an error and changes nothing.
+* Only one `c/` and, if used, one `m/` can be given per command. Only one `all/` can be given per command.
 
 Examples:
 * `unenroll 1 c/CS2103T-T10` unenrolls the 1st student in the displayed list from class `T10` of module `CS2103T`.
 * `unenroll 2 all/` unenrolls the 2nd student from all classes.
+* `unenroll m/A1234567X c/CS2103T-T10` unenrolls the student whose matriculation number is `A1234567X` from class `T10` of module `CS2103T`.
+* `unenroll m/A1234567X all/` unenrolls that student from all classes.
 
 ### Clearing all entries: `clear`
 

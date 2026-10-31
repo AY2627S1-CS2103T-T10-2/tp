@@ -788,7 +788,7 @@ Use case ends.
 
 **MSS**
 
-1. Tutor requests to enroll a student from the displayed list in a class, supplying one class code that includes the module and group.
+1. Tutor requests to enroll a student in a class, identifying the student by displayed index or matriculation number and supplying one class code that includes the module and group.
 2. TAssist enrolls the student in that class and confirms the enrolment.
 
 Use case ends.
@@ -801,7 +801,7 @@ Use case ends.
 
     Use case ends.
 
-* 1b. The index is not a positive integer, or is outside the range of the displayed student list.
+* 1b. The index is not a positive integer or is outside the range of the displayed student list, or the matriculation number is invalid or matches no student.
 
     * 1b1. TAssist shows an error message.
 
@@ -812,6 +812,13 @@ Use case ends.
     * 1c1. TAssist shows an error message and does not change the student.
 
     Use case ends.
+
+* 1d. The tutor supplies both an index and a matriculation number, or neither.
+
+    * 1d1. TAssist shows an error message and does not change any student.
+
+    Use case ends.
+
 #### UC09: Assign work to a student
 
 **MSS**
@@ -960,7 +967,7 @@ With no field or direction supplied, TAssist uses name ascending. Students witho
 
 **MSS**
 
-1. Tutor requests to unenroll a student using their displayed index, supplying one class code that includes the module and group.
+1. Tutor requests to unenroll a student, identifying the student by displayed index or matriculation number and supplying one class code that includes the module and group.
 2. TAssist removes the student's enrolment in that class and confirms the removal.
 
 Use case ends.
@@ -973,15 +980,15 @@ Use case ends.
 
   Use case ends.
 
-* 1b. The index is missing or malformed, the supplied class code is invalid, more than one class code is supplied, neither class code nor unenrollment from all classes is indicated, or unenrollment from all classes is indicated more than once.
+* 1b. The student identifier is missing or malformed, the supplied class code is invalid, more than one class code is supplied, neither class code nor unenrollment from all classes is indicated, or unenrollment from all classes is indicated more than once.
 
   * 1b1. TAssist explains the invalid input and leaves the student's enrolments unchanged.
 
   Use case resumes at step 1.
 
-* 1c. The index exceeds the size of the currently displayed list, including when the list is empty.
+* 1c. The index exceeds the size of the currently displayed list (including when the list is empty), or the matriculation number matches no stored student.
 
-  * 1c1. TAssist reports that the displayed student index is invalid and changes no records.
+  * 1c1. TAssist reports that the student cannot be found and changes no records.
 
   Use case resumes at step 1.
 
@@ -996,6 +1003,12 @@ Use case ends.
   * 1e1. TAssist reports that the student has no class enrolments to remove and changes no records.
 
   Use case ends.
+
+* 1f. The tutor supplies both an index and a matriculation number.
+
+  * 1f1. TAssist shows an error message and changes no records.
+
+  Use case resumes at step 1.
 
 ### UC15: Record class participation points
 
@@ -1198,6 +1211,14 @@ Start in a fresh test folder with the original sample students. Run these steps 
    Expected: Both fail without changing records: the first has no enrollment to remove, and the second combines incompatible forms.
 1. Close and reopen the app from the same test folder. Run `view 1` and `participation view 1`.<br>
    Expected: No classes are enrolled; the quiz score of 9, attendance record and participation points are retained.
+1. Run `enroll m/A1234567X c/CS2103T-T10` and `enroll m/A1234567X c/CS3230-T01`, then `find Bernice`.<br>
+   Expected: Alex Yeoh is enrolled in both classes, although Alex is not in the displayed list.
+1. Run `unenroll m/A1234567X c/CS2103T-T10`, then `list` and `view 1`.<br>
+   Expected: The command succeeds even though Alex was hidden. Only CS3230-T01 remains enrolled.
+1. Run `unenroll m/A1234567X all/`, then repeat it.<br>
+   Expected: The first run unenrolls Alex from all classes. The second reports that the student has no class enrolments to remove and changes nothing.
+1. Run `unenroll m/A9999999Z all/` and `unenroll 1 m/A1234567X all/` separately.<br>
+   Expected: Both fail without changing records: the first matches no student, and the second gives both an index and a matriculation number.
 
 ### Sorting the displayed students
 
