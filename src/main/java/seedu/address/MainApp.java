@@ -59,7 +59,7 @@ public class MainApp extends Application {
 
     private final Path homeFolder;
     private AppInstanceLock instanceLock;
-    private String startupFailureMessage;
+    private String launchBlockedMessage;
 
     /**
      * Creates an application that stores its files in the home folder.
@@ -80,13 +80,13 @@ public class MainApp extends Application {
         try {
             instanceLock = AppInstanceLock.tryAcquire(homeFolder).orElse(null);
         } catch (IOException e) {
-            startupFailureMessage = String.format(INSTANCE_LOCK_ERROR_FORMAT, homeFolder, e.getMessage());
-            logger.severe(startupFailureMessage);
+            launchBlockedMessage = String.format(INSTANCE_LOCK_ERROR_FORMAT, homeFolder, e.getMessage());
+            logger.severe(launchBlockedMessage);
             return;
         }
         if (instanceLock == null) {
-            startupFailureMessage = String.format(ALREADY_RUNNING_ERROR_FORMAT, homeFolder);
-            logger.warning(startupFailureMessage);
+            launchBlockedMessage = String.format(ALREADY_RUNNING_ERROR_FORMAT, homeFolder);
+            logger.warning(launchBlockedMessage);
             return;
         }
 
@@ -169,11 +169,11 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        if (startupFailureMessage != null) {
+        if (launchBlockedMessage != null) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("TAssist");
+            alert.setTitle("TAssist - cannot start");
             alert.setHeaderText("Unable to start TAssist");
-            alert.setContentText(startupFailureMessage);
+            alert.setContentText(launchBlockedMessage);
             alert.showAndWait();
             Platform.exit();
             return;
