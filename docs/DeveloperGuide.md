@@ -166,6 +166,10 @@ Both JSON storage classes read through `JsonUtil`, which deserializes one root v
 
 For TAssist's saved records, parsing failures propagate as `DataLoadingException` to `MainApp`, which sets a startup error. `LogicManager` then rejects commands before execution or saving, preserving the original data file through startup, attempted commands, and shutdown. The app displays the existing restoration error and recovery instructions. Preference-loading failures retain their existing default-preferences behavior.
 
+Before reading records or preferences, `MainApp.init()` acquires an exclusive operating-system file lock through `AppInstanceLock` on `.tassist.lock` in the home folder. A second launch from that folder displays a startup error and exits without initializing storage or opening the main window. Failure to create or access the lock also prevents startup. Using the home folder makes this protection independent of the terminal's working directory or the JAR filename.
+
+The lock remains held until shutdown has finished saving preferences. Initialization failures release it, and the operating system releases it if the process terminates unexpectedly. The lock file stays on disk: its existence alone does not indicate a running instance. Do not delete or move it while the app is running, as replacing the file can allow another process to acquire a different lock.
+
 ### Common classes
 
 Classes used by multiple components are in the `seedu.address.commons` package. For example, `HomeFolder` locates the home folder that holds the data, preferences and log files.
@@ -1142,6 +1146,24 @@ testers are expected to do more *exploratory* testing.
 
    1. Open a terminal in a different, empty folder and launch the same JAR using its full path, e.g., `java -jar "/path/to/test-folder/addressbook.jar"`.<br>
       Expected: Launch Test appears with the sample students, the window keeps the size and location from the previous test, and the status bar shows the full path of `data/addressbook.json` in the test folder. The folder you launched from stays empty.
+
+1. Preventing simultaneous launches
+
+   1. In a fresh test folder, launch TAssist and run `add n/Instance Test m/A9900165Z e/instance@example.com`.<br>
+      Expected: The student is added successfully.
+
+   1. Keep that window open. From a second terminal in another folder, launch the same JAR using its full path.<br>
+      Expected: A startup error explains that TAssist is already running. No second main window opens. Dismiss the error.
+
+   1. In the original window, run `list`, then close TAssist. Relaunch it from the same home folder.<br>
+      Expected: Instance Test remains in the saved records. The `.tassist.lock` file remaining in the home folder does not prevent reopening.
+
+1. Reopening after unexpected termination
+
+   1. With TAssist running in the separate test folder, terminate its Java process using the operating system's process manager. Take care to select only the test instance.
+
+   1. Relaunch the same JAR without removing `.tassist.lock`.<br>
+      Expected: TAssist opens and restores the previously saved records; the terminated process no longer holds the lock.
 
 
 ### Adding and editing students
