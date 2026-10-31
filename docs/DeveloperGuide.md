@@ -159,6 +159,7 @@ The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
 * saves assignment definitions and student assignment marks with the address book data, so they are restored together with their students.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+* reads and writes `data/addressbook.json` and `preferences.json` in the home folder, i.e., the folder containing the JAR file. When the app is not run from a JAR (e.g., `./gradlew run` or an IDE), the home folder is the working directory instead. `MainApp` resolves both paths using `HomeFolder`, so they do not depend on the folder the app is launched from.
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 Both JSON storage classes read through `JsonUtil`, which deserializes one root value and checks that the parser reaches the end of the input. Trailing whitespace is allowed; additional root values and invalid trailing content are rejected. Unknown fields remain ignored, and missing optional fields retain their existing defaults. This check uses the existing Jackson dependency without an upgrade.
@@ -167,7 +168,7 @@ For TAssist's saved records, parsing failures propagate as `DataLoadingException
 
 ### Common classes
 
-Classes used by multiple components are in the `seedu.address.commons` package.
+Classes used by multiple components are in the `seedu.address.commons` package. For example, `HomeFolder` locates the home folder that holds the data, preferences and log files.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -1132,6 +1133,13 @@ testers are expected to do more *exploratory* testing.
 
    1. Relaunch the app with the same terminal command from the same folder.<br>
        Expected: The most recent window size and location are retained.
+
+1. Launching from another folder
+
+   1. In the test folder's app, run `add n/Launch Test m/A9900164Z e/launch@example.com`, then close the app.
+
+   1. Open a terminal in a different, empty folder and launch the same JAR using its full path, e.g., `java -jar "/path/to/test-folder/addressbook.jar"`.<br>
+      Expected: Launch Test appears with the sample students, the window keeps the size and location from the previous test, and the status bar shows the full path of `data/addressbook.json` in the test folder. The folder you launched from stays empty.
 
 
 ### Adding and editing students

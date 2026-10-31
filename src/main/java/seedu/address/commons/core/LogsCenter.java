@@ -3,6 +3,7 @@ package seedu.address.commons.core;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
@@ -66,6 +67,14 @@ public class LogsCenter {
     }
 
     /**
+     * Returns a log file pattern with literal percent signs escaped.
+     * Doubles each percent sign because {@link FileHandler} treats it as a pattern character.
+     */
+    static String toLogFilePattern(Path logFilePath) {
+        return logFilePath.toString().replace("%", "%%");
+    }
+
+    /**
      * Creates a logger named 'ab3', containing a {@code ConsoleHandler} and a {@code FileHandler}.
      * Sets it as the {@code baseLogger}, to be used as the parent logger of all other loggers.
      */
@@ -86,12 +95,13 @@ public class LogsCenter {
 
         // add a FileHandler to log to a file
         try {
-            FileHandler fileHandler = new FileHandler(LOG_FILE, MAX_FILE_SIZE_IN_BYTES, MAX_FILE_COUNT, true);
+            FileHandler fileHandler = new FileHandler(toLogFilePattern(HomeFolder.getHomeFolder().resolve(LOG_FILE)),
+                    MAX_FILE_SIZE_IN_BYTES, MAX_FILE_COUNT, true);
             fileHandler.setFormatter(new SimpleFormatter());
             fileHandler.setLevel(Level.ALL);
             baseLogger.addHandler(fileHandler);
         } catch (IOException e) {
-            logger.warning("Error adding file handler for logger.");
+            baseLogger.warning("Error adding file handler for logger.");
         }
     }
 
