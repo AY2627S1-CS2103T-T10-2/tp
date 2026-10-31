@@ -1325,7 +1325,11 @@ Start in a fresh test folder with the original six sample students. Run these st
 1. Run `delete 1 3`.<br>
    Expected: Alex Yeoh and Charlotte Oliveiro are deleted using their original displayed indices. Bernice Yu remains.
 1. Run `undo`.<br>
-   Expected: All six students return in name order. Run `redo`; Alex and Charlotte disappear again. Run `undo` to restore them.
+   Expected: `Undo successful.` is displayed, and all six students return in name order.
+1. Run `redo`.<br>
+   Expected: `Redo successful.` is displayed, and Alex and Charlotte disappear again.
+1. Run `undo`.<br>
+   Expected: `Undo successful.` is displayed, and all six students return in name order.
 1. Run `find Alex`, then `delete m/A2345678Y`.<br>
    Expected: Bernice is deleted even though only Alex was displayed. Run `list` to confirm Bernice is absent and the other five students remain.
 1. Run `delete m/A2345678Y` again.<br>
@@ -1333,7 +1337,7 @@ Start in a fresh test folder with the original six sample students. Run these st
 
 ### Undoing and redoing changes
 
-Start in a fresh test folder with the original six sample students. Run these scenarios in order in the same session until instructed to restart. Enter each command separately.
+Start in a fresh test folder with the original six sample students. Run these scenarios in order in the same session until instructed to restart. Enter each command separately and check its feedback before entering the next command.
 
 1. Rejecting undo and redo when history is empty
 
@@ -1344,45 +1348,58 @@ Start in a fresh test folder with the original six sample students. Run these sc
 1. Restoring successive changes in order
 
    1. Run `add n/Undo Test m/A9900187Z e/undo187@example.com`, `find m/A9900187Z`, `enroll 1 c/CS2103T-T10`, then `view 1`.<br>
-      Expected: Undo Test exists and is enrolled in CS2103T-T10.
-   1. Run `sort attendance desc`, then `undo`.<br>
-      Expected: Enrollment is undone, but Undo Test remains. All seven students appear in ascending name order, the extra sort details disappear, and the details window closes. Run `find m/A9900187Z`, then `view 1` to confirm the student has no enrolled classes.
+      Expected: The student *Undo Test* exists and is enrolled in CS2103T-T10.
+   1. Run `sort attendance`, then `undo`.<br>
+      Expected: `Undo successful.` is displayed. Enrollment is undone, but the student *Undo Test* remains. All seven students appear in ascending name order, the attendance records row disappears, and the details window closes.
+   1. Run `find m/A9900187Z`, then `view 1`.<br>
+      Expected: The student has no enrolled classes.
    1. Run `undo` again.<br>
-      Expected: The addition is undone, leaving the original six students, and the details window closes. A further `undo` reports `No commands to undo.` without changing records.
+      Expected: `Undo successful.` is displayed. The addition is undone, leaving the original six students, and the details window closes.
+   1. Run `undo` again.<br>
+      Expected: `No commands to undo.` is reported without changing records.
    1. Run `redo`.<br>
-      Expected: Undo Test returns. Run `find m/A9900187Z`, then `view 1`; the email is `undo187@example.com` and no classes are enrolled.
+      Expected: `Redo successful.` is displayed, and the student *Undo Test* returns.
+   1. Run `find m/A9900187Z`, then `view 1`.<br>
+      Expected: The student's email is `undo187@example.com` and no classes are enrolled.
    1. Run `redo` again.<br>
-      Expected: Enrollment in CS2103T-T10 returns, all seven students appear in ascending name order, and the details window closes. Run `find m/A9900187Z`, then `view 1` to confirm enrollment. A further `redo` reports `No commands to redo.` and leaves the filtered list and details window unchanged.
+      Expected: `Redo successful.` is displayed. Enrollment in CS2103T-T10 returns, all seven students appear in ascending name order, and the details window closes.
+   1. Run `find m/A9900187Z`, then `view 1`.<br>
+      Expected: The student *Undo Test* is enrolled in CS2103T-T10.
+   1. Run `redo` again.<br>
+      Expected: `No commands to redo.` is reported and the filtered list and details window remain unchanged.
 
 1. Preserving redo when commands do not change records
 
    After each redo below, run `find m/A9900187Z`, then `view 1` to confirm enrollment in CS2103T-T10 is restored.
 
    1. Run `undo`, `find m/A9900187Z`, `sort matric desc`, then `redo`.<br>
-      Expected: Finding and sorting do not discard redo history. Redo succeeds and restores enrollment in CS2103T-T10.
+      Expected: Undo reports `Undo successful.` Finding and sorting do not discard redo history. Redo reports `Redo successful.` and restores enrollment in CS2103T-T10.
    1. Run `undo`, `delete 0`, then `redo`.<br>
-      Expected: Deletion is rejected without changing records. Redo still succeeds and restores enrollment.
+      Expected: Undo reports `Undo successful.` Deletion is rejected without changing records. Redo reports `Redo successful.` and restores enrollment.
    1. Run `undo`, `find m/A9900187Z`, `edit 1 n/Undo Test`, then `redo`.<br>
-      Expected: Editing the name to its existing value succeeds without changing records. Redo still succeeds and restores enrollment.
+      Expected: Undo reports `Undo successful.` Editing the name to its existing value succeeds without changing records. Redo reports `Redo successful.` and restores enrollment.
 
 1. Discarding redo after a new change
 
-   1. Run `undo`, `find m/A9900187Z`, then `edit 1 e/undo.updated@example.com`.
+   1. Run `undo`, `find m/A9900187Z`, then `edit 1 e/undo.updated@example.com`.<br>
+      Expected: Undo reports `Undo successful.` The email changes to `undo.updated@example.com` and the student has no enrolled classes.
    1. Run `redo`, `find m/A9900187Z`, then `view 1`.<br>
       Expected: Redo reports `No commands to redo.` The new email remains and the student has no enrolled classes; the previously undone enrollment cannot be redone.
    1. Run `undo`, `find m/A9900187Z`, then `view 1`.<br>
-      Expected: The email returns to `undo187@example.com` and no classes are enrolled.
+      Expected: Undo reports `Undo successful.` The email returns to `undo187@example.com` and no classes are enrolled.
    1. Run `redo`, `find m/A9900187Z`, then `view 1`.<br>
-      Expected: The email becomes `undo.updated@example.com` again, and no classes are enrolled.
+      Expected: Redo reports `Redo successful.` The email becomes `undo.updated@example.com` again, and no classes are enrolled.
    1. Run `undo` once more.<br>
-      Expected: The email returns to `undo187@example.com`. Leave this state for the restart scenario: both an earlier change to undo and the email change to redo are available.
+      Expected: `Undo successful.` is displayed. The email returns to `undo187@example.com`. Leave this state for the restart scenario: both an earlier change to undo and the email change to redo are available.
 
 1. Keeping restored records while clearing history on restart
 
    1. Close TAssist and reopen the same JAR from the same test folder. Run `find m/A9900187Z`, then `view 1`.<br>
-      Expected: Undo Test remains saved with email `undo187@example.com` and no enrolled classes.
+      Expected: The student *Undo Test* remains saved with email `undo187@example.com` and no enrolled classes.
    1. Run `undo`, then `redo`.<br>
-      Expected: The commands report `No commands to undo.` and `No commands to redo.` respectively. The restored records, filtered list and details window remain unchanged. Run `list` to confirm all seven students remain.
+      Expected: The commands report `No commands to undo.` and `No commands to redo.` respectively. The restored records, filtered list and details window remain unchanged.
+   1. Run `list`.<br>
+      Expected: All seven students remain.
 
 For additional restoration checks involving deleted students, assignment links and marks, follow [Deleting multiple students or a hidden student](#deleting-multiple-students-or-a-hidden-student) and [Viewing marks in a student profile](#viewing-marks-in-a-student-profile).
 
@@ -1612,9 +1629,13 @@ Run these steps in order in a test data folder. Ensure matriculation numbers `A9
 1. Enter `edit 1 m/A9900205Z`.<br>
    Expected: Without another `view`, the open window shows `A9900205Z`, both assignments, and the quiz's `10/10` mark. Enter `marks id/CS2103T:TEST204A` to confirm the saved result is associated with the new number.
 1. Enter `undo`.<br>
-   Expected: The details window closes. Enter `find m/A9900204Z`, then `view 1`; both assignments and the quiz's `10/10` mark appear under the original number.
+   Expected: `Undo successful.` is displayed, and the details window closes.
+1. Enter `find m/A9900204Z`, then `view 1`.<br>
+   Expected: Both assignments and the quiz's `10/10` mark appear under the original number.
 1. Enter `redo`.<br>
-   Expected: The window closes again. Enter `find m/A9900205Z`, then `view 1`; both assignments and the quiz's `10/10` mark appear under the new number.
+   Expected: `Redo successful.` is displayed, and the window closes again.
+1. Enter `find m/A9900205Z`, then `view 1`.<br>
+   Expected: Both assignments and the quiz's `10/10` mark appear under the new number.
 1. Enter `find m/A9900206Z`, then `view 1`.<br>
    Expected: The reused window shows Other Profile and `None assigned`, with no rows left over from Refresh Test. Enter `find m/A9900205Z`, then `view 1`; Refresh Test's two assignments and `10/10` mark reappear.
 1. Enter `removeassignment id/CS2103T:TEST204B m/A9900205Z`.<br>
@@ -1625,8 +1646,12 @@ Run these steps in order in a test data folder. Ensure matriculation numbers `A9
    Expected: Both commands succeed and the window stays closed. Enter `view 1`; the homework appears with `Mark: 0/20`.
 1. Enter `delete 1`.<br>
    Expected: The details window closes. Enter `marks id/CS2103T:TEST204B`; its shared definition remains, but its results show `None assigned.`.
-1. Enter `undo`, `find m/A9900205Z`, then `view 1`.<br>
-   Expected: The restored student has the homework and `Mark: 0/20`. Close and reopen TAssist, then repeat `find m/A9900205Z` and `view 1`; the same assignment and mark remain stored.
+1. Enter `undo`.<br>
+   Expected: `Undo successful.` is displayed, and the deleted student is restored.
+1. Enter `find m/A9900205Z`, then `view 1`.<br>
+   Expected: The restored student has the homework and `Mark: 0/20`.
+1. Close and reopen TAssist, then enter `find m/A9900205Z` and `view 1`.<br>
+   Expected: The same assignment and mark remain stored.
 
 ### Removing assignments
 
