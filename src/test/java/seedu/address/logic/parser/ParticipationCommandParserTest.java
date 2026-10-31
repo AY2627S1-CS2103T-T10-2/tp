@@ -31,6 +31,14 @@ public class ParticipationCommandParserTest {
     private final ParticipationCommandParser parser = new ParticipationCommandParser();
 
     @Test
+    public void parse_futureDate_returnsCommand() {
+        ParticipationCommand expectedCommand = new ParticipationCommand(
+                new StudentIdentifier(Index.fromOneBased(1)), new ClassCode("CS2103T-T10"),
+                new AttendanceDate("28-10-2099"), new ParticipationPoints("2"));
+        assertParseSuccess(parser, "1 c/CS2103T-T10 d/28-10-2099 p/2", expectedCommand);
+    }
+
+    @Test
     public void parse_validIndex_returnsCommand() {
         ParticipationCommand expectedCommand =
                 createCommand(new StudentIdentifier(Index.fromOneBased(1)), "2");

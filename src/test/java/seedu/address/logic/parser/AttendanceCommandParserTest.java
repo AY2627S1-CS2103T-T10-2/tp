@@ -41,7 +41,107 @@ public class AttendanceCommandParserTest {
     private static final StudentIdentifier VALID_MATRICULATION_IDENTIFIER =
             new StudentIdentifier(new MatriculationNumber("A1234567X"));
 
+    private static final AttendanceDate TODAY = new AttendanceDate("15-06-2026");
+    private static final AttendanceDate YESTERDAY = new AttendanceDate("14-06-2026");
+    private static final AttendanceDate TOMORROW = new AttendanceDate("16-06-2026");
+
     private AttendanceCommandParser parser = new AttendanceCommandParser();
+    private final AttendanceCommandParser fixedDateParser = new AttendanceCommandParser(TODAY);
+
+    @Test
+    public void parse_markByIndexToday_returnsCommand() {
+        assertParseSuccess(fixedDateParser, "1 c/CS2103T-T10 d/15-06-2026",
+                new MarkAttendanceCommand(INDEX_FIRST_PERSON, CLASS_T10, Optional.of(TODAY)));
+    }
+
+    @Test
+    public void parse_markByIndexYesterday_returnsCommand() {
+        assertParseSuccess(fixedDateParser, "1 c/CS2103T-T10 d/14-06-2026",
+                new MarkAttendanceCommand(INDEX_FIRST_PERSON, CLASS_T10, Optional.of(YESTERDAY)));
+    }
+
+    @Test
+    public void parse_markByIndexTomorrow_throwsParseException() {
+        assertParseFailure(fixedDateParser, "1 c/CS2103T-T10 d/16-06-2026",
+                String.format(ParserUtil.MESSAGE_FUTURE_ATTENDANCE_DATE, TOMORROW));
+    }
+
+    @Test
+    public void parse_markByMatriculationNumberToday_returnsCommand() {
+        assertParseSuccess(fixedDateParser, " m/A1234567X c/CS2103T-T10 d/15-06-2026",
+                new MarkAttendanceCommand(VALID_MATRICULATION_IDENTIFIER, CLASS_T10, Optional.of(TODAY)));
+    }
+
+    @Test
+    public void parse_markByMatriculationNumberTomorrow_throwsParseException() {
+        assertParseFailure(fixedDateParser, " m/A1234567X c/CS2103T-T10 d/16-06-2026",
+                String.format(ParserUtil.MESSAGE_FUTURE_ATTENDANCE_DATE, TOMORROW));
+    }
+
+    @Test
+    public void parse_markWholeClassToday_returnsCommand() {
+        assertParseSuccess(fixedDateParser, " c/CS2103T-T10 d/15-06-2026",
+                new MarkClassAttendanceCommand(CLASS_T10, Optional.of(TODAY)));
+    }
+
+    @Test
+    public void parse_markWholeClassTomorrow_throwsParseException() {
+        assertParseFailure(fixedDateParser, " c/CS2103T-T10 d/16-06-2026",
+                String.format(ParserUtil.MESSAGE_FUTURE_ATTENDANCE_DATE, TOMORROW));
+    }
+
+    @Test
+    public void parse_unmarkByIndexToday_returnsCommand() {
+        assertParseSuccess(fixedDateParser, "unmark 1 d/15-06-2026",
+                new UnmarkAttendanceCommand(new StudentIdentifier(INDEX_FIRST_PERSON),
+                        Optional.empty(), Optional.of(TODAY)));
+    }
+
+    @Test
+    public void parse_unmarkByIndexTomorrow_throwsParseException() {
+        assertParseFailure(fixedDateParser, "unmark 1 d/16-06-2026",
+                String.format(ParserUtil.MESSAGE_FUTURE_ATTENDANCE_DATE, TOMORROW));
+    }
+
+    @Test
+    public void parse_unmarkByMatriculationNumberTomorrow_throwsParseException() {
+        assertParseFailure(fixedDateParser, "unmark m/A1234567X d/16-06-2026",
+                String.format(ParserUtil.MESSAGE_FUTURE_ATTENDANCE_DATE, TOMORROW));
+    }
+
+    @Test
+    public void parse_unmarkTomorrowWithClass_throwsParseException() {
+        assertParseFailure(fixedDateParser, "unmark 1 c/CS2103T-T10 d/16-06-2026",
+                String.format(ParserUtil.MESSAGE_FUTURE_ATTENDANCE_DATE, TOMORROW));
+    }
+
+    @Test
+    public void parse_dateOmitted_returnsCommandWithEmptyDate() {
+        assertParseSuccess(fixedDateParser, "1 c/CS2103T-T10",
+                new MarkAttendanceCommand(INDEX_FIRST_PERSON, CLASS_T10, Optional.empty()));
+        assertParseSuccess(fixedDateParser, " c/CS2103T-T10",
+                new MarkClassAttendanceCommand(CLASS_T10, Optional.empty()));
+        assertParseSuccess(fixedDateParser, "unmark 1",
+                new UnmarkAttendanceCommand(new StudentIdentifier(INDEX_FIRST_PERSON),
+                        Optional.empty(), Optional.empty()));
+    }
+
+    @Test
+    public void parse_markFutureDateWithoutClass_reportsMissingClass() {
+        assertParseFailure(fixedDateParser, "1 d/16-06-2026",
+                String.format(AttendanceCommandParser.MESSAGE_MISSING_CLASS_CODE, MarkAttendanceCommand.MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parse_duplicateFutureDates_reportsDuplicatePrefix() {
+        assertParseFailure(fixedDateParser, "1 c/CS2103T-T10 d/16-06-2026 d/17-06-2026",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_DATE));
+    }
+
+    @Test
+    public void parse_invalidDate_reportsDateConstraints() {
+        assertParseFailure(fixedDateParser, "1 c/CS2103T-T10 d/32-01-2099", AttendanceDate.MESSAGE_CONSTRAINTS);
+    }
 
     @Test
     public void parse_unmarkValidIndex_returnsUnmarkAttendanceCommand() {

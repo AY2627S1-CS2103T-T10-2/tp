@@ -238,7 +238,7 @@ The `attendance` command marks a student or a whole class present at a class ses
 
 `MarkAttendanceCommand`, `MarkClassAttendanceCommand` and `UnmarkAttendanceCommand` extend the abstract `AttendanceCommand`, which holds the command word, the optional date (defaulting to today), equality that requires the same command type and date, and the helper that copies a student with new attendance.
 
-`AttendanceCommandParser` checks the first word of the arguments. If it is `unmark`, in any letter case, it calls `parseUnmark` with the remaining arguments; otherwise, it tokenizes the arguments before choosing the mark form. Both paths use `tokenizeAttendanceArguments` to tokenize `m/`, `c/` and `d/` and reject duplicate prefixes. Single-student requests then parse the student identifier, class code and optional date, in that order, before constructing their command. `parseMark` requires a class code, while `parseUnmark` leaves it optional. Duplicate-prefix errors take priority over identifier errors, then class code errors, then date errors.
+`AttendanceCommandParser` checks the first word of the arguments. If it is `unmark`, in any letter case, it calls `parseUnmark` with the remaining arguments; otherwise, it tokenizes the arguments before choosing the mark form. Both paths use `tokenizeAttendanceArguments` to tokenize `m/`, `c/` and `d/` and reject duplicate prefixes. Single-student requests then parse the student identifier, class code and optional date, in that order, before constructing their command. `parseMark` requires a class code, while `parseUnmark` leaves it optional. Duplicate-prefix errors take priority over identifier errors, then class code errors, then date errors. After date parsing, `parseMark`, `parseMarkClass` and `parseUnmark` reject a date later than today. The parser reads today's date from `AttendanceDate.today()` when constructed, and tests pass in a fixed date. `parseStats` does not apply this check, and neither does loading the data file, so future-dated records already saved still load.
 
 For marking, an empty preamble with no `m/` and a present `c/` selects `parseMarkClass`, which parses the class code and optional date and constructs `MarkClassAttendanceCommand`; all other arguments go to `parseMark`. The whole-class command collects enrolled students from all students in TAssist, including those outside the displayed list. It reports an error without changing anything if none are enrolled. Otherwise, it skips students already recorded for that class and date, reuses `AttendanceCommand#createStudentWithAttendance` to create each updated student, and calls `Model#setPerson` once per marked student. The result reports the marked count and names any skipped students.
 
@@ -689,9 +689,15 @@ Use case ends.
 
   Use case resumes at step 1.
 
-Removing an attendance record (unmarking) follows the same interaction, with these differences: in step 2, TAssist removes the student's record for the given class and date instead of adding one. The class is optional when exactly one record exists on that date. With several records on that date and no class supplied, TAssist reports an error naming the classes and asks the tutor to specify one; no records change (use case resumes at step 1). Extensions 1d and 1h do not apply, and 1g applies only to an invalid supplied class: the record's class need not be a current enrollment. If no record matches the given class and date, or no records exist on that date when the class is omitted, TAssist reports this and leaves the student's records unchanged (use case ends). Success confirms the removed record's class even when inferred.
+* 1i. The supplied date is later than today.
 
-For whole-class marking, the tutor supplies a class and an optional date without a student identifier. TAssist marks every enrolled student present for that session and reports how many students were marked, naming any students already recorded for that class and date who were skipped. If no students are enrolled in the class, TAssist reports an error and changes nothing.
+  * 1i1. TAssist reports that the date is in the future without adding an attendance record.
+
+  Use case resumes at step 1.
+
+Removing an attendance record (unmarking) follows the same interaction, with these differences: in step 2, TAssist removes the student's record for the given class and date instead of adding one. The class is optional when exactly one record exists on that date. With several records on that date and no class supplied, TAssist reports an error naming the classes and asks the tutor to specify one; no records change (use case resumes at step 1). Extensions 1d and 1h do not apply, and 1g applies only to an invalid supplied class: the record's class need not be a current enrollment. If no record matches the given class and date, or no records exist on that date when the class is omitted, TAssist reports this and leaves the student's records unchanged (use case ends). Success confirms the removed record's class even when inferred. A date later than today is rejected and nothing changes.
+
+For whole-class marking, the tutor supplies a class and an optional date without a student identifier. TAssist marks every enrolled student present for that session and reports how many students were marked, naming any students already recorded for that class and date who were skipped. If no students are enrolled in the class, TAssist reports an error and changes nothing. A date later than today is rejected and nothing changes.
 
 #### UC05: List all students
 
@@ -1431,6 +1437,15 @@ For additional restoration checks involving deleted students, assignment links a
 
    1. Test case: `attendance unmark 1 d/07-10-2026`<br>
       Expected: Nothing changes. The status message shows <samp>No attendance recorded for NAME on 07-10-2026.</samp>
+
+   1. Test case: `attendance 1 c/CS2103T-T10 d/28-10-2099`<br>
+      Expected: Nothing changes. The status message shows `Attendance date 28-10-2099 is in the future. Use today or an earlier date.`
+
+   1. Test case: `attendance c/CS2103T-T10 d/28-10-2099`<br>
+      Expected: Nothing changes. The status message shows `Attendance date 28-10-2099 is in the future. Use today or an earlier date.`
+
+   1. Test case: `attendance unmark 1 d/28-10-2099`<br>
+      Expected: Nothing changes. The status message shows `Attendance date 28-10-2099 is in the future. Use today or an earlier date.`
 
 1. Identifying a student outside the displayed list
 
