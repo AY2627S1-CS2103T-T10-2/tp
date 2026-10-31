@@ -3,6 +3,8 @@ package seedu.address;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
@@ -14,6 +16,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.core.AppInstanceLock;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
@@ -36,6 +39,94 @@ public class MainAppTest {
 
     @TempDir
     public Path temporaryFolder;
+
+    @Test
+    public void init_secondInstance_preservesSavedRecordsAndPreferences() throws Exception {
+        MainApp firstApp = new MainApp(temporaryFolder);
+        MainApp secondApp = new MainApp(temporaryFolder);
+        try {
+            firstApp.init();
+            firstApp.logic.execute("add n/New Student m/A0123456B e/new@example.com");
+            Path dataFilePath = temporaryFolder.resolve("data").resolve("addressbook.json");
+            Path prefsFilePath = temporaryFolder.resolve("preferences.json");
+            byte[] savedRecords = Files.readAllBytes(dataFilePath);
+            byte[] savedPrefs = Files.readAllBytes(prefsFilePath);
+
+            secondApp.init();
+
+            assertNull(secondApp.storage);
+            assertNull(secondApp.model);
+            assertNull(secondApp.logic);
+            assertNull(secondApp.ui);
+            secondApp.stop();
+            assertArrayEquals(savedRecords, Files.readAllBytes(dataFilePath));
+            assertArrayEquals(savedPrefs, Files.readAllBytes(prefsFilePath));
+        } finally {
+            secondApp.stop();
+            firstApp.stop();
+        }
+
+        MainApp reopenedApp = new MainApp(temporaryFolder);
+        try {
+            reopenedApp.init();
+            assertTrue(reopenedApp.model.getAddressBook().getPersonList().stream()
+                    .anyMatch(person -> person.getName().fullName.equals("New Student")));
+            reopenedApp.logic.execute("list");
+        } finally {
+            reopenedApp.stop();
+        }
+    }
+
+    @Test
+    public void init_lockFileCannotBeOpened_skipsInitializationAndPreservesPreferences() throws Exception {
+        Files.createDirectory(temporaryFolder.resolve(".tassist.lock"));
+        Path prefsFilePath = temporaryFolder.resolve("preferences.json");
+        Files.writeString(prefsFilePath, "original preferences");
+        MainApp app = new MainApp(temporaryFolder);
+
+        app.init();
+        app.stop();
+
+        assertNull(app.storage);
+        assertNull(app.model);
+        assertNull(app.logic);
+        assertNull(app.ui);
+        assertEquals("original preferences", Files.readString(prefsFilePath));
+        assertFalse(Files.exists(temporaryFolder.resolve("data")));
+    }
+
+    @Test
+    public void init_initializationThrows_releasesLock() throws Exception {
+        MainApp app = new MainApp(temporaryFolder) {
+            @Override
+            protected UserPrefs initPrefs(JsonUserPrefsStorage storage) {
+                throw new IllegalStateException("Initialization failed");
+            }
+        };
+
+        assertThrows(IllegalStateException.class, "Initialization failed", app::init);
+
+        try (AppInstanceLock lock = AppInstanceLock.tryAcquire(temporaryFolder).orElseThrow()) {
+            assertNotNull(lock);
+        }
+    }
+
+    @Test
+    public void stop_preferencesCannotBeSaved_releasesLock() throws Exception {
+        MainApp app = new MainApp(temporaryFolder);
+        try {
+            app.init();
+            Path prefsFilePath = temporaryFolder.resolve("preferences.json");
+            Files.delete(prefsFilePath);
+            Files.createDirectory(prefsFilePath);
+        } finally {
+            app.stop();
+        }
+
+        try (AppInstanceLock lock = AppInstanceLock.tryAcquire(temporaryFolder).orElseThrow()) {
+            assertNotNull(lock);
+        }
+    }
 
     @Test
     public void initModelAndLogic_validRecords_restoresStudentsAndAttendance() throws Exception {

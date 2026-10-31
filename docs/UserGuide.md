@@ -25,6 +25,7 @@ TAssist is a **desktop application for managing students, optimized for use thro
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar "addressbook.jar"`. If your downloaded file has a different name, substitute that filename inside the quotes.<br>
    Double-clicking the JAR file may not work on some systems. Use the terminal command above to launch TAssist.<br>
+   Only one TAssist instance can run from the same home folder. If it is already open, use the existing window or close it before launching again.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
@@ -638,6 +639,10 @@ Format: `exit`
 ### Saving the data
 
 TAssist automatically saves data after every command. You do not need to save manually.
+
+To protect saved records, TAssist blocks a second instance from opening the same home folder, even when launched from another folder. The second launch displays an error and closes without opening another main window. Use the existing TAssist window, or close it before relaunching.
+
+TAssist creates a `.tassist.lock` file in its home folder. Do not delete or move this file while TAssist is running. It may remain after the app closes; this is normal and does not prevent the next launch. If TAssist cannot create or access the lock, it displays an error and closes. Check that you have permission to create and update files in the home folder before trying again.
 
 If a save fails, TAssist displays an error. The command may already have changed the records in memory, but those changes have not been saved and may be lost when you close the app. For a write-permission error, restore write access to the data file and its folder, then run `list` to retry saving the current records before closing TAssist.
 
