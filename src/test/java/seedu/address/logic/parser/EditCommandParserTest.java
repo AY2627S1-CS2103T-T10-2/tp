@@ -12,6 +12,7 @@ import static seedu.address.logic.commands.CommandTestUtil.MATRICULATION_NUMBER_
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_HUSBAND;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAILS_WITH_UNQUOTED_SPECIAL_CHARACTERS;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_MATRICULATION_NUMBER_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_MATRICULATION_NUMBER_BOB;
@@ -63,9 +64,7 @@ public class EditCommandParserTest {
 
     @Test
     public void parse_emailWithUnquotedSpecialCharacters_success() {
-        String[] emails = {"_john@example.com", "john_@example.com", "john++doe@example.com",
-            "john_.doe@example.com", "o'connor@example.com", "!#$%&'*+/=?^_`{|}~-@example.com"};
-        for (String email : emails) {
+        for (String email : VALID_EMAILS_WITH_UNQUOTED_SPECIAL_CHARACTERS) {
             EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withEmail(email).build();
             assertParseSuccess(parser, "1 e/" + email, new EditCommand(INDEX_FIRST_PERSON, descriptor));
         }
