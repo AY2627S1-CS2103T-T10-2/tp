@@ -1718,7 +1718,7 @@ Start in a fresh test folder with the original sample students.
 
 ### Recording marks with a decimal maximum
 
-Before continuing, test a decimal maximum with an unused assignment ID:
+Prerequisites: Start in a fresh test folder with the original six sample students. Run `list`, then `enroll 1 c/CS2103T-T10` to enroll Alex Yeoh (`A1234567X`) in `CS2103T`. Ensure assignment ID `CS2103T:B1` and assignment name `Lab B1` are unused. Run these steps in order.
 
 1. Enter `assignment m/A1234567X id/CS2103T:B1 n/Lab B1 max/1.025e1`.<br>
    Expected: <samp>Assigned CS2103T:B1 (out of 10.25) to student A1234567X.</samp>
