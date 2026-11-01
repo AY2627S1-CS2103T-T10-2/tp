@@ -81,7 +81,7 @@ public class AssignmentCommandTest {
         Model expected = new ModelManager(model.getAddressBook(), new UserPrefs());
         expected.addAssignmentForStudent(assignment, student);
         assertCommandSuccess(new AssignmentCommand(student, assignment), model,
-                String.format(AssignmentCommand.MESSAGE_SUCCESS, id, student), expected);
+                String.format(AssignmentCommand.MESSAGE_SUCCESS, id, student, "20"), expected);
         assertEquals(Optional.empty(), model.getAddressBook().getGradebook().getMarksForStudent(student).get(id));
     }
 
@@ -92,8 +92,18 @@ public class AssignmentCommandTest {
         Model expected = new ModelManager(model.getAddressBook(), new UserPrefs());
         expected.assignStudent(otherStudent, id);
         assertCommandSuccess(new AssignmentCommand(otherStudent, id), model,
-                String.format(AssignmentCommand.MESSAGE_SUCCESS, id, otherStudent), expected);
+                String.format(AssignmentCommand.MESSAGE_SUCCESS, id, otherStudent, "20"), expected);
         assertEquals(1, model.getAddressBook().getGradebook().getAssignments().size());
+    }
+
+    @Test
+    public void execute_decimalMaximum_showsStoredMaximumInBothForms() throws Exception {
+        Assignment decimalAssignment = new Assignment(id, "Decimal Assignment", new BigDecimal("1.025e1"));
+        assertEquals("Assigned " + id + " (out of 10.25) to student " + student + ".",
+                new AssignmentCommand(student, decimalAssignment).execute(model).getFeedbackToUser());
+        MatriculationNumber otherStudent = BENSON.getMatriculationNumber();
+        assertEquals("Assigned " + id + " (out of 10.25) to student " + otherStudent + ".",
+                new AssignmentCommand(otherStudent, id).execute(model).getFeedbackToUser());
     }
 
     @Test
@@ -166,14 +176,14 @@ public class AssignmentCommandTest {
         expected.updateFilteredPersonList(person -> !person.getMatriculationNumber().equals(student));
         expected.addAssignmentForStudent(assignment, student);
         assertCommandSuccess(new AssignmentCommand(student, assignment), model,
-                String.format(AssignmentCommand.MESSAGE_SUCCESS, id, student), expected);
+                String.format(AssignmentCommand.MESSAGE_SUCCESS, id, student, "20"), expected);
         MatriculationNumber otherStudent = BENSON.getMatriculationNumber();
         model.updateFilteredPersonList(person -> !person.getMatriculationNumber().equals(otherStudent));
         expected = new ModelManager(model.getAddressBook(), new UserPrefs());
         expected.updateFilteredPersonList(person -> !person.getMatriculationNumber().equals(otherStudent));
         expected.assignStudent(otherStudent, id);
         assertCommandSuccess(new AssignmentCommand(otherStudent, id), model,
-                String.format(AssignmentCommand.MESSAGE_SUCCESS, id, otherStudent), expected);
+                String.format(AssignmentCommand.MESSAGE_SUCCESS, id, otherStudent, "20"), expected);
     }
 
     @Test

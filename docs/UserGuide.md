@@ -225,6 +225,7 @@ Format for existing work: `assignment INDEX id/MODULE:CODE` or `assignment m/MAT
 * `max/` is a positive numeric maximum mark; decimals are allowed.
 * Values whose displayed decimal form would exceed 64 characters are rejected. This prevents very large or very precise values from slowing the app when it displays or saves them.
 * The assignment begins without a recorded mark. A mark of zero, when later recorded, is different from an unmarked assignment.
+* Both forms confirm the assignment's stored maximum, for example, `Assigned CS2103T:A1 (out of 20) to student A1234567X.`
 * If that student's details window is open, the new assignment appears immediately with `Mark: Unmarked`.
 * To assign the same work to another student, use its existing ID without `n/` or `max/`. Repeating the assignment for the same student reports an error and changes nothing.
 * An existing ID or name cannot be used to create a second definition in the same module. A student and assignment ID must already exist when using the shorter form.
@@ -250,6 +251,7 @@ Format: `mark INDEX id/MODULE:CODE mark/MARK` or `mark m/MATRICULATION_NUMBER id
 * The student and assignment must exist, and the assignment must already be attached to that student using `assignment`.
 * Existing assigned work can still be marked, including updating a previous mark, after the student is unenrolled from its module.
 * `MARK` may be zero or a positive decimal, up to the assignment's maximum mark. A recorded `0` is different from an unmarked assignment.
+* A score above the maximum is rejected with the actual limit, for example, `Mark cannot exceed the maximum mark of 10.` For a decimal maximum of `10.25`, the message ends with `10.25.` Maximums use plain decimal notation. Rejection preserves the previous score, assignment data, and saved records.
 * A mark's displayed decimal form must also fit within 64 characters.
 * The confirmation includes the score and maximum mark. Updating a recorded score gives a short updated message.
 * If that student's details window is open, its score updates immediately after the command succeeds, without another `view` command.
