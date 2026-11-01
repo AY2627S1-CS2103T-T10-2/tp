@@ -87,7 +87,7 @@ public class MarkCommandParserTest {
         assertParseFailure(parser, " m/A1234567X mark/17.5", usage);
         assertParseFailure(parser, " id/CS2103T:A1 mark/17.5",
                 String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER,
-                MarkCommand.MESSAGE_USAGE));
+                        MarkCommand.MESSAGE_USAGE));
         assertParseFailure(parser, "1" + required, String.format(ParserUtil.MESSAGE_MULTIPLE_STUDENT_IDENTIFIERS,
                 MarkCommand.MESSAGE_USAGE));
     }

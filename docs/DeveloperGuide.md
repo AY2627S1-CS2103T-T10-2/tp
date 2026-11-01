@@ -202,7 +202,7 @@ JSON storage keeps shared definitions in `assignments` and each student's link t
 
 Module enrollment is a prerequisite for the `assignment` command, rather than a persistent gradebook constraint. Unenrolling from the last class in a module, including through `unenroll INDEX all/`, preserves existing assignment links and marks, and `mark` can still record or update those results. Storage restores historical links without requiring current enrollment. Removing a link and later reassigning the work through `assignment` requires current enrollment again.
 
-`MarkCommandParser` accepts one displayed index or matriculation number, an assignment ID, and a nonnegative decimal score. Both parsers reuse `ParserUtil#parseStudentIdentifier` to reject missing, combined, repeated, or malformed identifiers. `MarkCommand` uses the same `StudentIdentifier` resolution as `assignment`, before reading or mutating the gradebook. Out-of-range indices raise the standard displayed-index error. Rejected commands preserve records and command history. `MarkCommand` checks that the student, shared definition, and student's assignment link exist before calling `Model#recordMark`. The gradebook rejects scores above the shared maximum. `recordMark` returns the previous optional value, allowing the command to distinguish the first recorded mark from an update; a previous zero is present and therefore produces the updated response. The command changes only that student's score. `edit` remains for student particulars. The student profile also displays these marks, as described below.
+`MarkCommandParser` accepts one displayed index or matriculation number, an assignment ID, and a nonnegative decimal score. Both parsers reuse `ParserUtil#parseStudentIdentifier` to reject missing, combined, repeated, or malformed identifiers. `MarkCommand` uses the same `StudentIdentifier` resolution as `assignment`, before reading or mutating the gradebook. Out-of-range indices raise the standard displayed-index error. Rejected commands preserve records and undo/redo history. `MarkCommand` checks that the student, shared definition, and student's assignment link exist before calling `Model#recordMark`. The gradebook rejects scores above the shared maximum. `recordMark` returns the previous optional value, allowing the command to distinguish the first recorded mark from an update; a previous zero is present and therefore produces the updated response. The command changes only that student's score. `edit` remains for student particulars. The student profile also displays these marks, as described below.
 
 `MarksCommandParser` accepts one assignment ID. `MarksCommand` obtains a read-only gradebook snapshot and joins that assignment's student marks to current student names by matriculation number. It sorts rows by matriculation number, independently of the filtered and sorted student list, and formats each score against the shared maximum. A missing `Mark` is printed as `Unmarked`, while a recorded zero is printed as `0/MAX_MARK`. An assignment with no students prints `None assigned.`. This command does not change the model or the displayed student list.
 
@@ -846,14 +846,14 @@ Use case ends.
 
 **MSS**
 
-1. Tutor supplies a stored student's matriculation number, a new assignment ID, its name, and its maximum mark.
+1. Tutor supplies a stored student's displayed index or matriculation number, a new assignment ID, its name, and its maximum mark.
 2. TAssist creates the shared assignment definition, attaches it to that student without a recorded mark, and confirms the assignment.
 
 Use case ends.
 
 **Extensions**
 
-* 1a. Tutor supplies only a student's matriculation number and an existing assignment ID.
+* 1a. Tutor supplies only a student's displayed index or matriculation number and an existing assignment ID.
 
   * 1a1. TAssist attaches that definition to the student without changing its name or maximum mark.
 
@@ -865,7 +865,7 @@ Use case ends.
 
   Use case ends.
 
-* 1c. Input is malformed, the maximum mark is not positive, or the shorter form names an unknown assignment ID.
+* 1c. The student identifier is missing, malformed, combines both forms, or is an out-of-range displayed index; the maximum mark is not positive, or the shorter form names an unknown assignment ID.
 
   * 1c1. TAssist explains the problem and changes no records.
 
@@ -875,7 +875,7 @@ Use case ends.
 
 **MSS**
 
-1. Tutor supplies a stored student's matriculation number, an assignment ID already attached to that student, and a score from zero through that assignment's maximum.
+1. Tutor supplies a stored student's displayed index or matriculation number, an assignment ID already attached to that student, and a score from zero through that assignment's maximum.
 2. TAssist records the score and confirms it alongside the assignment maximum.
 
 Use case ends.
@@ -888,7 +888,7 @@ Use case ends.
 
   Use case ends.
 
-* 1b. The input is malformed or the score is not a nonnegative number.
+* 1b. The student identifier is missing, malformed, combines both forms, or is an out-of-range displayed index; or the score is not a nonnegative number.
 
   * 1b1. TAssist explains the invalid input and leaves the records unchanged.
 
@@ -1697,20 +1697,20 @@ Start in a fresh test folder with the original sample students.
 
 ### Identifying students for assignments and marks
 
-Use a disposable data folder with two students enrolled in CS2103T. Ensure CS2103T:INDEX151 is unused.
+Start with the original six sample students in a disposable data folder. Ensure assignment ID `CS2103T:INDEX151` and name `Index Regression` are unused. Run `list`, then `sort name desc`, then `enroll 1 c/CS2103T-T10` and `enroll 2 c/CS2103T-T10` to enroll Roy Balakrishnan and Irfan Ibrahim. This explicit enrollment is needed even when sample students already belong to other modules. Run the steps in order.
 
 1. Run `list`, then `sort name desc`. Note the first student's matriculation number.
-1. Enter `assignment 1 id/CS2103T:INDEX151 n/Index Regression max/20`.
+1. Enter `assignment 1 id/CS2103T:INDEX151 n/Index Regression max/20`.<br>
    Expected: The definition is created and attached only to the first displayed student.
-1. Enter `mark 1 id/CS2103T:INDEX151 mark/10`, then `marks id/CS2103T:INDEX151`.
+1. Enter `mark 1 id/CS2103T:INDEX151 mark/10`, then `marks id/CS2103T:INDEX151`.<br>
    Expected: Only that student has a mark of 10/20. Run `undo` then `redo`; the mark is removed then restored.
-1. Find the other student so the assigned student is hidden. Enter `assignment 1 id/CS2103T:INDEX151`, then `mark 1 id/CS2103T:INDEX151 mark/5`.
+1. Enter `find Irfan` so Roy is hidden. Enter `assignment 1 id/CS2103T:INDEX151`, then `mark 1 id/CS2103T:INDEX151 mark/5`.<br>
    Expected: The existing definition attaches to the first search result, and only their mark changes.
-1. Use `mark m/MATRICULATION_NUMBER id/CS2103T:INDEX151 mark/12`, substituting the hidden student's number.
+1. Use `mark m/MATRICULATION_NUMBER id/CS2103T:INDEX151 mark/12`, substituting the hidden student's number.<br>
    Expected: Their mark changes despite being hidden. Use the matriculation form of `assignment` with a fresh ID, name, and maximum to verify hidden-student creation too.
-1. For both commands, omit the identifier, combine `1 m/MATRICULATION_NUMBER`, repeat `m/`, or use `0`, `-1`, `abc`, `1.5`, `1 2`, or an index beyond the displayed list.
+1. For both commands, omit the identifier, combine `1 m/MATRICULATION_NUMBER`, repeat `m/`, or use `0`, `-1`, `abc`, `1.5`, `1 2`, or an index beyond the displayed list.<br>
    Expected: Each request fails without changing students, definitions, links, or marks. A rejected new assignment must not leave its definition behind.
-1. Close and reopen TAssist. Run `marks id/CS2103T:INDEX151`.
+1. Close and reopen TAssist. Run `marks id/CS2103T:INDEX151`.<br>
    Expected: Both students' assignment links and latest accepted marks persist; rejected changes remain absent.
 
 ### Recording an assignment mark

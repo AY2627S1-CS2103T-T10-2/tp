@@ -96,8 +96,9 @@ public class LogicManagerTest {
         AddressBook original = new AddressBook(model.getAddressBook());
         Path savedPath = temporaryFolder.resolve("addressBook.json");
         String saved = Files.readString(savedPath);
-        for (String identifier : new String[] {"", "0", "-1", "bad", "1.5", "1 2", "2147483648",
-            "1 m/" + AMY.getMatriculationNumber(), "m/bad", "m/"}) {
+        String[] invalidIdentifiers = {"", "0", "-1", "bad", "1.5", "1 2", "2147483648",
+            "1 m/" + AMY.getMatriculationNumber(), "m/bad", "m/"};
+        for (String identifier : invalidIdentifiers) {
             for (String command : new String[] {
                 "assignment " + identifier + " id/CS2103T:A2 n/New Work max/20",
                 "mark " + identifier + " id/CS2103T:A1 mark/5"
@@ -107,8 +108,9 @@ public class LogicManagerTest {
                 assertEquals(saved, Files.readString(savedPath));
             }
         }
-        for (String command : new String[] {"assignment 2 id/CS2103T:A2 n/New Work max/20",
-            "mark 2 id/CS2103T:A1 mark/5"}) {
+        String[] outOfRangeCommands = {"assignment 2 id/CS2103T:A2 n/New Work max/20",
+            "mark 2 id/CS2103T:A1 mark/5"};
+        for (String command : outOfRangeCommands) {
             assertThrows(CommandException.class, () -> logic.execute(command));
             assertEquals(original, model.getAddressBook());
             assertEquals(saved, Files.readString(savedPath));

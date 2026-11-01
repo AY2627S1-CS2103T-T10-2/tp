@@ -253,7 +253,7 @@ Format: `mark INDEX id/MODULE:CODE mark/MARK` or `mark m/MATRICULATION_NUMBER id
 * A mark's displayed decimal form must also fit within 64 characters.
 * The confirmation includes the score and maximum mark. Updating a recorded score gives a short updated message.
 * If that student's details window is open, its score updates immediately after the command succeeds, without another `view` command.
-* The student's matriculation number identifies them even when they are absent from the current search results. Use `mark` to change a score; `edit` changes student details and does not accept marks.
+* Use `mark` to change a score; `edit` changes student details and does not accept marks.
 
 Examples:
 * `mark 1 id/CS2103T:A1 mark/10`
