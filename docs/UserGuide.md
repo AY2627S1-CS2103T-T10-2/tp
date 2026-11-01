@@ -596,7 +596,7 @@ or
 * If both `c/MODULE-CLASS` and `all/` are provided, it shows an error and changes nothing.
 * Unenrolling a student from a class they are not enrolled in shows an error and changes nothing.
 * If the student is not enrolled in any classes, unenrolling from `all/` shows an error and changes nothing.
-* Only one `c/` and, if used, one `m/` can be given per command. Only one `all/` can be given per command.
+* Only one `c/` or one `all` can be given per command. If used, one `m/` can be given per command.
 
 Examples:
 * `unenroll 1 c/CS2103T-T10` unenrolls the 1st student in the displayed list from class `T10` of module `CS2103T`.

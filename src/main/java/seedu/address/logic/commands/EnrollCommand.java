@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
 
 import java.util.logging.Logger;
 
@@ -21,9 +22,9 @@ public class EnrollCommand extends Command {
     public static final String COMMAND_WORD = "enroll";
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Enrolls a student identified by their index or matriculation number in a class.\n"
-            + "Parameters: INDEX or m/MATRICULATION_NUMBER c/MODULE-CLASS\n "
+            + "Parameters: INDEX or m/MATRICULATION_NUMBER c/MODULE-CLASS\n"
             + "Example: " + COMMAND_WORD + " 1 " + PREFIX_CLASS_CODE + "CS2103T-T10,\n"
-            + COMMAND_WORD + " m/A1234567X " + PREFIX_CLASS_CODE + "CS2103T-T10";
+            + COMMAND_WORD + " " + PREFIX_MATRICULATION_NUMBER + "A1234567X " + PREFIX_CLASS_CODE + "CS2103T-T10";
 
     public static final String MESSAGE_SUCCESS = "Enrolled student %1$s in class %2$s.";
     public static final String MESSAGE_DUPLICATE_CLASS =

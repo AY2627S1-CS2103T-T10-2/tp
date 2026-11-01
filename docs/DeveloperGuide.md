@@ -980,33 +980,39 @@ Use case ends.
 
   Use case ends.
 
-* 1b. The student identifier is missing or malformed, the supplied class code is invalid, more than one class code is supplied, neither class code nor unenrollment from all classes is indicated, or unenrollment from all classes is indicated more than once.
+* 1b. The input is invalid. This includes any of the following: the student identifier is missing or malformed, the class code is invalid, more than one class code is supplied, neither a class code nor unenrollment from all classes is indicated, or unenrollment from all classes is indicated more than once.
 
   * 1b1. TAssist explains the invalid input and leaves the student's enrolments unchanged.
 
   Use case resumes at step 1.
 
-* 1c. The index exceeds the size of the currently displayed list (including when the list is empty), or the matriculation number matches no stored student.
-
-  * 1c1. TAssist reports that the student cannot be found and changes no records.
+* 1c. The index exceeds the size of the currently displayed list (including when the list is empty).
+  
+  * 1c1. TAssist reports that the displayed student index is invalid and changes no records.
 
   Use case resumes at step 1.
 
-* 1d. The student is not enrolled in the specified class.
+* 1d. The matriculation number matches no stored student.
+  
+  * 1d1. TAssist reports that no student with that matriculation number was found and changes no records.
+  
+  Use case resumes at step 1.
 
-  * 1d1. TAssist reports this and leaves the student's enrolments unchanged.
+* 1e. The student is not enrolled in the specified class.
+
+  * 1e1. TAssist reports this and leaves the student's enrolments unchanged.
 
   Use case ends.
 
-* 1e. Tutor omits the class code but indicates unenrollment from all classes, and the student is not enrolled in any classes.
+* 1f. Tutor omits the class code but indicates unenrollment from all classes, and the student is not enrolled in any classes.
 
-  * 1e1. TAssist reports that the student has no class enrolments to remove and changes no records.
+  * 1f1. TAssist reports that the student has no class enrolments to remove and changes no records.
 
   Use case ends.
 
-* 1f. The tutor supplies both an index and a matriculation number.
+* 1g. The tutor supplies both an index and a matriculation number.
 
-  * 1f1. TAssist shows an error message and changes no records.
+  * 1g1. TAssist shows an error message and changes no records.
 
   Use case resumes at step 1.
 

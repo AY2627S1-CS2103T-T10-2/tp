@@ -21,15 +21,13 @@ import seedu.address.model.person.Person;
 public class UnenrollCommand extends Command {
     public static final String COMMAND_WORD = "unenroll";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Unenrolls a student from a class or from all classes.\n"
-            + "Parameters: (INDEX (must be a positive integer) | " + PREFIX_MATRICULATION_NUMBER
-            + "MATRICULATION_NUMBER) " + PREFIX_CLASS_CODE + "MODULE-CLASS\n"
-            + "Alternate Parameters: (INDEX (must be a positive integer) | " + PREFIX_MATRICULATION_NUMBER
-            + "MATRICULATION_NUMBER) " + PREFIX_ALL + "\n"
-            + "Examples: " + COMMAND_WORD + " 1 " + PREFIX_CLASS_CODE + "CS2103T-T10\n"
-            + "          " + COMMAND_WORD + " " + PREFIX_MATRICULATION_NUMBER + "A1234567X "
-            + PREFIX_ALL;
-
+            + ": Unenrolls a student identified by their index or matriculation number from a class or all classes.\n"
+            + "Parameters: INDEX or " + PREFIX_MATRICULATION_NUMBER + "MATRICULATION_NUMBER "
+            + PREFIX_CLASS_CODE + "MODULE-CLASS\n"
+            + "Alternate Parameters: INDEX or " + PREFIX_MATRICULATION_NUMBER + "MATRICULATION_NUMBER "
+            + PREFIX_ALL + "\n"
+            + "Example: " + COMMAND_WORD + " 1 " + PREFIX_CLASS_CODE + "CS2103T-T10,\n"
+            + COMMAND_WORD + " " + PREFIX_MATRICULATION_NUMBER + "A1234567X " + PREFIX_ALL;
     public static final String MESSAGE_SUCCESS = "Unenrolled student %1$s from class %2$s.";
     public static final String MESSAGE_SUCCESS_ALL = "Unenrolled student %1$s from all classes.";
     public static final String MESSAGE_MISSING_CLASS =
