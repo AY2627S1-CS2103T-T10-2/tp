@@ -3,13 +3,15 @@ package seedu.address.storage;
 import static java.util.Objects.requireNonNull;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
+import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.classcode.ClassCode;
+import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.ParticipationPoints;
 import seedu.address.model.person.ParticipationRecord;
 
@@ -21,7 +23,11 @@ class JsonAdaptedParticipationRecord {
     public static final String MISSING_FIELD_MESSAGE_FORMAT =
             "Participation record's %s field is missing!";
     public static final String MESSAGE_INVALID_DATE =
-            "Participation record date must be a valid ISO date, e.g. 2026-10-28.";
+            "Participation record date must be a valid date in dd-MM-yyyy format.";
+
+    private static final DateTimeFormatter DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("dd-MM-uuuu")
+                    .withResolverStyle(ResolverStyle.STRICT);
 
     @JsonProperty("classCode")
     private final JsonAdaptedClassCode classCode;
@@ -50,7 +56,7 @@ class JsonAdaptedParticipationRecord {
     public JsonAdaptedParticipationRecord(ParticipationRecord source) {
         requireNonNull(source);
         classCode = new JsonAdaptedClassCode(source.getClassCode());
-        date = source.getDate().toString();
+        date = source.getDate().format(DATE_FORMATTER);
         points = source.getPoints().toString();
     }
 
@@ -85,14 +91,14 @@ class JsonAdaptedParticipationRecord {
     }
 
     /**
-     * Parses the ISO date used in storage.
+     * Parses the dd-MM-yyyy date used in storage.
      */
     private LocalDate parseStoredDate() throws IllegalValueException {
-        try {
-            return LocalDate.parse(date);
-        } catch (DateTimeParseException exception) {
+        if (!AttendanceDate.isValidAttendanceDate(date)) {
             throw new IllegalValueException(
                     MESSAGE_INVALID_DATE + " Found: " + date);
         }
+
+        return LocalDate.parse(date, DATE_FORMATTER);
     }
 }
