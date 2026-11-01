@@ -1697,16 +1697,31 @@ Start in a fresh test folder with the original sample students.
 
 ### Recording an assignment mark
 
-1. After assigning `CS2103T:A1` with maximum `20` to student `A1234567X`, enter `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
+Run these steps in order without restarting until instructed. Before starting, ensure student `A1234567X` exists and has been assigned `CS2103T:A1` with maximum `20`.
+
+1. Enter `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
    Expected: TAssist confirms a recorded score of <samp>0/20</samp>.
 1. Enter `mark m/A1234567X id/CS2103T:A1 mark/17.5`.<br>
    Expected: The existing mark is updated to <samp>17.5/20</samp>.
 1. Enter `mark m/A1234567X i/CS2103T:A1 mark/5`.<br>
-   Expected: <samp>Missing required prefix: id/</samp> followed by `mark` usage. The mark remains <samp>17.5/20</samp>, including after restarting TAssist. Undo/redo history is unchanged.
-1. Omit `m/`, `id/`, or `mark/` and its value from the correct command in turn.<br>
-   Expected: The error names the omitted prefix and shows usage. If several are absent, the first is reported in the order `m/`, `id/`, `mark/`. Empty values still produce their existing value-validation errors.
-1. Repeat `id/CS2103T:A1`, then try `id/CS2103T:A/1` in the correct command.<br>
-   Expected: The duplicate-prefix error, then the assignment-ID constraint error. The slash-containing value is not reported as an unknown prefix. The mark remains <samp>17.5/20</samp>.
+   Expected: <samp>Missing required prefix: id/</samp> followed by `mark` usage. Enter `marks id/CS2103T:A1`; the mark remains <samp>17.5/20</samp>.
+1. Enter `undo`, then `marks id/CS2103T:A1`.<br>
+   Expected: Undo succeeds and the mark returns to <samp>0/20</samp>, confirming the rejection added no history entry.
+1. Enter `mark m/A1234567X i/CS2103T:A1 mark/5` again, then `redo`, then `marks id/CS2103T:A1`.<br>
+   Expected: <samp>Missing required prefix: id/</samp> followed by `mark` usage, then a successful redo restoring <samp>17.5/20</samp>. This confirms rejection preserves pending redo history and restores the score needed by later steps.
+1. Run each command in the table below. Each must fail with the stated message. After each rejection, enter `marks id/CS2103T:A1`; the mark must remain <samp>17.5/20</samp>.
+
+   | Command | Expected error |
+   | --- | --- |
+   | `mark m/A1234567X mark/5` | <samp>Missing required prefix: id/</samp>, followed by `mark` usage. |
+   | `mark m/A1234567X id/CS2103T:A1` | <samp>Missing required prefix: mark/</samp>, followed by `mark` usage. |
+   | `mark m/A1234567X` | <samp>Missing required prefix: id/</samp>, followed by `mark` usage. |
+   | `mark m/ id/CS2103T:A1 mark/5` | <samp>Matriculation numbers should only start with an A, followed by 7 digits, and end with a letter</samp> |
+   | `mark m/A1234567X id/ mark/5` | <samp>Assignment IDs should be MODULE:CODE, where CODE starts with a letter and contains only letters and digits (e.g. CS2103T:A1).</samp> |
+   | `mark m/A1234567X id/CS2103T:A1 mark/` | <samp>Mark must be a valid number.</samp> |
+   | `mark m/A1234567X id/CS2103T:A1 id/CS2103T:A1 mark/5` | <samp>Multiple values specified for the following single-valued field(s): id/</samp> |
+   | `mark m/A1234567X id/CS2103T:A/1 mark/5` | <samp>Assignment IDs should be MODULE:CODE, where CODE starts with a letter and contains only letters and digits (e.g. CS2103T:A1).</samp> The slash-containing value is not reported as an unknown prefix. |
+
 1. Enter `mark m/A1234567X id/CS2103T:A1 mark/21`.<br>
    Expected: TAssist rejects the score because it exceeds the maximum. The previous score remains stored after reopening the app.
 1. Enter the same command with `mark/1e1000000`.<br>
