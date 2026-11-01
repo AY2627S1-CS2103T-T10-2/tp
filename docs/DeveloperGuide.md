@@ -1037,6 +1037,12 @@ Use case ends.
 
     Use case resumes at step 1.
 
+1c. The specified participation date is in the future.
+
+    1c1. TAssist displays an error explaining that participation points cannot be recorded for a future date.
+
+    Use case resumes at step 1.
+
 ### UC16: View attendance statistics for a class
 
 **Actor:** Tutor
@@ -1528,7 +1534,7 @@ Replace `MATRIC` with the chosen test student's matriculation number, without th
    6. Test case: `participation m/MATRIC c/CS2103T-T10 d/28-10-2026 p/2 p/3`.<br>
       Expected: The repeated prefix is rejected. Neither value is applied, and the existing history is unchanged.
    7. Test case: `participation m/A1234567X c/CS2103T-T10 d/28-10-2099 p/2`.<br>
-      Expected: The status message shows `Attendance date 28-10-2099 is in the future. Use today or an earlier date.` No participation records are added or changed.
+      Expected: The status message shows `Participation date 28-10-2099 is in the future. Use today or an earlier date.` No participation records are added or changed.
 
 4. Rejecting a class the student is not enrolled in
    1. Prerequisites: The chosen student is enrolled in CS2103T-T10 but not CS2103T-T11. Note the student's current participation history.

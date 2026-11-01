@@ -39,7 +39,7 @@ public class ParticipationCommand extends Command {
             "%1$s is not enrolled in %2$s. Enroll the student in this class first.";
 
     public static final String MESSAGE_FUTURE_DATE =
-            "Attendance date %s is in the future. Use today or an earlier date.";
+            "Participation date %s is in the future. Use today or an earlier date.";
 
     private static final Logger logger = LogsCenter.getLogger(ParticipationCommand.class);
 
