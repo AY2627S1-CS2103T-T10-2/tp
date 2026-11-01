@@ -114,7 +114,7 @@ public class LogicManagerTest {
                 + " id/CS2103T:A1 n/Assignment One max/20.5";
         AssignmentId id = new AssignmentId("CS2103T:A1");
 
-        assertEquals(String.format(AssignmentCommand.MESSAGE_SUCCESS, id, AMY.getMatriculationNumber()),
+        assertEquals(String.format(AssignmentCommand.MESSAGE_SUCCESS, id, AMY.getMatriculationNumber(), "20.5"),
                 logic.execute(command).getFeedbackToUser());
         JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
         ReadOnlyAddressBook restored = storage.readAddressBook().orElseThrow();
@@ -135,8 +135,11 @@ public class LogicManagerTest {
                 logic.execute("mark m/" + student + assignment + " mark/0").getFeedbackToUser());
         assertEquals(String.format(MarkCommand.MESSAGE_UPDATED, "17.5", "20", student, "CS2103T:A1"),
                 logic.execute("mark m/" + student + assignment + " mark/17.5").getFeedbackToUser());
-        assertThrows(CommandException.class, Gradebook.MESSAGE_MARK_EXCEEDS_MAX, () ->
+        Path savedPath = temporaryFolder.resolve("addressBook.json");
+        String saved = Files.readString(savedPath);
+        assertThrows(CommandException.class, "Mark cannot exceed the maximum mark of 20.", () ->
                 logic.execute("mark m/" + student + assignment + " mark/21"));
+        assertEquals(saved, Files.readString(savedPath));
 
         JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
         ReadOnlyAddressBook restored = storage.readAddressBook().orElseThrow();

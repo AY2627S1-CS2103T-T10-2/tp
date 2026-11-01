@@ -198,11 +198,11 @@ The helper handles zero first, so even extreme scientific representations of zer
 
 JSON storage keeps shared definitions in `assignments` and each student's link to a definition in `studentAssignments`. An assignment stores its ID, name, and decimal maximum mark. A student assignment stores a matriculation number, assignment ID, and decimal `mark`; a `null` mark means the assignment is unmarked, while `"0"` means a recorded zero. Decimal values are written as strings to preserve exact fractional marks. On restoration, students are loaded first, followed by definitions and student assignments. The storage adapter rejects invalid or duplicate definitions, unknown students or assignments, duplicate student links, and marks outside the allowed range. Files created before these two JSON arrays existed load with an empty gradebook. A failed restoration leaves the saved file unchanged.
 
-`AssignmentCommandParser` accepts a student's matriculation number and assignment ID, plus a name and maximum mark together when defining new work. `AssignmentCommand` resolves the student against all stored students, independently of the displayed list. Both forms require the student to be enrolled in the assignment's module: at least one of the student's class codes must have the same module code as the assignment ID. Module comparison ignores letter case and uses the entire module code. The command checks student existence, an existing definition for the shorter form, and module enrollment before making any changes. For new work, it calls `Model#addAssignmentForStudent`, which validates and publishes the definition and student link as one change. For existing work, it calls `Model#assignStudent` using the stored definition. The gradebook rejects a duplicate ID or name in the module and prevents assigning the same work twice to one student. Neither command form records a mark.
+`AssignmentCommandParser` accepts a student's matriculation number and assignment ID, plus a name and maximum mark together when defining new work. `AssignmentCommand` resolves the student against all stored students, independently of the displayed list. Both forms require the student to be enrolled in the assignment's module: at least one of the student's class codes must have the same module code as the assignment ID. Module comparison ignores letter case and uses the entire module code. The command checks student existence, an existing definition for the shorter form, and module enrollment before making any changes. For new work, it calls `Model#addAssignmentForStudent`, which validates and publishes the definition and student link as one change. For existing work, it calls `Model#assignStudent` using the stored definition. The gradebook rejects a duplicate ID or name in the module and prevents assigning the same work twice to one student. Both command forms include the stored maximum in their confirmation, using plain decimal notation. Neither command form records a mark.
 
 Module enrollment is a prerequisite for the `assignment` command, rather than a persistent gradebook constraint. Unenrolling from the last class in a module, including through `unenroll INDEX all/`, preserves existing assignment links and marks, and `mark` can still record or update those results. Storage restores historical links without requiring current enrollment. Removing a link and later reassigning the work through `assignment` requires current enrollment again.
 
-`MarkCommandParser` accepts a matriculation number, an assignment ID, and a nonnegative decimal score. `MarkCommand` checks that the student, shared definition, and student's assignment link exist before calling `Model#recordMark`. The gradebook rejects scores above the shared maximum. `recordMark` returns the previous optional value, allowing the command to distinguish the first recorded mark from an update; a previous zero is present and therefore produces the updated response. The command changes only that student's score. `edit` remains for student particulars. The student profile also displays these marks, as described below.
+`MarkCommandParser` accepts a matriculation number, an assignment ID, and a nonnegative decimal score. `MarkCommand` checks that the student, shared definition, and student's assignment link exist before calling `Model#recordMark`. The gradebook rejects scores above the shared maximum before changing any records, with `Mark cannot exceed the maximum mark of MAXIMUM.` The maximum comes from the assignment definition and uses plain decimal notation. `recordMark` returns the previous optional value, allowing the command to distinguish the first recorded mark from an update; a previous zero is present and therefore produces the updated response. The command changes only that student's score. `edit` remains for student particulars. The student profile also displays these marks, as described below.
 
 `MarksCommandParser` accepts one assignment ID. `MarksCommand` obtains a read-only gradebook snapshot and joins that assignment's student marks to current student names by matriculation number. It sorts rows by matriculation number, independently of the filtered and sorted student list, and formats each score against the shared maximum. A missing `Mark` is printed as `Unmarked`, while a recorded zero is printed as `0/MAX_MARK`. An assignment with no students prints `None assigned.`. This command does not change the model or the displayed student list.
 
@@ -847,7 +847,7 @@ Use case ends.
 **MSS**
 
 1. Tutor supplies a stored student's matriculation number, a new assignment ID, its name, and its maximum mark.
-2. TAssist creates the shared assignment definition, attaches it to that student without a recorded mark, and confirms the assignment.
+2. TAssist creates the shared assignment definition, attaches it to that student without a recorded mark, and confirms the assignment alongside its maximum mark.
 
 Use case ends.
 
@@ -884,7 +884,7 @@ Use case ends.
 
 * 1a. The student or assignment does not exist, the student has not been assigned that work, or the score exceeds its maximum.
 
-  * 1a1. TAssist reports the problem and leaves the records unchanged.
+  * 1a1. TAssist reports the problem and leaves the records unchanged. For an over-maximum score, the error includes the assignment's actual maximum in plain decimal notation.
 
   Use case ends.
 
@@ -1681,9 +1681,9 @@ Start in a fresh test folder with the original sample students.
    1. Prerequisites: Start in a fresh data folder with the original six sample students. Run `list`, then `enroll 1 c/CS2103T-T10` and `enroll 2 c/CS2103T-T10` to enroll Alex Yeoh (`A1234567X`) and Bernice Yu (`A2345678Y`) in `CS2103T`.
 
    1. Test case: `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20`<br>
-      Expected: TAssist confirms the assignment was attached to the first student without a mark.
+      Expected: <samp>Assigned CS2103T:A1 (out of 20) to student A1234567X.</samp> The assignment is attached without a mark.
    1. Test case: `assignment m/A2345678Y id/CS2103T:A1`<br>
-      Expected: TAssist confirms the same definition was attached to the second student without a mark.
+      Expected: <samp>Assigned CS2103T:A1 (out of 20) to student A2345678Y.</samp> The same definition is attached without a mark.
    1. Repeat either command for the same student, or create `CS2103T:A2` with the name `Assignment One`.<br>
       Expected: TAssist reports the duplicate and preserves the existing assignments.
    1. Enter `assignment m/A1234567X id/CS2103T:A3 n/Extreme max/1e1000000`.<br>
@@ -1701,18 +1701,22 @@ Run these steps in order without restarting until instructed. Before starting, e
 
 1. Enter `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
    Expected: TAssist confirms a recorded score of <samp>0/20</samp>.
+1. Enter the same command with `mark/20`.<br>
+   Expected: TAssist accepts a score equal to the maximum and confirms <samp>20/20</samp>.
 1. Enter `mark m/A1234567X id/CS2103T:A1 mark/17.5`.<br>
-   Expected: The existing mark is updated to <samp>17.5/20</samp>.
+   Expected: TAssist confirms the score was updated to <samp>17.5/20</samp>.
+1. Enter the same command with `mark/21`, then enter `marks id/CS2103T:A1`.<br>
+   Expected: <samp>Mark cannot exceed the maximum mark of 20.</samp> The previous score remains <samp>17.5/20</samp>, and assignment data remains unchanged. Do not restart yet; persistence is checked later.
 1. Enter `mark m/A1234567X i/CS2103T:A1 mark/5`.<br>
    Expected: <samp>Missing required prefix: id/</samp> followed by `mark` usage. Enter `marks id/CS2103T:A1`; the mark remains <samp>17.5/20</samp>.
 1. Enter `undo`, then `marks id/CS2103T:A1`.<br>
-   Expected: Undo succeeds and the mark returns to <samp>0/20</samp>, confirming the rejection added no history entry.
+   Expected: Undo succeeds and the mark returns to <samp>20/20</samp>, confirming the rejected commands added no history entries.
 1. Enter `mark m/A1234567X i/CS2103T:A1 mark/5` again, then `redo`, then `marks id/CS2103T:A1`.<br>
    Expected: <samp>Missing required prefix: id/</samp> followed by `mark` usage, then a successful redo restoring <samp>17.5/20</samp>. This confirms rejection preserves pending redo history and restores the score needed by later steps.
 1. Run each command in the table below. Each must fail with the stated message. After each rejection, enter `marks id/CS2103T:A1`; the mark must remain <samp>17.5/20</samp>.
 
    | Command | Expected error |
-   | --- | --- |
+      | --- | --- |
    | `mark m/A1234567X mark/5` | <samp>Missing required prefix: id/</samp>, followed by `mark` usage. |
    | `mark m/A1234567X id/CS2103T:A1` | <samp>Missing required prefix: mark/</samp>, followed by `mark` usage. |
    | `mark m/A1234567X` | <samp>Missing required prefix: id/</samp>, followed by `mark` usage. |
@@ -1722,18 +1726,29 @@ Run these steps in order without restarting until instructed. Before starting, e
    | `mark m/A1234567X id/CS2103T:A1 id/CS2103T:A1 mark/5` | <samp>Multiple values specified for the following single-valued field(s): id/</samp> |
    | `mark m/A1234567X id/CS2103T:A/1 mark/5` | <samp>Assignment IDs should be MODULE:CODE, where CODE starts with a letter and contains only letters and digits (e.g. CS2103T:A1).</samp> The slash-containing value is not reported as an unknown prefix. |
 
-1. Enter `mark m/A1234567X id/CS2103T:A1 mark/21`.<br>
-   Expected: TAssist rejects the score because it exceeds the maximum. The previous score remains stored after reopening the app.
-1. Enter the same command with `mark/1e1000000`.<br>
+1. Enter `mark m/A1234567X id/CS2103T:A1 mark/1e1000000`.<br>
    Expected: TAssist rejects the score as too long for display. The previous score remains stored.
 1. Repeat with `mark/100e2147483647`.<br>
    Expected: TAssist shows <samp>Mark's displayed decimal form must be at most 64 characters.</samp> The existing mark and saved data remain unchanged.
 1. Close and reopen TAssist. Enter `marks id/CS2103T:A1`.<br>
-   Expected: The student's score remains <samp>17.5/20</samp>.
+   Expected: The student's score remains <samp>17.5/20</samp>, and the assignment maximum remains <samp>20</samp>.
 1. Record the mark with `mark m/A1234567X id/CS2103T:A1 mark/1.7500e1`.<br>
    Expected: TAssist accepts the scientific notation and confirms a normalized score of <samp>17.5/20</samp>.
 1. Repeat with `mark/0e2147483647`.<br>
    Expected: TAssist accepts the zero mark and confirms a score of <samp>0/20</samp>.
+
+### Recording marks with a decimal maximum
+
+Prerequisites: Start in a fresh test folder with the original six sample students. Run `list`, then `enroll 1 c/CS2103T-T10` to enroll Alex Yeoh (`A1234567X`) in `CS2103T`. Ensure assignment ID `CS2103T:B1` and assignment name `Lab B1` are unused. Run these steps in order.
+
+1. Enter `assignment m/A1234567X id/CS2103T:B1 n/Lab B1 max/1.025e1`.<br>
+   Expected: <samp>Assigned CS2103T:B1 (out of 10.25) to student A1234567X.</samp>
+1. Enter `mark m/A1234567X id/CS2103T:B1 mark/10.25`.<br>
+   Expected: <samp>Recorded 10.25/10.25 for A1234567X on CS2103T:B1.</samp> A score equal to the maximum is accepted.
+1. Enter `mark m/A1234567X id/CS2103T:B1 mark/10.26`.<br>
+   Expected: <samp>Mark cannot exceed the maximum mark of 10.25.</samp> Run `marks id/CS2103T:B1` and reopen the app: the assignment maximum and accepted score remain <samp>10.25/10.25</samp>.
+1. Repeat with `mark/-1` and `mark/abc`.<br>
+   Expected: Negative and malformed marks are rejected without changing the score or saved records.
 
 ### Viewing assignment marks
 
