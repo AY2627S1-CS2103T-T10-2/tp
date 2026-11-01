@@ -207,12 +207,15 @@ Example: `view 1` displays the first student in the current list.
 
 ### Assigning work to a student: `assignment`
 
-Creates an assignment definition and assigns it to one student, or assigns an existing definition to another student. The student is identified by matriculation number, even if they are absent from the current search results.
+Creates an assignment definition and assigns it to one student, or assigns an existing definition to another student. Identify the student by their displayed index or matriculation number.
 
-Format for new work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK`
+Format for new work: `assignment INDEX id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK`
 
-Format for existing work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`
+Format for existing work: `assignment INDEX id/MODULE:CODE` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`
 
+* Specify exactly one student identifier: a positive displayed `INDEX` or `m/MATRICULATION_NUMBER`, never both.
+* An index refers to the current displayed list, including searches, filters, and sorting. Zero, negative, malformed, and out-of-range indices are rejected without changing records.
+* Matriculation numbers are case-insensitive and can target students hidden from the displayed list.
 * `id/` identifies an assignment within a module, such as `CS2103T:A1`. IDs ignore letter case.
 * Both forms require an existing student who is enrolled in the assignment's module. Use `enroll` to enroll the student first. Any class within that module qualifies; enrollment only in another module does not.
 * A rejected assignment request changes no records, including when creating new work: neither the shared definition nor the student's assignment link is created.
@@ -230,6 +233,8 @@ Format for existing work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`
 
 Examples:
 * These examples assume both students are already enrolled in `CS2103T` using `enroll`.
+* `assignment 1 id/CS2103T:A1 n/Assignment One max/20`
+* `assignment 1 id/CS2103T:A1` attaches an existing definition to the first displayed student.
 * `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20`
 * `assignment m/A2345678Y id/CS2103T:A1`
 
@@ -237,8 +242,11 @@ Examples:
 
 Records a student's numeric mark for work already assigned to them. Entering another mark for the same student and assignment updates the previous value. Use `mark` (singular) to record or update a score; `marks` (plural) only displays results. Use `attendance` to record attendance.
 
-Format: `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`
+Format: `mark INDEX id/MODULE:CODE mark/MARK` or `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`
 
+* Specify exactly one student identifier: a positive displayed `INDEX` or `m/MATRICULATION_NUMBER`, never both.
+* An index refers to the current displayed list, including searches, filters, and sorting. Zero, negative, malformed, and out-of-range indices are rejected without changing records.
+* Matriculation numbers are case-insensitive and can target students hidden from the displayed list.
 * The student and assignment must exist, and the assignment must already be attached to that student using `assignment`.
 * Existing assigned work can still be marked, including updating a previous mark, after the student is unenrolled from its module.
 * `MARK` may be zero or a positive decimal, up to the assignment's maximum mark. A recorded `0` is different from an unmarked assignment.
@@ -248,6 +256,7 @@ Format: `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`
 * The student's matriculation number identifies them even when they are absent from the current search results. Use `mark` to change a score; `edit` changes student details and does not accept marks.
 
 Examples:
+* `mark 1 id/CS2103T:A1 mark/10`
 * `mark m/A1234567X id/CS2103T:A1 mark/17.5`
 * `mark m/A1234567X id/CS2103T:A1 mark/0`
 
@@ -708,8 +717,8 @@ Action     | Format, Examples
 **Mark attendance** | `attendance INDEX c/MODULE-CLASS [d/DATE]` or `attendance m/MATRICULATION_NUMBER c/MODULE-CLASS [d/DATE]` or `attendance c/MODULE-CLASS [d/DATE]`<br> e.g., `attendance 1 c/CS2103T-T10 d/07-10-2026`, `attendance m/A1234567X c/CS2103T-T10`, `attendance c/CS2103T-T10 d/07-10-2026`
 **Unmark attendance** | `attendance unmark INDEX [c/MODULE-CLASS] [d/DATE]` or `attendance unmark m/MATRICULATION_NUMBER [c/MODULE-CLASS] [d/DATE]`<br> e.g., `attendance unmark 1 d/07-10-2026`, `attendance unmark 1 c/CS2103T-T10 d/07-10-2026`
 **View attendance statistics** | `attendance stats c/MODULE-CLASS d/DATE`<br> e.g., `attendance stats c/CS2103T-T10 d/28-10-2026`
-**Assignment** | `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`<br> e.g., `assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20`
-**Mark** | `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`<br> e.g., `mark m/A1234567A id/CS2103T:A1 mark/17.5`
+**Assignment** | `assignment INDEX id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment INDEX id/MODULE:CODE` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`<br> e.g., `assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20`
+**Mark** | `mark INDEX id/MODULE:CODE mark/MARK` or `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`<br> e.g., `mark m/A1234567A id/CS2103T:A1 mark/17.5`
 **Marks** | `marks id/MODULE:CODE`<br> e.g., `marks id/CS2103T:A1`
 **Remove assignment** | `removeassignment id/MODULE:CODE [m/MATRICULATION_NUMBER]`<br> e.g., `removeassignment id/CS2103T:A1 m/A1234567A`
 **Clear**  | `clear`

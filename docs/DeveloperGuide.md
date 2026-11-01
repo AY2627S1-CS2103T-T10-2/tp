@@ -198,11 +198,11 @@ The helper handles zero first, so even extreme scientific representations of zer
 
 JSON storage keeps shared definitions in `assignments` and each student's link to a definition in `studentAssignments`. An assignment stores its ID, name, and decimal maximum mark. A student assignment stores a matriculation number, assignment ID, and decimal `mark`; a `null` mark means the assignment is unmarked, while `"0"` means a recorded zero. Decimal values are written as strings to preserve exact fractional marks. On restoration, students are loaded first, followed by definitions and student assignments. The storage adapter rejects invalid or duplicate definitions, unknown students or assignments, duplicate student links, and marks outside the allowed range. Files created before these two JSON arrays existed load with an empty gradebook. A failed restoration leaves the saved file unchanged.
 
-`AssignmentCommandParser` accepts a student's matriculation number and assignment ID, plus a name and maximum mark together when defining new work. `AssignmentCommand` resolves the student against all stored students, independently of the displayed list. Both forms require the student to be enrolled in the assignment's module: at least one of the student's class codes must have the same module code as the assignment ID. Module comparison ignores letter case and uses the entire module code. The command checks student existence, an existing definition for the shorter form, and module enrollment before making any changes. For new work, it calls `Model#addAssignmentForStudent`, which validates and publishes the definition and student link as one change. For existing work, it calls `Model#assignStudent` using the stored definition. The gradebook rejects a duplicate ID or name in the module and prevents assigning the same work twice to one student. Neither command form records a mark.
+`AssignmentCommandParser` accepts one displayed index or matriculation number and an assignment ID, plus a name and maximum mark together when defining new work. `AssignmentCommand` uses `StudentIdentifier` to resolve an index against `Model#getFilteredPersonList()` (including active searches, filters, and sorting), or a matriculation number against all stored students, including hidden students. Both forms require the student to be enrolled in the assignment's module: at least one of the student's class codes must have the same module code as the assignment ID. Module comparison ignores letter case and uses the entire module code. The command checks student existence, an existing definition for the shorter form, and module enrollment before making any changes. For new work, it calls `Model#addAssignmentForStudent`, which validates and publishes the definition and student link as one change. For existing work, it calls `Model#assignStudent` using the stored definition. The gradebook rejects a duplicate ID or name in the module and prevents assigning the same work twice to one student. Neither command form records a mark.
 
 Module enrollment is a prerequisite for the `assignment` command, rather than a persistent gradebook constraint. Unenrolling from the last class in a module, including through `unenroll INDEX all/`, preserves existing assignment links and marks, and `mark` can still record or update those results. Storage restores historical links without requiring current enrollment. Removing a link and later reassigning the work through `assignment` requires current enrollment again.
 
-`MarkCommandParser` accepts a matriculation number, an assignment ID, and a nonnegative decimal score. `MarkCommand` checks that the student, shared definition, and student's assignment link exist before calling `Model#recordMark`. The gradebook rejects scores above the shared maximum. `recordMark` returns the previous optional value, allowing the command to distinguish the first recorded mark from an update; a previous zero is present and therefore produces the updated response. The command changes only that student's score. `edit` remains for student particulars. The student profile also displays these marks, as described below.
+`MarkCommandParser` accepts one displayed index or matriculation number, an assignment ID, and a nonnegative decimal score. Both parsers reuse `ParserUtil#parseStudentIdentifier` to reject missing, combined, repeated, or malformed identifiers. `MarkCommand` uses the same `StudentIdentifier` resolution as `assignment`, before reading or mutating the gradebook. Out-of-range indices raise the standard displayed-index error. Rejected commands preserve records and command history. `MarkCommand` checks that the student, shared definition, and student's assignment link exist before calling `Model#recordMark`. The gradebook rejects scores above the shared maximum. `recordMark` returns the previous optional value, allowing the command to distinguish the first recorded mark from an update; a previous zero is present and therefore produces the updated response. The command changes only that student's score. `edit` remains for student particulars. The student profile also displays these marks, as described below.
 
 `MarksCommandParser` accepts one assignment ID. `MarksCommand` obtains a read-only gradebook snapshot and joins that assignment's student marks to current student names by matriculation number. It sorts rows by matriculation number, independently of the filtered and sorted student list, and formats each score against the shared maximum. A missing `Mark` is printed as `Unmarked`, while a recorded zero is printed as `0/MAX_MARK`. An assignment with no students prints `None assigned.`. This command does not change the model or the displayed student list.
 
@@ -1694,6 +1694,24 @@ Start in a fresh test folder with the original sample students.
       Expected: Both assigned students appear as <samp>Unmarked</samp>, confirming their links were restored.
    1. Enter `marks id/CS2103T:A3`.<br>
       Expected: TAssist reports an unknown assignment, confirming the rejected definition was not saved.
+
+### Identifying students for assignments and marks
+
+Use a disposable data folder with two students enrolled in CS2103T. Ensure CS2103T:INDEX151 is unused.
+
+1. Run `list`, then `sort name desc`. Note the first student's matriculation number.
+1. Enter `assignment 1 id/CS2103T:INDEX151 n/Index Regression max/20`.
+   Expected: The definition is created and attached only to the first displayed student.
+1. Enter `mark 1 id/CS2103T:INDEX151 mark/10`, then `marks id/CS2103T:INDEX151`.
+   Expected: Only that student has a mark of 10/20. Run `undo` then `redo`; the mark is removed then restored.
+1. Find the other student so the assigned student is hidden. Enter `assignment 1 id/CS2103T:INDEX151`, then `mark 1 id/CS2103T:INDEX151 mark/5`.
+   Expected: The existing definition attaches to the first search result, and only their mark changes.
+1. Use `mark m/MATRICULATION_NUMBER id/CS2103T:INDEX151 mark/12`, substituting the hidden student's number.
+   Expected: Their mark changes despite being hidden. Use the matriculation form of `assignment` with a fresh ID, name, and maximum to verify hidden-student creation too.
+1. For both commands, omit the identifier, combine `1 m/MATRICULATION_NUMBER`, repeat `m/`, or use `0`, `-1`, `abc`, `1.5`, `1 2`, or an index beyond the displayed list.
+   Expected: Each request fails without changing students, definitions, links, or marks. A rejected new assignment must not leave its definition behind.
+1. Close and reopen TAssist. Run `marks id/CS2103T:INDEX151`.
+   Expected: Both students' assignment links and latest accepted marks persist; rejected changes remain absent.
 
 ### Recording an assignment mark
 

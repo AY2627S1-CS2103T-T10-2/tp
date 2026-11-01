@@ -13,8 +13,10 @@ import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.MarkCommand;
+import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.gradebook.Mark;
 import seedu.address.model.person.MatriculationNumber;
@@ -24,6 +26,16 @@ public class MarkCommandParserTest {
     private final MatriculationNumber student = new MatriculationNumber("A1234567X");
     private final AssignmentId id = new AssignmentId("CS2103T:A1");
     private final String required = " m/A1234567X id/CS2103T:A1 mark/17.5";
+
+    @Test
+    public void parse_displayedIndex_successAndInvalidIndicesRejected() {
+        assertParseSuccess(parser, " 1 id/CS2103T:A1 mark/10",
+                new MarkCommand(new StudentIdentifier(Index.fromOneBased(1)), id, new Mark(BigDecimal.TEN)));
+        for (String input : new String[] {"0", "-1", "abc", "1.5", "1 2", "2147483648"}) {
+            assertParseFailure(parser, " " + input + " id/CS2103T:A1 mark/10",
+                    ParserUtil.MESSAGE_INVALID_INDEX);
+        }
+    }
 
     @Test
     public void parse_validMark_success() {
@@ -69,11 +81,15 @@ public class MarkCommandParserTest {
     @Test
     public void parse_missingFieldOrPreamble_failure() {
         String usage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, MarkCommand.MESSAGE_USAGE);
-        assertParseFailure(parser, "", usage);
+        assertParseFailure(parser, "", String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER,
+                MarkCommand.MESSAGE_USAGE));
         assertParseFailure(parser, " m/A1234567X id/CS2103T:A1", usage);
         assertParseFailure(parser, " m/A1234567X mark/17.5", usage);
-        assertParseFailure(parser, " id/CS2103T:A1 mark/17.5", usage);
-        assertParseFailure(parser, "extra" + required, usage);
+        assertParseFailure(parser, " id/CS2103T:A1 mark/17.5",
+                String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER,
+                MarkCommand.MESSAGE_USAGE));
+        assertParseFailure(parser, "1" + required, String.format(ParserUtil.MESSAGE_MULTIPLE_STUDENT_IDENTIFIERS,
+                MarkCommand.MESSAGE_USAGE));
     }
 
     @Test
