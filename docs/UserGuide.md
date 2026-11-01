@@ -339,7 +339,7 @@ Format: `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MODULE:CODE [asc|desc]
 * The sort only changes how the list is displayed. Your saved data and the original order of students are not affected.
 * Commands that use an `INDEX`, such as `delete`, `edit` and `view`, use the index number shown in the sorted list.
 * The displayed list uses name order by default. A later `add`, `find`, or `list` resets to that order.
-* Changing an assignment, mark, or student details after a mark sort also returns the list to name order, so the previous marks and ordering are not left on screen.
+* Changing an assignment, a mark, or a student's name, matriculation number, email address, or tags after a mark sort returns the displayed list to name order and clears the assignment result shown on student cards. Recording or removing attendance, changing class enrollment, and recording or removing participation preserve the mark sort and assignment results.
 
 Examples:
 * `sort name desc` displays students in reverse alphabetical name order.
