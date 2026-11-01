@@ -25,6 +25,7 @@ import seedu.address.model.person.Name;
 import seedu.address.model.tag.Tag;
 
 public class ParserUtilTest {
+    private static final AttendanceDate TODAY = new AttendanceDate("15-06-2026");
     private static final String USAGE = "usage";
     private static final String INVALID_NAME = "R@chel";
     private static final String INVALID_MATRICULATION_NUMBER = "+651234";
@@ -214,6 +215,67 @@ public class ParserUtilTest {
             assertThrows(ParseException.class, AttendanceDate.MESSAGE_CONSTRAINTS, ()
                     -> ParserUtil.parseOptionalAttendanceDate(arguments));
         }
+    }
+
+    @Test
+    public void parseOptionalPastOrPresentAttendanceDate_absentDate_returnsEmptyOptional() throws Exception {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" 1", PREFIX_DATE);
+        assertEquals(Optional.empty(), ParserUtil.parseOptionalPastOrPresentAttendanceDate(arguments, TODAY));
+    }
+
+    @Test
+    public void parseOptionalPastOrPresentAttendanceDate_today_returnsDate() throws Exception {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" d/15-06-2026", PREFIX_DATE);
+        assertEquals(Optional.of(TODAY), ParserUtil.parseOptionalPastOrPresentAttendanceDate(arguments, TODAY));
+    }
+
+    @Test
+    public void parseOptionalPastOrPresentAttendanceDate_dayBeforeToday_returnsDate() throws Exception {
+        AttendanceDate expectedDate = new AttendanceDate("14-06-2026");
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" d/14-06-2026", PREFIX_DATE);
+        assertEquals(Optional.of(expectedDate),
+                ParserUtil.parseOptionalPastOrPresentAttendanceDate(arguments, TODAY));
+    }
+
+    @Test
+    public void parseOptionalPastOrPresentAttendanceDate_earlierYearLaterDayAndMonth_returnsDate() throws Exception {
+        AttendanceDate expectedDate = new AttendanceDate("31-12-2025");
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" d/31-12-2025", PREFIX_DATE);
+        assertEquals(Optional.of(expectedDate),
+                ParserUtil.parseOptionalPastOrPresentAttendanceDate(arguments, TODAY));
+    }
+
+    @Test
+    public void parseOptionalPastOrPresentAttendanceDate_dayAfterToday_throwsParseException() {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" d/16-06-2026", PREFIX_DATE);
+        assertThrows(ParseException.class,
+                "Attendance date 16-06-2026 is in the future. Use today or an earlier date.", ()
+                -> ParserUtil.parseOptionalPastOrPresentAttendanceDate(arguments, TODAY));
+    }
+
+    @Test
+    public void parseOptionalPastOrPresentAttendanceDate_nextYearEarlierDayAndMonth_throwsParseException() {
+        AttendanceDate today = new AttendanceDate("31-12-2026");
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" d/01-01-2027", PREFIX_DATE);
+        assertThrows(ParseException.class,
+                "Attendance date 01-01-2027 is in the future. Use today or an earlier date.", ()
+                -> ParserUtil.parseOptionalPastOrPresentAttendanceDate(arguments, today));
+    }
+
+    @Test
+    public void parseOptionalPastOrPresentAttendanceDate_invalidDate_throwsParseException() {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" d/32-01-2099", PREFIX_DATE);
+        assertThrows(ParseException.class, AttendanceDate.MESSAGE_CONSTRAINTS, ()
+                -> ParserUtil.parseOptionalPastOrPresentAttendanceDate(arguments, TODAY));
+    }
+
+    @Test
+    public void parseOptionalPastOrPresentAttendanceDate_nullArguments_throwsNullPointerException() {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" d/15-06-2026", PREFIX_DATE);
+        assertThrows(NullPointerException.class, ()
+                -> ParserUtil.parseOptionalPastOrPresentAttendanceDate(null, TODAY));
+        assertThrows(NullPointerException.class, ()
+                -> ParserUtil.parseOptionalPastOrPresentAttendanceDate(arguments, null));
     }
 
     @Test

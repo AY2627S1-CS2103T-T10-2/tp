@@ -60,6 +60,13 @@ public class AddressBookParserTest {
     private final AddressBookParser parser = new AddressBookParser();
 
     @Test
+    public void parseCommand_attendanceFutureDate_throwsParseException() {
+        assertThrows(ParseException.class,
+                "Attendance date 28-10-2099 is in the future. Use today or an earlier date.", ()
+                -> parser.parseCommand("attendance 1 c/CS2103T-T10 d/28-10-2099"));
+    }
+
+    @Test
     public void parseCommand_add() throws Exception {
         Person person = new PersonBuilder().build();
         AddCommand command = (AddCommand) parser.parseCommand(PersonUtil.getAddCommand(person));
