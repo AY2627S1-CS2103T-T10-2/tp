@@ -446,8 +446,7 @@ not require current enrollment.
 #### Persistence and preservation
 
 `JsonAdaptedPerson` stores participation records through
-`JsonAdaptedParticipationRecord`. Participation dates use ISO date strings
-in storage; command input uses `dd-MM-yyyy`.
+`JsonAdaptedParticipationRecord`. Participation dates are stored in `dd-MM-yyyy` format.
 
 A missing or null participation list is read as an empty history for
 compatibility with older student files. Null records, invalid record

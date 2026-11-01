@@ -152,13 +152,14 @@ public class StudentDetailsWindowTest {
             try {
                 window.showStudent(studentWithRecords);
 
-                assertEquals(List.of(
-                                "CS2100-T01",
-                                "28-10-2026  •  1 point",
-                                "CS2103T-T10",
-                                "28-10-2026  •  3 points",
-                                "29-10-2026  •  2 points"),
-                        displayedParticipationRows(window.getRoot()));
+                List<String> expectedRows = List.of(
+                        "CS2100-T01",
+                        "28-10-2026  •  1 point",
+                        "CS2103T-T10",
+                        "28-10-2026  •  3 points",
+                        "29-10-2026  •  2 points");
+
+                assertEquals(expectedRows, displayedParticipationRows(window.getRoot()));
             } finally {
                 window.getRoot().close();
                 owner.close();

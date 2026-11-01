@@ -25,7 +25,8 @@ import seedu.address.model.person.ParticipationRecord;
 import seedu.address.model.person.Person;
 
 /**
- * A reusable window showing a student's particulars, enrolled classes, assignment marks and attendance history.
+ * A reusable window showing a student's particulars, enrolled classes,
+ * assignment marks, attendance and participation history.
  */
 public class StudentDetailsWindow extends UiPart<Stage> {
 
