@@ -19,6 +19,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.classcode.ClassCode;
+import seedu.address.model.person.MatriculationNumber;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
@@ -70,6 +71,34 @@ public class EnrollCommandTest {
     }
 
     @Test
+    public void execute_validMatriculationNumber_enrollsStudent() {
+        Person student = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person enrolled = new PersonBuilder(student).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build();
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(student, enrolled);
+
+        assertCommandSuccess(new EnrollCommand(student.getMatriculationNumber(), classCode), model,
+                String.format(EnrollCommand.MESSAGE_SUCCESS, student.getName(), classCode), expectedModel);
+    }
+
+    @Test
+    public void execute_matriculationNumberAlreadyEnrolled_throwsCommandException() {
+        Person student = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        model.setPerson(student, new PersonBuilder(student).withClassCodes(VALID_CLASS_CODE_CS2103T_T10).build());
+
+        assertCommandFailure(new EnrollCommand(student.getMatriculationNumber(), classCode), model,
+                String.format(EnrollCommand.MESSAGE_DUPLICATE_CLASS, classCode));
+    }
+
+    @Test
+    public void execute_nonexistentMatriculationNumber_throwsCommandException() {
+        MatriculationNumber missing = new MatriculationNumber("A9999999Z");
+
+        assertCommandFailure(new EnrollCommand(missing, classCode), model,
+                String.format(Messages.MESSAGE_STUDENT_NOT_FOUND, missing));
+    }
+
+    @Test
     public void equals() {
         EnrollCommand first = new EnrollCommand(INDEX_FIRST_PERSON, classCode);
         assertTrue(first.equals(first));
@@ -78,5 +107,16 @@ public class EnrollCommandTest {
         assertFalse(first.equals(1));
         assertFalse(first.equals(new EnrollCommand(INDEX_SECOND_PERSON, classCode)));
         assertFalse(first.equals(new EnrollCommand(INDEX_FIRST_PERSON, new ClassCode("CS3230-T01"))));
+
+        MatriculationNumber firstMatric = new MatriculationNumber("A1234567X");
+        MatriculationNumber secondMatric = new MatriculationNumber("A2345678Y");
+        EnrollCommand byMatric = new EnrollCommand(firstMatric, classCode);
+
+        assertTrue(byMatric.equals(byMatric));
+        assertTrue(byMatric.equals(new EnrollCommand(new MatriculationNumber("A1234567X"), classCode)));
+        assertFalse(byMatric.equals(new EnrollCommand(secondMatric, classCode)));
+        assertFalse(byMatric.equals(new EnrollCommand(firstMatric, new ClassCode("CS3230-T01"))));
+        assertFalse(byMatric.equals(first)); // matric vs index
+        assertFalse(first.equals(byMatric)); // index vs matric
     }
 }

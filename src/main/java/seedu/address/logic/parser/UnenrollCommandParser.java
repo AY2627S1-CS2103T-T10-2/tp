@@ -4,10 +4,11 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ALL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
 
 import java.util.Optional;
 
-import seedu.address.commons.core.index.Index;
+import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.commands.UnenrollCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
@@ -19,14 +20,17 @@ public class UnenrollCommandParser implements Parser<UnenrollCommand> {
             String.format(MESSAGE_INVALID_COMMAND_FORMAT, UnenrollCommand.MESSAGE_USAGE);
 
     /**
-     * Parses the displayed person index and either a class code or the all-classes option.
+     * Parses the student identifier (displayed index or matriculation number) and either a class code or the
+     * all-classes option.
      *
      * @throws ParseException if the user input does not conform to the expected format.
      */
     public UnenrollCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_CLASS_CODE, PREFIX_ALL);
-        Index index = parseStudentIndex(argMultimap.getPreamble());
+        ArgumentMultimap argMultimap =
+                ArgumentTokenizer.tokenize(args, PREFIX_MATRICULATION_NUMBER, PREFIX_CLASS_CODE, PREFIX_ALL);
+        StudentIdentifier targetStudent =
+                ParserUtil.parseStudentIdentifier(argMultimap, UnenrollCommand.MESSAGE_USAGE);
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_CLASS_CODE);
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_ALL);
@@ -36,21 +40,11 @@ public class UnenrollCommandParser implements Parser<UnenrollCommand> {
         validateUnenrollmentMode(classCodeValue, allValue);
 
         if (classCodeValue.isEmpty()) {
-            return new UnenrollCommand(index);
+            return new UnenrollCommand(targetStudent, Optional.empty());
         }
 
-        return new UnenrollCommand(index, ParserUtil.parseClassCode(classCodeValue.orElseThrow()));
-    }
-
-    /**
-     * Parses the student index, reporting invalid input with the command usage.
-     */
-    private static Index parseStudentIndex(String preamble) throws ParseException {
-        try {
-            return ParserUtil.parseIndex(preamble);
-        } catch (ParseException pe) {
-            throw new ParseException(MESSAGE_INVALID_FORMAT, pe);
-        }
+        return new UnenrollCommand(targetStudent,
+                Optional.of(ParserUtil.parseClassCode(classCodeValue.orElseThrow())));
     }
 
     /**
