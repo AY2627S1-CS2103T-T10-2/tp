@@ -1295,7 +1295,7 @@ Start in a fresh test folder with the original sample students. Run `unenroll 1 
       Expected: Students appear in descending matriculation number order. Roy Balakrishnan appears first.
 
    1. Run `sort email asc`.<br>
-      Expected: Students appear in ascending email order. Alex Yeoh appears first, followed by Roy Balakrishnan.
+      Expected: Students appear in ascending email order. Alex Yeoh appears first, followed by Bernice Yu; Roy Balakrishnan appears last.
 
    1. Run `list`.<br>
       Expected: Students return to alphabetical name order.

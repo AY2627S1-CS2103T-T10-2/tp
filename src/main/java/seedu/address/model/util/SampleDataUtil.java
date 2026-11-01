@@ -34,23 +34,23 @@ public class SampleDataUtil {
      */
     public static Person[] getSamplePersons() {
         return new Person[] {
-            samplePerson(new Name("Alex Yeoh"), new MatriculationNumber("A1234567X"),
-                new Email("alexyeoh@u.nus.edu"), getTagSet("friends"), "CS2100-T01"),
-            samplePerson(new Name("Bernice Yu"), new MatriculationNumber("A2345678Y"),
-                new Email("berniceyu@u.nus.edu"), getTagSet("colleagues", "friends"), "CS2100-T01"),
-            samplePerson(new Name("Charlotte Oliveiro"), new MatriculationNumber("A3456789Z"),
-                new Email("charlotte@u.nus.edu"), getTagSet("neighbours"), "CS2100-T01"),
-            samplePerson(new Name("David Li"), new MatriculationNumber("A4567890W"),
-                new Email("lidavid@u.nus.edu"), getTagSet("family"), "CS2040S-T02"),
-            samplePerson(new Name("Irfan Ibrahim"), new MatriculationNumber("A5678901V"),
-                new Email("irfan@u.nus.edu"), getTagSet("classmates"), "CS2040S-T02"),
-            samplePerson(new Name("Roy Balakrishnan"), new MatriculationNumber("A6789012U"),
-                new Email("royb@u.nus.edu"), getTagSet("colleagues"), "CS2040S-T02")
+            createSamplePerson(new Name("Alex Yeoh"), new MatriculationNumber("A1234567X"),
+                    new Email("alexyeoh@u.nus.edu"), getTagSet("friends"), "CS2100-T01"),
+            createSamplePerson(new Name("Bernice Yu"), new MatriculationNumber("A2345678Y"),
+                    new Email("berniceyu@u.nus.edu"), getTagSet("colleagues", "friends"), "CS2100-T01"),
+            createSamplePerson(new Name("Charlotte Oliveiro"), new MatriculationNumber("A3456789Z"),
+                    new Email("charlotte@u.nus.edu"), getTagSet("neighbours"), "CS2100-T01"),
+            createSamplePerson(new Name("David Li"), new MatriculationNumber("A4567890W"),
+                    new Email("lidavid@u.nus.edu"), getTagSet("family"), "CS2040S-T02"),
+            createSamplePerson(new Name("Irfan Ibrahim"), new MatriculationNumber("A5678901V"),
+                    new Email("irfan@u.nus.edu"), getTagSet("classmates"), "CS2040S-T02"),
+            createSamplePerson(new Name("Roy Balakrishnan"), new MatriculationNumber("A6789012U"),
+                    new Email("royb@u.nus.edu"), getTagSet("colleagues"), "CS2040S-T02")
         };
     }
 
-    private static Person samplePerson(Name name, MatriculationNumber matriculationNumber, Email email,
-                                      Set<Tag> tags, String classCode) {
+    private static Person createSamplePerson(Name name, MatriculationNumber matriculationNumber, Email email,
+            Set<Tag> tags, String classCode) {
         ClassCode enrolledClass = new ClassCode(classCode);
         Attendance attendance = new Attendance(List.of(
                 new AttendanceRecord(new AttendanceDate("01-09-2026"), enrolledClass),
