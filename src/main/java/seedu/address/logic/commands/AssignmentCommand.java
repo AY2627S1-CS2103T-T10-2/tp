@@ -35,7 +35,7 @@ public class AssignmentCommand extends Command {
             + PREFIX_ASSIGNMENT_ID + "CS2103T:A1 " + PREFIX_NAME + "Assignment One "
             + PREFIX_MAX_MARK + "20";
 
-    public static final String MESSAGE_SUCCESS = "Assigned %1$s to student %2$s.";
+    public static final String MESSAGE_SUCCESS = "Assigned %1$s (out of %3$s) to student %2$s.";
     public static final String MESSAGE_STUDENT_NOT_ENROLLED =
             "Cannot assign %1$s to student %2$s: the student is not enrolled in module %3$s. "
                     + "Enroll the student first.";
@@ -89,7 +89,9 @@ public class AssignmentCommand extends Command {
         } catch (IllegalArgumentException ex) {
             throw new CommandException(ex.getMessage());
         }
-        return new CommandResult(String.format(MESSAGE_SUCCESS, assignmentId, student));
+        Assignment assignment = model.getAddressBook().getGradebook().findAssignment(assignmentId).orElseThrow();
+        return new CommandResult(String.format(MESSAGE_SUCCESS, assignmentId, student,
+                assignment.getMaxMark().toPlainString()));
     }
 
     @Override

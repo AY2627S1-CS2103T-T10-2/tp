@@ -25,7 +25,7 @@ public final class Gradebook implements ReadOnlyGradebook {
     public static final String MESSAGE_DUPLICATE_STUDENT_ASSIGNMENT =
             "This assignment is already assigned to the student.";
     public static final String MESSAGE_UNASSIGNED_STUDENT = "This assignment is not assigned to the student.";
-    public static final String MESSAGE_MARK_EXCEEDS_MAX = "The mark exceeds the assignment maximum.";
+    public static final String MESSAGE_MARK_EXCEEDS_MAX = "Mark cannot exceed the maximum mark of %s.";
     public static final String MESSAGE_DUPLICATE_STUDENT = "The new matriculation number already has assignments.";
 
     private final Map<AssignmentId, Assignment> assignments = new LinkedHashMap<>();
@@ -100,7 +100,8 @@ public final class Gradebook implements ReadOnlyGradebook {
         checkArgument(marks != null && marks.containsKey(id), MESSAGE_UNASSIGNED_STUDENT);
         Assignment assignment = assignments.get(id);
         checkArgument(assignment != null, MESSAGE_UNKNOWN_ASSIGNMENT);
-        checkArgument(mark.getValue().compareTo(assignment.getMaxMark()) <= 0, MESSAGE_MARK_EXCEEDS_MAX);
+        checkArgument(mark.getValue().compareTo(assignment.getMaxMark()) <= 0,
+                String.format(MESSAGE_MARK_EXCEEDS_MAX, assignment.getMaxMark().toPlainString()));
         return marks.put(id, Optional.of(mark));
     }
 
