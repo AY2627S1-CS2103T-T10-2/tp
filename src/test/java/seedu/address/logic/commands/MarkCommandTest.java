@@ -101,7 +101,7 @@ public class MarkCommandTest {
         assertCommandFailure(new MarkCommand(student, id, new Mark(new BigDecimal("20.01"))), model,
                 "Mark cannot exceed the maximum mark of 20.");
         assertCommandFailure(new MarkCommand(new StudentIdentifier(Index.fromOneBased(1)), id,
-                new Mark(new BigDecimal("20.01"))), model, Gradebook.MESSAGE_MARK_EXCEEDS_MAX);
+                new Mark(new BigDecimal("20.01"))), model, "Mark cannot exceed the maximum mark of 20.");
         assertEquals(Optional.of(new Mark(BigDecimal.TEN)),
                 model.getAddressBook().getGradebook().getMarksForStudent(student).get(id));
     }
