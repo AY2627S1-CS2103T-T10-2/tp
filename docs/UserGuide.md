@@ -25,6 +25,7 @@ TAssist is a **desktop application for managing students, optimized for use thro
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar "addressbook.jar"`. If your downloaded file has a different name, substitute that filename inside the quotes.<br>
    Double-clicking the JAR file may not work on some systems. Use the terminal command above to launch TAssist.<br>
+   Only one TAssist instance can run from the same home folder. If it is already open, use the existing window or close it before launching again.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
@@ -183,19 +184,20 @@ Examples:
 
 ### Viewing a student's details: `view`
 
-Opens a separate student details window showing particulars, enrolled classes and modules, assignment marks, and attendance records with their dates and classes.
+Opens a separate student details window showing particulars, enrolled classes and modules, assignment marks, attendance records with their dates and classes, and participation history.
 
 Format: `view INDEX`
 
 * The index refers to the number shown in the displayed student list.
-* Details are organised into Particulars, Classes and modules, Assignments and marks, and Attendance sections.
+* Details are organised into Particulars, Classes and modules, Assignments and marks, Attendance, and Participation sections.
 * Classes are listed by module code and class group. Students without classes show `No classes enrolled`.
 * Running `view` again updates the same window with the selected student's latest details, even when selecting the same student. Press `Esc` to close the window.
-* While the window is open, successful changes to that student's particulars, class enrolments, attendance, assignments, or marks automatically refresh the displayed details without taking keyboard focus from the main window. Editing their matriculation number preserves the visible assignments and recorded marks.
+* While the window is open, successful changes to that student's particulars, class enrolments, attendance, assignments, marks, or participation records automatically refresh the displayed details without taking keyboard focus from the main window. Editing their matriculation number preserves the visible assignments and recorded marks.
 * Deleting the displayed student or clearing all students closes the details window.
 * Successful `undo` and `redo` also close the details window. Run `view` again to inspect the restored records. A manually closed window stays closed when later commands change the student or their marks.
 * Finding, filtering, or sorting students keeps the window on the same student, even if that student is no longer in the displayed list. Changes to other students do not switch the window to another student.
 * Attendance records show the date and class, ordered from newest to oldest, then by class code for records on the same date. If there are no attendance records, the Attendance section shows `None recorded`.
+* The Participation section groups records by class code. Within each class, records are ordered by date, from earliest to latest. Each record shows its date and awarded points. If the student has no participation records, the section shows `None recorded`.
 * The Assignments and marks section shows only assignments attached to the selected student, ordered by assignment ID. Each entry includes its ID, name, maximum mark, and score (for example, `Mark: 8.5/10`).
 * An assignment without a recorded score shows `Mark: Unmarked`. A recorded zero shows a score such as `Mark: 0/10`. If the student has no assignments, the section shows `None assigned`.
 * After `assignment`, `mark`, or `removeassignment` succeeds, the open window immediately shows the updated assignments and scores. You do not need to run `view` again.
@@ -428,6 +430,7 @@ or
 * The class, date and points are required.
 * The date must be a valid calendar date in `dd-MM-yyyy` format,
   with a year from 0001 to 9999.
+* The date cannot be in the future. Today and earlier dates are accepted.
 * Points must contain digits only and be between `0` and `2147483647`,
   inclusive. Negative numbers and fractional points are not accepted.
 * There is no configurable maximum score per module.
@@ -551,47 +554,59 @@ Examples:
 Enrolls a student in a class.
 
 Format: `enroll INDEX c/MODULE-CLASS`
+or
+`enroll m/MATRICULATION_NUMBER c/MODULE-CLASS`
 
-* Enrolls the student at the specified `INDEX` in the class `CLASS` of the module `MODULE`.
+* Enrolls the student at the specified `INDEX` or with the specified `MATRICULATION_NUMBER` in the class `CLASS` of the module `MODULE`.
+* Specify the student by either `INDEX` or `MATRICULATION_NUMBER`, not both.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
+* The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
+* The matriculation number can identify a student who is not in the displayed list, for example after `find`.
 * `MODULE` and `CLASS` are joined by a hyphen, e.g. `CS2103T-T10`.
 * `MODULE` is a module code: 2 to 3 letters, followed by 4 digits and an optional suffix of up to 2 letters (e.g. `CS2103T`), with no spaces.
 * `CLASS` is a class group: 1 to 5 letters or digits (e.g. `T10`), with no spaces or symbols.
 * Class codes are not case-sensitive: `cs2103t-t10` is saved as `CS2103T-T10`.
 * A student can be enrolled in more than one class, including classes from different modules. Use `enroll` once for each class.
 * Enrolling a student in a class they are already in shows an error and changes nothing.
-* Only one `c/` can be given per command.
+* Only one `c/` and, if used, one `m/` can be given per command.
 
 Examples:
 * `enroll 1 c/CS2103T-T10` enrolls the 1st student in the displayed list in class `T10` of module `CS2103T`.
 * `enroll 2 c/CS3230-T01` enrolls the 2nd student in class `T01` of module `CS3230`.
+* `enroll m/A1234567X c/CS2103T-T10` enrolls the student whose matriculation number is `A1234567X` in class `T10` of module `CS2103T`.
 
-### Unenrolling a student `unenroll`
+### Unenrolling a student: `unenroll`
 
 Unenrolls a student from a class or all classes.
 
-Format: `unenroll INDEX c/MODULE-CLASS`, or `unenroll INDEX all/`
+Format: `unenroll INDEX c/MODULE-CLASS` or `unenroll INDEX all/`
+or
+`unenroll m/MATRICULATION_NUMBER c/MODULE-CLASS` or `unenroll m/MATRICULATION_NUMBER all/`
 
-* If only `c/MODULE-CLASS` is provided, unenrolls the student at the specified `INDEX` from that class.
-* If only `all/` is provided, unenrolls the student at the specified `INDEX` from all classes.
+* If only `c/MODULE-CLASS` is provided, unenrolls the student at the specified `INDEX` or with the specified `MATRICULATION_NUMBER` from that class.
+* If only `all/` is provided, unenrolls that student from all classes.
 * Both forms keep existing assignments and marks. Marks for retained assignments can still be recorded or updated after unenrollment.
+* Specify the student by either `INDEX` or `MATRICULATION_NUMBER`, not both.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
+* The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
+* The matriculation number can identify a student who is not in the displayed list, for example after `find`.
 * `MODULE` and `CLASS` are joined by a hyphen, e.g. `CS2103T-T10`.
 * `MODULE` is a module code: 2 to 3 letters, followed by 4 digits and an optional suffix of up to 2 letters (e.g. `CS2103T`), with no spaces.
 * `CLASS` is a class group: 1 to 5 letters or digits (e.g. `T10`), with no spaces or symbols.
 * Class codes are not case-sensitive: `cs2103t-t10` matches `CS2103T-T10`.
-* If neither `c/MODULE-CLASS` nor `all/` prefixes are provided, it shows an error and changes nothing.
-* If both `c/MODULE-CLASS` and `all/` prefixes are provided, it shows an error and changes nothing.
+* If neither `c/MODULE-CLASS` nor `all/` is provided, it shows an error and changes nothing.
+* If both `c/MODULE-CLASS` and `all/` are provided, it shows an error and changes nothing.
 * Unenrolling a student from a class they are not enrolled in shows an error and changes nothing.
-* If the student is not enrolled in any classes, `unenroll INDEX all/` shows an error and changes nothing.
-* Only one `c/` can be given per command.
-* Only one `all/` can be given per command.
+* If the student is not enrolled in any classes, unenrolling from `all/` shows an error and changes nothing.
+* Only one `c/` or one `all/` can be given per command. If used, one `m/` can be given per command.
 
 Examples:
 * `unenroll 1 c/CS2103T-T10` unenrolls the 1st student in the displayed list from class `T10` of module `CS2103T`.
 * `unenroll 2 all/` unenrolls the 2nd student from all classes.
+* `unenroll m/A1234567X c/CS2103T-T10` unenrolls the student whose matriculation number is `A1234567X` from class `T10` of module `CS2103T`.
+* `unenroll m/A1234567X all/` unenrolls that student from all classes.
 
 ### Clearing all entries: `clear`
 
@@ -640,11 +655,15 @@ Format: `exit`
 
 TAssist automatically saves data after every command. You do not need to save manually.
 
+To protect saved records, TAssist blocks a second instance from opening the same home folder, even when launched from another folder. The second launch displays an error and closes without opening another main window. Use the existing TAssist window, or close it before relaunching.
+
+TAssist creates a `.tassist.lock` file in its home folder. Do not delete or move this file while TAssist is running. It may remain after the app closes; this is normal and does not prevent the next launch. If TAssist cannot create or access the lock, it displays an error and closes. Check that you have permission to create and update files in the home folder before trying again.
+
 If a save fails, TAssist displays an error. The command may already have changed the records in memory, but those changes have not been saved and may be lost when you close the app. For a write-permission error, restore write access to the data file and its folder, then run `list` to retry saving the current records before closing TAssist.
 
 ### Editing the data file
 
-TAssist data is saved automatically as a JSON file `data/addressbook.json` inside the folder from which you launch the app (the terminal's current folder). Following the Quick start instructions makes this the folder containing the JAR file. If you launch the JAR from another folder, TAssist reads and saves data in that other folder instead. Always launch from the same home folder to use the same records.
+TAssist data is saved automatically as a JSON file `data/addressbook.json` inside the folder containing the JAR file (the home folder), even if you launch the JAR from another folder. To keep using the same records, keep the JAR file in the same folder.
 
 Advanced users are welcome to update data directly by editing that data file while TAssist is closed.
 
