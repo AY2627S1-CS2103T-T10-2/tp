@@ -644,7 +644,7 @@ If a save fails, TAssist displays an error. The command may already have changed
 
 ### Editing the data file
 
-TAssist data is saved automatically as a JSON file `data/addressbook.json` inside the folder from which you launch the app (the terminal's current folder). Following the Quick start instructions makes this the folder containing the JAR file. If you launch the JAR from another folder, TAssist reads and saves data in that other folder instead. Always launch from the same home folder to use the same records.
+TAssist data is saved automatically as a JSON file `data/addressbook.json` inside the folder containing the JAR file (the home folder), even if you launch the JAR from another folder. To keep using the same records, keep the JAR file in the same folder.
 
 Advanced users are welcome to update data directly by editing that data file while TAssist is closed.
 

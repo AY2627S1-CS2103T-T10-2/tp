@@ -15,6 +15,7 @@ import static seedu.address.logic.commands.CommandTestUtil.PREAMBLE_NON_EMPTY;
 import static seedu.address.logic.commands.CommandTestUtil.PREAMBLE_WHITESPACE;
 import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_HUSBAND;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAILS_WITH_UNQUOTED_SPECIAL_CHARACTERS;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_MATRICULATION_NUMBER_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
@@ -58,9 +59,7 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_emailWithUnquotedSpecialCharacters_success() {
-        String[] emails = {"_john@example.com", "john_@example.com", "john++doe@example.com",
-            "john_.doe@example.com", "o'connor@example.com", "!#$%&'*+/=?^_`{|}~-@example.com"};
-        for (String email : emails) {
+        for (String email : VALID_EMAILS_WITH_UNQUOTED_SPECIAL_CHARACTERS) {
             Person expectedPerson = new PersonBuilder().withName("John Doe").withMatriculationNumber("A7654321B")
                     .withEmail(email).withTags().build();
             assertParseSuccess(parser, " n/John Doe m/A7654321B e/" + email, new AddCommand(expectedPerson));
