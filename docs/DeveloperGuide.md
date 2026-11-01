@@ -1700,8 +1700,14 @@ Start in a fresh test folder with the original sample students.
 1. After assigning `CS2103T:A1` with maximum `20` to student `A1234567X`, enter `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
    Expected: TAssist confirms a recorded score of <samp>0/20</samp>.
 1. Enter `mark m/A1234567X id/CS2103T:A1 mark/17.5`.<br>
-   Expected: TAssist confirms the score was updated to <samp>17.5/20</samp>.
-1. Enter the same command with `mark/21`.<br>
+   Expected: The existing mark is updated to <samp>17.5/20</samp>.
+1. Enter `mark m/A1234567X i/CS2103T:A1 mark/5`.<br>
+   Expected: <samp>Missing required prefix: id/</samp> followed by `mark` usage. The mark remains <samp>17.5/20</samp>, including after restarting TAssist. Undo/redo history is unchanged.
+1. Omit `m/`, `id/`, or `mark/` and its value from the correct command in turn.<br>
+   Expected: The error names the omitted prefix and shows usage. If several are absent, the first is reported in the order `m/`, `id/`, `mark/`. Empty values still produce their existing value-validation errors.
+1. Repeat `id/CS2103T:A1`, then try `id/CS2103T:A/1` in the correct command.<br>
+   Expected: The duplicate-prefix error, then the assignment-ID constraint error. The slash-containing value is not reported as an unknown prefix. The mark remains <samp>17.5/20</samp>.
+1. Enter `mark m/A1234567X id/CS2103T:A1 mark/21`.<br>
    Expected: TAssist rejects the score because it exceeds the maximum. The previous score remains stored after reopening the app.
 1. Enter the same command with `mark/1e1000000`.<br>
    Expected: TAssist rejects the score as too long for display. The previous score remains stored.

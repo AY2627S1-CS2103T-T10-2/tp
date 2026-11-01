@@ -150,6 +150,35 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_mistypedMarkPrefix_preservesSavedMarkAndHistory() throws Exception {
+        model.addPerson(AMY);
+        logic.execute("enroll 1 c/CS2103T-T10");
+        String student = AMY.getMatriculationNumber().toString();
+        logic.execute("assignment m/" + student + " id/CS2103T:A1 n/Quiz max/20");
+        String markCommand = "mark m/" + student + " id/CS2103T:A1 mark/";
+        logic.execute(markCommand + "10");
+        logic.execute(markCommand + "15");
+        logic.execute("undo");
+        Path filePath = temporaryFolder.resolve("addressBook.json");
+        String saved = Files.readString(filePath);
+        ReadOnlyAddressBook original = new JsonAddressBookStorage(filePath).readAddressBook().orElseThrow();
+
+        assertParseExceptionWithoutChangingSavedData("mark m/" + student + " i/CS2103T:A1 mark/5",
+                String.format(MarkCommandParser.MESSAGE_MISSING_REQUIRED_PREFIX, "id/", MarkCommand.MESSAGE_USAGE),
+                original, saved);
+        assertEquals(Optional.of(new Mark(BigDecimal.TEN)), logic.getGradebook()
+                .getMarksForStudent(AMY.getMatriculationNumber()).get(new AssignmentId("CS2103T:A1")));
+        logic.execute("redo");
+        assertEquals(Optional.of(new Mark(new BigDecimal("15"))), logic.getGradebook()
+                .getMarksForStudent(AMY.getMatriculationNumber()).get(new AssignmentId("CS2103T:A1")));
+        logic.execute("undo");
+        assertEquals(original, model.getAddressBook());
+        logic.execute("undo");
+        assertEquals(Optional.empty(), logic.getGradebook()
+                .getMarksForStudent(AMY.getMatriculationNumber()).get(new AssignmentId("CS2103T:A1")));
+    }
+
+    @Test
     public void execute_invalidGradebookNumbers_rejectsWithoutChangingSavedData() throws Exception {
         model.addPerson(AMY);
         logic.execute("enroll 1 c/CS2103T-T10");

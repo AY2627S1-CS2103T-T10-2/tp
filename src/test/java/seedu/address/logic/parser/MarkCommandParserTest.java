@@ -67,12 +67,24 @@ public class MarkCommandParserTest {
     }
 
     @Test
-    public void parse_missingFieldOrPreamble_failure() {
+    public void parse_missingRequiredPrefix_failure() {
+        assertMissingPrefix("", "m/");
+        assertMissingPrefix(" m/A1234567X id/CS2103T:A1", "mark/");
+        assertMissingPrefix(" m/A1234567X mark/17.5", "id/");
+        assertMissingPrefix(" id/CS2103T:A1 mark/17.5", "m/");
+        assertMissingPrefix(" m/A1234567X", "id/");
+    }
+
+    @Test
+    public void parse_mistypedPrefix_failure() {
+        assertMissingPrefix(" m/A1234567X i/CS2103T:A1 mark/5", "id/");
+        assertMissingPrefix(" mat/A1234567X id/CS2103T:A1 mark/5", "m/");
+        assertMissingPrefix(" m/A1234567X id/CS2103T:A1 marks/5", "mark/");
+    }
+
+    @Test
+    public void parse_preamble_failure() {
         String usage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, MarkCommand.MESSAGE_USAGE);
-        assertParseFailure(parser, "", usage);
-        assertParseFailure(parser, " m/A1234567X id/CS2103T:A1", usage);
-        assertParseFailure(parser, " m/A1234567X mark/17.5", usage);
-        assertParseFailure(parser, " id/CS2103T:A1 mark/17.5", usage);
         assertParseFailure(parser, "extra" + required, usage);
     }
 
@@ -90,6 +102,11 @@ public class MarkCommandParserTest {
     public void parse_invalidValue_failure() {
         assertParseFailure(parser, " m/bad id/CS2103T:A1 mark/17.5",
                 MatriculationNumber.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " m/ id/CS2103T:A1 mark/17.5", MatriculationNumber.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " m/A1234567X id/ mark/17.5", AssignmentId.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " m/A1234567X id/CS2103T:A/1 mark/17.5", AssignmentId.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " m/A1234567X id/CS2103T:A1 mark/5 i/6",
+                MarkCommandParser.MESSAGE_INVALID_MARK);
         assertParseFailure(parser, " m/A1234567X id/bad mark/17.5", AssignmentId.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, " m/A1234567X id/CS2103T:A1 mark/",
                 MarkCommandParser.MESSAGE_INVALID_MARK);
@@ -98,5 +115,10 @@ public class MarkCommandParserTest {
         assertParseFailure(parser, " m/A1234567X id/CS2103T:A1 mark/-1", Mark.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, " m/A1234567X id/CS2103T:A1 mark/1e1000000",
                 Mark.MESSAGE_LENGTH_CONSTRAINTS);
+    }
+
+    private void assertMissingPrefix(String input, String prefix) {
+        assertParseFailure(parser, input, String.format(MarkCommandParser.MESSAGE_MISSING_REQUIRED_PREFIX,
+                prefix, MarkCommand.MESSAGE_USAGE));
     }
 }

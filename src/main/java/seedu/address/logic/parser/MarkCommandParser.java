@@ -7,6 +7,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_MARK;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import seedu.address.logic.commands.MarkCommand;
@@ -20,17 +21,23 @@ import seedu.address.model.person.MatriculationNumber;
  */
 public class MarkCommandParser implements Parser<MarkCommand> {
     public static final String MESSAGE_INVALID_MARK = "Mark must be a valid number.";
+    public static final String MESSAGE_MISSING_REQUIRED_PREFIX = "Missing required prefix: %s\n%s";
 
     @Override
     public MarkCommand parse(String args) throws ParseException {
         requireNonNull(args);
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_MATRICULATION_NUMBER,
                 PREFIX_ASSIGNMENT_ID, PREFIX_MARK);
+        for (Prefix prefix : List.of(PREFIX_MATRICULATION_NUMBER, PREFIX_ASSIGNMENT_ID, PREFIX_MARK)) {
+            if (arguments.getValue(prefix).isEmpty()) {
+                throw new ParseException(String.format(MESSAGE_MISSING_REQUIRED_PREFIX,
+                        prefix, MarkCommand.MESSAGE_USAGE));
+            }
+        }
         Optional<String> studentValue = arguments.getValue(PREFIX_MATRICULATION_NUMBER);
         Optional<String> idValue = arguments.getValue(PREFIX_ASSIGNMENT_ID);
         Optional<String> markValue = arguments.getValue(PREFIX_MARK);
-        if (!arguments.getPreamble().isEmpty() || studentValue.isEmpty() || idValue.isEmpty()
-                || markValue.isEmpty()) {
+        if (!arguments.getPreamble().isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, MarkCommand.MESSAGE_USAGE));
         }
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_MATRICULATION_NUMBER, PREFIX_ASSIGNMENT_ID, PREFIX_MARK);

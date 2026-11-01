@@ -246,6 +246,7 @@ Format: `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`
 * The confirmation includes the score and maximum mark. Updating a recorded score gives a short updated message.
 * If that student's details window is open, its score updates immediately after the command succeeds, without another `view` command.
 * The student's matriculation number identifies them even when they are absent from the current search results. Use `mark` to change a score; `edit` changes student details and does not accept marks.
+* A missing required prefix is named in the error, followed by command usage. For example, `mark m/A1234567X i/CS2103T:A1 mark/5` reports `Missing required prefix: id/`. Use `id/` for the assignment ID. If several prefixes are missing, the first is reported in the order `m/`, `id/`, `mark/`. Rejected commands leave marks unchanged.
 
 Examples:
 * `mark m/A1234567X id/CS2103T:A1 mark/17.5`
