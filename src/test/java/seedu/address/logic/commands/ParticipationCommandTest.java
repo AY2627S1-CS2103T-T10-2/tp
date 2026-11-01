@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -117,6 +119,58 @@ public class ParticipationCommandTest {
 
         assertEquals(expectedAttendance, updatedStudent.getAttendance());
         assertEquals(historyBefore, updatedStudent.getParticipationHistory());
+    }
+
+    @Test
+    public void execute_futureDate_throwsExceptionWithoutChangingStudents() {
+        AttendanceDate futureDate = new AttendanceDate(
+                LocalDate.now().plusDays(1).format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+        List<Person> studentsBefore = List.copyOf(model.getAddressBook().getPersonList());
+        ParticipationHistory historyBefore = getCurrentStudent().getParticipationHistory();
+
+        ParticipationCommand command = new ParticipationCommand(
+                new StudentIdentifier(student.getMatriculationNumber()),
+                CLASS_CODE, futureDate, new ParticipationPoints("2"));
+
+        CommandException exception = assertThrows(CommandException.class, () -> command.execute(model));
+
+        assertEquals(String.format(ParticipationCommand.MESSAGE_FUTURE_DATE, futureDate),
+                exception.getMessage());
+        assertEquals(studentsBefore, model.getAddressBook().getPersonList());
+        assertEquals(historyBefore, getCurrentStudent().getParticipationHistory());
+    }
+
+    @Test
+    public void execute_todayDate_recordsParticipation() throws Exception {
+        AttendanceDate today = AttendanceDate.today();
+
+        ParticipationCommand command = new ParticipationCommand(
+                new StudentIdentifier(student.getMatriculationNumber()),
+                CLASS_CODE, today, new ParticipationPoints("2"));
+
+        command.execute(model);
+
+        ParticipationRecord record = getCurrentStudent().getParticipationHistory()
+                .findRecord(CLASS_CODE, today.toLocalDate()).orElseThrow();
+
+        assertEquals(new ParticipationPoints("2"), record.getPoints());
+    }
+
+    @Test
+    public void execute_pastDate_recordsParticipation() throws Exception {
+        AttendanceDate pastDate = new AttendanceDate(
+                LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+
+        ParticipationCommand command = new ParticipationCommand(
+                new StudentIdentifier(student.getMatriculationNumber()),
+                CLASS_CODE, pastDate, new ParticipationPoints("2"));
+
+        command.execute(model);
+
+        ParticipationRecord record = getCurrentStudent().getParticipationHistory()
+                .findRecord(CLASS_CODE, pastDate.toLocalDate()).orElseThrow();
+
+        assertEquals(new ParticipationPoints("2"), record.getPoints());
     }
 
     private void setPoints(String points) throws CommandException {
