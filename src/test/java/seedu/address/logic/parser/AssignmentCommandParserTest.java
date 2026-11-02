@@ -35,10 +35,19 @@ public class AssignmentCommandParserTest {
         assertParseSuccess(parser, " 1 id/CS2103T:A1 n/Assignment One max/20",
                 new AssignmentCommand(new StudentIdentifier(Index.fromOneBased(1)),
                         new Assignment(id, "Assignment One", new BigDecimal("20"))));
-        for (String input : new String[] {"0", "-1", "abc", "1.5", "1 2", "2147483648"}) {
+        for (String input : new String[] {"0", "-1", "abc", "1.5"}) {
             assertParseFailure(parser, " " + input + " id/CS2103T:A1",
                     ParserUtil.MESSAGE_INVALID_INDEX);
         }
+        assertParseFailure(parser, " 1 2 id/CS2103T:A1",
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, AssignmentCommand.MESSAGE_USAGE));
+        assertParseFailure(parser, " 2147483648 id/CS2103T:A1", Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void parse_mistypedIdPrefix_throwsUsageError() {
+        assertParseFailure(parser, " 1id/CS2103T:A1",
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, AssignmentCommand.MESSAGE_USAGE));
     }
 
     @Test
