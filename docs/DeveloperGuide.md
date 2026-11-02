@@ -1747,20 +1747,41 @@ Start with the original six sample students in a disposable data folder. Ensure 
 
 ### Recording an assignment mark
 
-1. After assigning `CS2103T:A1` with maximum `20` to student `A1234567X`, enter `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
+Run these steps in order without restarting until instructed. Before starting, ensure student `A1234567X` exists and has been assigned `CS2103T:A1` with maximum `20`.
+
+1. Enter `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
    Expected: TAssist confirms a recorded score of <samp>0/20</samp>.
 1. Enter the same command with `mark/20`.<br>
    Expected: TAssist accepts a score equal to the maximum and confirms <samp>20/20</samp>.
 1. Enter `mark m/A1234567X id/CS2103T:A1 mark/17.5`.<br>
    Expected: TAssist confirms the score was updated to <samp>17.5/20</samp>.
-1. Enter the same command with `mark/21`.<br>
-   Expected: <samp>Mark cannot exceed the maximum mark of 20.</samp> The previous score of <samp>17.5/20</samp>, assignment data, and saved records remain unchanged after reopening the app.
-1. Enter the same command with `mark/1e1000000`.<br>
+1. Enter the same command with `mark/21`, then enter `marks id/CS2103T:A1`.<br>
+   Expected: <samp>Mark cannot exceed the maximum mark of 20.</samp> The previous score remains <samp>17.5/20</samp>, and assignment data remains unchanged. Do not restart yet; persistence is checked later.
+1. Enter `mark m/A1234567X i/CS2103T:A1 mark/5`.<br>
+   Expected: <samp>Missing required prefix: id/</samp> followed by `mark` usage. Enter `marks id/CS2103T:A1`; the mark remains <samp>17.5/20</samp>.
+1. Enter `undo`, then `marks id/CS2103T:A1`.<br>
+   Expected: Undo succeeds and the mark returns to <samp>20/20</samp>, confirming the rejected commands added no history entries.
+1. Enter `mark m/A1234567X i/CS2103T:A1 mark/5` again, then `redo`, then `marks id/CS2103T:A1`.<br>
+   Expected: <samp>Missing required prefix: id/</samp> followed by `mark` usage, then a successful redo restoring <samp>17.5/20</samp>. This confirms rejection preserves pending redo history and restores the score needed by later steps.
+1. Run each command in the table below. Each must fail with the stated message. After each rejection, enter `marks id/CS2103T:A1`; the mark must remain <samp>17.5/20</samp>.
+
+   | Command | Expected error |
+      | --- | --- |
+   | `mark m/A1234567X mark/5` | <samp>Missing required prefix: id/</samp>, followed by `mark` usage. |
+   | `mark m/A1234567X id/CS2103T:A1` | <samp>Missing required prefix: mark/</samp>, followed by `mark` usage. |
+   | `mark m/A1234567X` | <samp>Missing required prefix: id/</samp>, followed by `mark` usage. |
+   | `mark m/ id/CS2103T:A1 mark/5` | <samp>Matriculation numbers should only start with an A, followed by 7 digits, and end with a letter</samp> |
+   | `mark m/A1234567X id/ mark/5` | <samp>Assignment IDs should be MODULE:CODE, where CODE starts with a letter and contains only letters and digits (e.g. CS2103T:A1).</samp> |
+   | `mark m/A1234567X id/CS2103T:A1 mark/` | <samp>Mark must be a valid number.</samp> |
+   | `mark m/A1234567X id/CS2103T:A1 id/CS2103T:A1 mark/5` | <samp>Multiple values specified for the following single-valued field(s): id/</samp> |
+   | `mark m/A1234567X id/CS2103T:A/1 mark/5` | <samp>Assignment IDs should be MODULE:CODE, where CODE starts with a letter and contains only letters and digits (e.g. CS2103T:A1).</samp> The slash-containing value is not reported as an unknown prefix. |
+
+1. Enter `mark m/A1234567X id/CS2103T:A1 mark/1e1000000`.<br>
    Expected: TAssist rejects the score as too long for display. The previous score remains stored.
 1. Repeat with `mark/100e2147483647`.<br>
    Expected: TAssist shows <samp>Mark's displayed decimal form must be at most 64 characters.</samp> The existing mark and saved data remain unchanged.
 1. Close and reopen TAssist. Enter `marks id/CS2103T:A1`.<br>
-   Expected: The student's score remains <samp>17.5/20</samp>.
+   Expected: The student's score remains <samp>17.5/20</samp>, and the assignment maximum remains <samp>20</samp>.
 1. Record the mark with `mark m/A1234567X id/CS2103T:A1 mark/1.7500e1`.<br>
    Expected: TAssist accepts the scientific notation and confirms a normalized score of <samp>17.5/20</samp>.
 1. Repeat with `mark/0e2147483647`.<br>
