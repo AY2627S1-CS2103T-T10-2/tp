@@ -41,6 +41,7 @@ import seedu.address.model.person.ParticipationHistory;
 import seedu.address.model.person.ParticipationPoints;
 import seedu.address.model.person.ParticipationRecord;
 import seedu.address.model.person.Person;
+import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -55,6 +56,35 @@ public class StudentDetailsWindowTest {
 
     private final Person student = new PersonBuilder().build();
     private final Gradebook gradebook = new Gradebook();
+
+    @Test
+    public void showStudent_samples_displaysAcademicRecords() throws Exception {
+        AddressBook samples = new AddressBook(SampleDataUtil.getSampleAddressBook());
+        FutureTask<Void> checkWindow = new FutureTask<>(() -> {
+            Stage owner = new Stage();
+            StudentDetailsWindow window = new StudentDetailsWindow(owner,
+                    samples.getPersonList(), samples::getGradebook);
+            try {
+                window.showStudent(samples.getPersonList().getFirst());
+                assertEquals(List.of("CS2100:QUIZ1 - Week 4 Quiz (out of 20)\nMark: 17.5/20"),
+                        displayedAssignmentRows(window));
+                assertEquals(List.of("CS2100-T01", "08-09-2026  •  2 points"),
+                        displayedParticipationRows(window.getRoot()));
+                VBox attendance = (VBox) window.getRoot().getScene().lookup("#attendanceDates");
+                assertEquals(2, attendance.getChildren().size());
+                assertTrue(((Label) attendance.getChildren().getFirst()).getText().contains("08-09-2026"));
+                window.showStudent(samples.getPersonList().getLast());
+                assertEquals(List.of("CS2040S:QUIZ1 - Week 4 Quiz (out of 20)\nMark: Unmarked"),
+                        displayedAssignmentRows(window));
+            } finally {
+                window.getRoot().close();
+                owner.close();
+            }
+            return null;
+        });
+        Platform.runLater(checkWindow);
+        checkWindow.get(10, TimeUnit.SECONDS);
+    }
 
     /**
      * Starts JavaFX once and keeps it running while test windows are opened and closed.

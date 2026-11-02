@@ -26,7 +26,7 @@ TAssist is a **desktop application for managing students, optimized for use thro
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar "addressbook.jar"`. If your downloaded file has a different name, substitute that filename inside the quotes.<br>
    Double-clicking the JAR file may not work on some systems. Use the terminal command above to launch TAssist.<br>
    Only one TAssist instance can run from the same home folder. If it is already open, use the existing window or close it before launching again.<br>
-   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
+   A GUI similar to the one below should appear in a few seconds. The six sample students use `@u.nus.edu` emails and are enrolled in CS2100-T01 or CS2040S-T02, with attendance, participation and quiz records. Try `view 1` to explore a profile; Roy's quiz is unmarked. Samples are loaded only when no saved data file exists.<br>
    ![Ui](images/Ui.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
