@@ -14,7 +14,8 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.model.AddressBook;
+import seedu.address.commons.core.index.Index;
+import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -29,6 +30,31 @@ public class MarkCommandTest {
     private final Assignment assignment = new Assignment(id, "Assignment One", new BigDecimal("20"));
     private final MatriculationNumber student = ALICE.getMatriculationNumber();
     private final Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+
+    @Test
+    public void execute_filteredSortedIndex_targetsDisplayedStudent() throws Exception {
+        model.updateFilteredPersonList(person -> person.getMatriculationNumber().equals(student)
+                || person.getMatriculationNumber().equals(BENSON.getMatriculationNumber()));
+        model.sortPersons(Model.COMPARATOR_NAME_ASC.reversed());
+        MatriculationNumber displayed = model.getFilteredPersonList().get(0).getMatriculationNumber();
+        assertEquals(BENSON.getMatriculationNumber(), displayed);
+        model.addAssignmentForStudent(assignment, displayed);
+        StudentIdentifier identifier = new StudentIdentifier(Index.fromOneBased(1));
+        new MarkCommand(identifier, id, new Mark(BigDecimal.TEN)).execute(model);
+        assertEquals(Optional.of(new Mark(BigDecimal.TEN)),
+                model.getAddressBook().getGradebook().getMarksForStudent(displayed).get(id));
+        assertFalse(model.getAddressBook().getGradebook().getMarksForStudent(student).containsKey(id));
+    }
+
+    @Test
+    public void execute_outOfRangeIndex_rejectsWithoutChangingModel() {
+        model.addAssignmentForStudent(assignment, student);
+        model.recordMark(student, id, new Mark(BigDecimal.ONE));
+        model.updateFilteredPersonList(person -> false);
+        StudentIdentifier identifier = new StudentIdentifier(Index.fromOneBased(1));
+        assertCommandFailure(new MarkCommand(identifier, id, new Mark(BigDecimal.TEN)), model,
+                Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    }
 
     @Test
     public void execute_unmarkedAssignment_recordsFractionalMark() {
@@ -56,7 +82,8 @@ public class MarkCommandTest {
     public void execute_missingStudentOrAssignment_rejectsWithoutChangingModel() {
         Mark mark = new Mark(BigDecimal.TEN);
         MatriculationNumber unknown = new MatriculationNumber("A9999999Z");
-        assertCommandFailure(new MarkCommand(unknown, id, mark), model, AddressBook.MESSAGE_STUDENT_NOT_FOUND);
+        assertCommandFailure(new MarkCommand(unknown, id, mark), model,
+                String.format(Messages.MESSAGE_STUDENT_NOT_FOUND, unknown));
         assertCommandFailure(new MarkCommand(student, id, mark), model, Gradebook.MESSAGE_UNKNOWN_ASSIGNMENT);
     }
 
@@ -72,9 +99,31 @@ public class MarkCommandTest {
         model.addAssignmentForStudent(assignment, student);
         model.recordMark(student, id, new Mark(BigDecimal.TEN));
         assertCommandFailure(new MarkCommand(student, id, new Mark(new BigDecimal("20.01"))), model,
-                Gradebook.MESSAGE_MARK_EXCEEDS_MAX);
+                "Mark cannot exceed the maximum mark of 20.");
+        assertCommandFailure(new MarkCommand(new StudentIdentifier(Index.fromOneBased(1)), id,
+                new Mark(new BigDecimal("20.01"))), model, "Mark cannot exceed the maximum mark of 20.");
         assertEquals(Optional.of(new Mark(BigDecimal.TEN)),
                 model.getAddressBook().getGradebook().getMarksForStudent(student).get(id));
+    }
+
+    @Test
+    public void execute_decimalMaximum_acceptsBoundaryAndRejectsAboveWithoutChanges() throws Exception {
+        Assignment decimalAssignment = new Assignment(id, "Decimal Assignment", new BigDecimal("1.025e1"));
+        model.addAssignmentForStudent(decimalAssignment, student);
+        Mark maximum = new Mark(new BigDecimal("10.25"));
+        assertEquals("Recorded 10.25/10.25 for " + student + " on " + id + ".",
+                new MarkCommand(student, id, maximum).execute(model).getFeedbackToUser());
+        assertCommandFailure(new MarkCommand(student, id, new Mark(new BigDecimal("10.26"))), model,
+                "Mark cannot exceed the maximum mark of 10.25.");
+        assertEquals(Optional.of(maximum), model.getAddressBook().getGradebook().getMarksForStudent(student).get(id));
+    }
+
+    @Test
+    public void execute_smallDecimalMaximum_displaysPlainDecimal() {
+        model.addAssignmentForStudent(new Assignment(id, "Small Assignment", new BigDecimal("1e-7")), student);
+        assertCommandFailure(new MarkCommand(student, id, new Mark(BigDecimal.ONE)), model,
+                "Mark cannot exceed the maximum mark of 0.0000001.");
+        assertEquals(Optional.empty(), model.getAddressBook().getGradebook().getMarksForStudent(student).get(id));
     }
 
     @Test

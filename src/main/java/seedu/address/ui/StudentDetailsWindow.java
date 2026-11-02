@@ -2,6 +2,7 @@ package seedu.address.ui;
 
 import static java.util.Objects.requireNonNull;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Supplier;
@@ -20,10 +21,12 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.gradebook.Assignment;
 import seedu.address.model.gradebook.ReadOnlyGradebook;
+import seedu.address.model.person.ParticipationRecord;
 import seedu.address.model.person.Person;
 
 /**
- * A reusable window showing a student's particulars, enrolled classes, assignment marks and attendance history.
+ * A reusable window showing a student's particulars, enrolled classes,
+ * assignment marks, attendance and participation history.
  */
 public class StudentDetailsWindow extends UiPart<Stage> {
 
@@ -34,6 +37,10 @@ public class StudentDetailsWindow extends UiPart<Stage> {
     private static final String ATTENDANCE_SEPARATOR = "  •  ";
     private static final String ATTENDANCE_STATUS = "Present";
     private static final String ATTENDANCE_STYLE_CLASS = "attendance-date";
+    private static final String PARTICIPATION_EMPTY = "None recorded";
+    private static final String PARTICIPATION_SEPARATOR = "  •  ";
+    private static final DateTimeFormatter PARTICIPATION_DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     private static final Logger logger = LogsCenter.getLogger(StudentDetailsWindow.class);
 
@@ -57,6 +64,8 @@ public class StudentDetailsWindow extends UiPart<Stage> {
     private Label attendanceSummary;
     @FXML
     private VBox attendanceDates;
+    @FXML
+    private VBox participationRecords;
 
     /**
      * Creates a details window that reads the latest gradebook when its contents are refreshed.
@@ -173,6 +182,7 @@ public class StudentDetailsWindow extends UiPart<Stage> {
         updateClasses(person);
         updateAssignments(person, gradebook);
         updateAttendance(person);
+        updateParticipation(person);
         getRoot().setTitle("Student details — " + person.getName());
     }
 
@@ -263,5 +273,43 @@ public class StudentDetailsWindow extends UiPart<Stage> {
             recordLabel.getStyleClass().add(ATTENDANCE_STYLE_CLASS);
             attendanceDates.getChildren().add(recordLabel);
         });
+    }
+
+    /**
+     * Updates the participation records, grouped by class and ordered by date.
+     */
+    private void updateParticipation(Person person) {
+        participationRecords.getChildren().clear();
+
+        List<ParticipationRecord> records = person.getParticipationHistory().getRecords().stream()
+                .sorted(Comparator.comparing((ParticipationRecord record) -> record.getClassCode().toString())
+                        .thenComparing(ParticipationRecord::getDate))
+                .toList();
+
+        if (records.isEmpty()) {
+            participationRecords.getChildren().add(new Label(PARTICIPATION_EMPTY));
+            return;
+        }
+
+        ClassCode previousClassCode = null;
+        for (ParticipationRecord record : records) {
+            ClassCode currentClassCode = record.getClassCode();
+            if (!currentClassCode.equals(previousClassCode)) {
+                Label classLabel = new Label(currentClassCode.toString());
+                classLabel.getStyleClass().add("column-heading");
+                participationRecords.getChildren().add(classLabel);
+                previousClassCode = currentClassCode;
+            }
+
+            int points = record.getPoints().value;
+            String pointsText = points + (points == 1 ? " point" : " points");
+            String row = record.getDate().format(PARTICIPATION_DATE_FORMATTER)
+                    + PARTICIPATION_SEPARATOR + pointsText;
+
+            Label recordLabel = new Label(row);
+            recordLabel.setWrapText(true);
+            recordLabel.setMaxWidth(Double.MAX_VALUE);
+            participationRecords.getChildren().add(recordLabel);
+        }
     }
 }

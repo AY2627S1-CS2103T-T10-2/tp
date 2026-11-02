@@ -11,7 +11,6 @@ import java.util.Optional;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.gradebook.Assignment;
 import seedu.address.model.gradebook.AssignmentId;
@@ -26,21 +25,22 @@ public class AssignmentCommand extends Command {
     public static final String COMMAND_WORD = "assignment";
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Assigns work to a student.\n"
             + "The student must be enrolled in the assignment's module.\n"
-            + "Parameters for new work: " + PREFIX_MATRICULATION_NUMBER + "MATRICULATION_NUMBER "
+            + "Parameters for new work: (INDEX | " + PREFIX_MATRICULATION_NUMBER + "MATRICULATION_NUMBER) "
             + PREFIX_ASSIGNMENT_ID + "MODULE:CODE " + PREFIX_NAME + "NAME "
             + PREFIX_MAX_MARK + "MAX_MARK\n"
-            + "Parameters for existing work: " + PREFIX_MATRICULATION_NUMBER + "MATRICULATION_NUMBER "
+            + "Parameters for existing work: (INDEX | " + PREFIX_MATRICULATION_NUMBER + "MATRICULATION_NUMBER) "
             + PREFIX_ASSIGNMENT_ID + "MODULE:CODE\n"
+            + "Specify exactly one identifier. INDEX refers to the current displayed list.\n"
             + "Example: " + COMMAND_WORD + " " + PREFIX_MATRICULATION_NUMBER + "A1234567X "
             + PREFIX_ASSIGNMENT_ID + "CS2103T:A1 " + PREFIX_NAME + "Assignment One "
             + PREFIX_MAX_MARK + "20";
 
-    public static final String MESSAGE_SUCCESS = "Assigned %1$s to student %2$s.";
+    public static final String MESSAGE_SUCCESS = "Assigned %1$s (out of %3$s) to student %2$s.";
     public static final String MESSAGE_STUDENT_NOT_ENROLLED =
             "Cannot assign %1$s to student %2$s: the student is not enrolled in module %3$s. "
                     + "Enroll the student first.";
 
-    private final MatriculationNumber student;
+    private final StudentIdentifier student;
     private final AssignmentId assignmentId;
     private final Optional<Assignment> newAssignment;
 
@@ -48,6 +48,13 @@ public class AssignmentCommand extends Command {
      * Creates a command that assigns an existing assignment definition.
      */
     public AssignmentCommand(MatriculationNumber student, AssignmentId assignmentId) {
+        this(new StudentIdentifier(student), assignmentId);
+    }
+
+    /**
+     * Creates a command using a displayed index or matriculation number.
+     */
+    public AssignmentCommand(StudentIdentifier student, AssignmentId assignmentId) {
         this.student = requireNonNull(student);
         this.assignmentId = requireNonNull(assignmentId);
         newAssignment = Optional.empty();
@@ -57,6 +64,13 @@ public class AssignmentCommand extends Command {
      * Creates a command that defines and assigns new work.
      */
     public AssignmentCommand(MatriculationNumber student, Assignment assignment) {
+        this(new StudentIdentifier(student), assignment);
+    }
+
+    /**
+     * Creates a command using a displayed index or matriculation number.
+     */
+    public AssignmentCommand(StudentIdentifier student, Assignment assignment) {
         this.student = requireNonNull(student);
         this.assignmentId = requireNonNull(assignment).getId();
         newAssignment = Optional.of(assignment);
@@ -65,10 +79,8 @@ public class AssignmentCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Person targetStudent = model.getAddressBook().getPersonList().stream()
-                .filter(person -> person.getMatriculationNumber().equals(student))
-                .findFirst()
-                .orElseThrow(() -> new CommandException(AddressBook.MESSAGE_STUDENT_NOT_FOUND));
+        Person targetStudent = student.resolve(model);
+        MatriculationNumber studentNumber = targetStudent.getMatriculationNumber();
 
         if (newAssignment.isEmpty()
                 && model.getAddressBook().getGradebook().findAssignment(assignmentId).isEmpty()) {
@@ -78,18 +90,20 @@ public class AssignmentCommand extends Command {
                 .anyMatch(classCode -> classCode.getModuleCode().equals(assignmentId.getModuleCode()));
         if (!isEnrolledInModule) {
             throw new CommandException(String.format(MESSAGE_STUDENT_NOT_ENROLLED,
-                    assignmentId, student, assignmentId.getModuleCode()));
+                    assignmentId, studentNumber, assignmentId.getModuleCode()));
         }
         try {
             if (newAssignment.isPresent()) {
-                model.addAssignmentForStudent(newAssignment.orElseThrow(), student);
+                model.addAssignmentForStudent(newAssignment.orElseThrow(), studentNumber);
             } else {
-                model.assignStudent(student, assignmentId);
+                model.assignStudent(studentNumber, assignmentId);
             }
         } catch (IllegalArgumentException ex) {
             throw new CommandException(ex.getMessage());
         }
-        return new CommandResult(String.format(MESSAGE_SUCCESS, assignmentId, student));
+        Assignment assignment = model.getAddressBook().getGradebook().findAssignment(assignmentId).orElseThrow();
+        return new CommandResult(String.format(MESSAGE_SUCCESS, assignmentId, studentNumber,
+                assignment.getMaxMark().toPlainString()));
     }
 
     @Override

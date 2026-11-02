@@ -14,8 +14,10 @@ import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.AssignmentCommand;
+import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.model.gradebook.Assignment;
 import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.person.MatriculationNumber;
@@ -25,6 +27,19 @@ public class AssignmentCommandParserTest {
     private final MatriculationNumber student = new MatriculationNumber("A1234567X");
     private final AssignmentId id = new AssignmentId("CS2103T:A1");
     private final String required = " m/A1234567X id/CS2103T:A1";
+
+    @Test
+    public void parse_displayedIndex_successAndInvalidIndicesRejected() {
+        assertParseSuccess(parser, " 1 id/CS2103T:A1",
+                new AssignmentCommand(new StudentIdentifier(Index.fromOneBased(1)), id));
+        assertParseSuccess(parser, " 1 id/CS2103T:A1 n/Assignment One max/20",
+                new AssignmentCommand(new StudentIdentifier(Index.fromOneBased(1)),
+                        new Assignment(id, "Assignment One", new BigDecimal("20"))));
+        for (String input : new String[] {"0", "-1", "abc", "1.5", "1 2", "2147483648"}) {
+            assertParseFailure(parser, " " + input + " id/CS2103T:A1",
+                    ParserUtil.MESSAGE_INVALID_INDEX);
+        }
+    }
 
     @Test
     public void parse_newAssignment_success() {
@@ -82,12 +97,15 @@ public class AssignmentCommandParserTest {
     @Test
     public void parse_missingOrExtraFields_failure() {
         String usage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AssignmentCommand.MESSAGE_USAGE);
-        assertParseFailure(parser, "", usage);
-        assertParseFailure(parser, " id/CS2103T:A1", usage);
+        assertParseFailure(parser, "", String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER,
+                AssignmentCommand.MESSAGE_USAGE));
+        assertParseFailure(parser, " id/CS2103T:A1", String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER,
+                AssignmentCommand.MESSAGE_USAGE));
         assertParseFailure(parser, " m/A1234567X", usage);
         assertParseFailure(parser, required + " n/Assignment One", usage);
         assertParseFailure(parser, required + " max/20", usage);
-        assertParseFailure(parser, "unexpected" + required, usage);
+        assertParseFailure(parser, "1" + required, String.format(ParserUtil.MESSAGE_MULTIPLE_STUDENT_IDENTIFIERS,
+                AssignmentCommand.MESSAGE_USAGE));
     }
 
     @Test

@@ -60,7 +60,7 @@ public class GradebookTest {
                 gradebook.assignStudent(firstStudent, firstId));
         assertThrows(IllegalArgumentException.class, Gradebook.MESSAGE_UNASSIGNED_STUDENT, () ->
                 gradebook.recordMark(secondStudent, firstId, new Mark(BigDecimal.ONE)));
-        assertThrows(IllegalArgumentException.class, Gradebook.MESSAGE_MARK_EXCEEDS_MAX, () ->
+        assertThrows(IllegalArgumentException.class, "Mark cannot exceed the maximum mark of 20.", () ->
                 gradebook.recordMark(firstStudent, firstId, new Mark(new BigDecimal("20.1"))));
         assertEquals(original, gradebook);
     }
