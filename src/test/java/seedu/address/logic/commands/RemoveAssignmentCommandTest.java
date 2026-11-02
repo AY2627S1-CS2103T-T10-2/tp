@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.model.AddressBook;
+import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -83,7 +83,7 @@ public class RemoveAssignmentCommandTest {
         model.addAssignmentForStudent(assignment, ALICE.getMatriculationNumber());
         assertCommandFailure(new RemoveAssignmentCommand(otherId), model, Gradebook.MESSAGE_UNKNOWN_ASSIGNMENT);
         assertCommandFailure(new RemoveAssignmentCommand(id, new MatriculationNumber("A9999999X")),
-                model, AddressBook.MESSAGE_STUDENT_NOT_FOUND);
+                model, String.format(Messages.MESSAGE_STUDENT_NOT_FOUND, "A9999999X"));
         assertCommandFailure(new RemoveAssignmentCommand(id, BENSON.getMatriculationNumber()),
                 model, Gradebook.MESSAGE_UNASSIGNED_STUDENT);
     }
