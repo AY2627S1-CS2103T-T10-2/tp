@@ -255,6 +255,7 @@ Format: `mark INDEX id/MODULE:CODE mark/MARK` or `mark m/MATRICULATION_NUMBER id
 * A mark's displayed decimal form must also fit within 64 characters.
 * The confirmation includes the score and maximum mark. Updating a recorded score gives a short updated message.
 * If that student's details window is open, its score updates immediately after the command succeeds, without another `view` command.
+* With a student identifier supplied, a missing `id/` or `mark/` prefix is named in the error, followed by command usage. For example, `mark m/A1234567X i/CS2103T:A1 mark/5` reports `Missing required prefix: id/`. Use `id/` for the assignment ID. Rejected commands leave marks unchanged.
 * Use `mark` to change a score; `edit` changes student details and does not accept marks.
 
 Examples:
