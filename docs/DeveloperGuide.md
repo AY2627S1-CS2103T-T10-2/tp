@@ -243,7 +243,7 @@ The `participationRecords` container in `StudentDetailsWindow.fxml` holds these 
 
 ### Sorting displayed students
 
-The `sort` command accepts `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MODULE:CODE [asc|desc]`. `SortCommandParser` ignores letter case for field and direction keywords, and reports the assignment ID constraints for an invalid ID. `SortCommand` sorts the displayed students without changing their stored order. Name and email comparisons ignore case, and an empty attendance history counts as zero. Recorded marks come before `Unmarked` and `Not assigned` in either direction; ties use name and then matriculation number.
+The `sort` command accepts `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MODULE:CODE [asc|desc]`. `SortCommandParser` ignores letter case for field and direction keywords, and reports the assignment ID constraints for an invalid ID. `SortCommand` sorts the displayed students without changing their stored order. Name and email comparisons ignore case, and an empty attendance history counts as zero. Mark sorting compares assignment status first: recorded marks, then `Unmarked`, then `Not assigned`, in both directions. Snapshot map key presence distinguishes assigned students with an empty mark from unassigned students. Only recorded numeric marks use the requested direction. Equal marks and students within each missing-mark group use `Model.COMPARATOR_NAME_ASC`: case-insensitive name, then matriculation number, both ascending.
 
 `SortDisplay` supplies the optional extra line on each student card. An attendance sort shows the record count. A mark sort shows the assignment ID and each student's assignment mark, `Unmarked`, or `Not assigned`. `add`, `find`, and `list` restore name order and remove that line.
 
@@ -1023,7 +1023,7 @@ Neither removal form changes student particulars. A removed shared assignment ca
 
 Use case ends.
 
-With no field or direction supplied, TAssist uses name ascending. Students without a recorded mark appear after students with marks in either direction. Equal values are ordered by name, then matriculation number. Sorting changes the displayed order, not the stored student records.
+With no field or direction supplied, TAssist uses name ascending. Mark sorting places students with recorded marks first, then `Unmarked` students, then `Not assigned` students in either direction. Equal values and students within each missing-mark group are ordered by case-insensitive name, then matriculation number, both ascending. Sorting changes the displayed order, not the stored student records.
 
 **Extensions**
 
@@ -1377,8 +1377,8 @@ Start in a fresh test folder with the original sample students. Run `unenroll 1 
    1. Create an assignment and attach it to two students using `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20` and `assignment m/A6789012U id/CS2103T:A1`. Record `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
       Expected: One student has a recorded zero, one is unmarked, and at least one other sample student is not assigned.
 
-   1. Run `sort mark id/CS2103T:A1 desc`.<br>
-      Expected: The student with zero appears before the unmarked and unassigned students. Every card shows <samp>CS2103T:A1</samp> with <samp>0/20</samp>, <samp>Unmarked</samp>, or <samp>Not assigned</samp> as appropriate.
+   1. Run `sort mark id/CS2103T:A1 desc`, then `sort mark id/CS2103T:A1 asc`.<br>
+      Expected: Both sorts show Alex Yeoh (<samp>0/20</samp>), Roy Balakrishnan (<samp>Unmarked</samp>), then the <samp>Not assigned</samp> students in ascending name order: Bernice Yu, Charlotte Oliveiro, David Li, and Irfan Ibrahim. Every card shows <samp>CS2103T:A1</samp> with its result. The recorded zero comes first, and Roy appears above Bernice despite their alphabetical order.
 
    1. Run `sort mark id/CS2103T:A9`.<br>
       Expected: TAssist reports that the assignment does not exist; the displayed order and card details remain unchanged.
