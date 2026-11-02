@@ -12,6 +12,7 @@ import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.classcode.ClassCode;
@@ -34,10 +35,13 @@ public class ParserUtil {
     public static final String MESSAGE_MULTIPLE_STUDENT_IDENTIFIERS = "Specify the student by either INDEX or "
             + PREFIX_MATRICULATION_NUMBER + "MATRICULATION_NUMBER, not both.\n%1$s";
 
+    private static final String REGEX_WHITESPACE_OR_SLASH = ".*[\\s/].*";
+    private static final String REGEX_NON_ZERO_DIGITS = "0*[1-9][0-9]*";
+
     /**
      * Parses the student identifier in {@code argMultimap}: either an index in the preamble or a
      * matriculation number after m/, but not both.
-     * {@code messageUsage} is the calling command's usage, appended to the missing/both errors.
+     * {@code messageUsage} is the calling command's usage, appended to the missing/both/mistyped errors.
      *
      * @throws ParseException if m/ is repeated, both or neither identifier is given, or the given one is invalid.
      */
@@ -54,6 +58,12 @@ public class ParserUtil {
         }
         if (preamble.isEmpty()) {
             throw new ParseException(String.format(MESSAGE_MISSING_STUDENT_IDENTIFIER, messageUsage));
+        }
+        if (preamble.matches(REGEX_WHITESPACE_OR_SLASH)) {
+            throw new ParseException(String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, messageUsage));
+        }
+        if (preamble.matches(REGEX_NON_ZERO_DIGITS) && !StringUtil.isNonZeroUnsignedInteger(preamble)) {
+            throw new ParseException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
         return new StudentIdentifier(parseIndex(preamble));
     }
