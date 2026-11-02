@@ -1892,35 +1892,25 @@ Start with the original six sample students in a disposable data folder. Ensure 
 
 **Invalid inputs**
 
-Run these cases while `find Irfan` is still active. Both commands in each row test the same invalid identifier; all other arguments are valid.
+Run these cases at the points indicated in the steps above. Where a row lists two commands, enter both separately. Every request must be rejected without changing records or undo/redo history. All of these are rejected before the student is looked up, except IDENTIFIER-9, so they do not depend on the displayed list.
 
 | Case | Invalid input | Why it is invalid | Expected result |
 | --- | --- | --- | --- |
-| IDENTIFIER-1 | `assignment id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark id/CS2103T:INDEX151 mark/5` | No student identifier is supplied. | Each request is rejected; no records or assignment definitions change. |
-| IDENTIFIER-2 | `assignment 1 m/A6789012U id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 1 m/A6789012U id/CS2103T:INDEX151 mark/5` | An index and matriculation number cannot be supplied together. | Each request is rejected; no records or assignment definitions change. |
-| IDENTIFIER-3 | `assignment m/A6789012U m/A6789012U id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark m/A6789012U m/A6789012U id/CS2103T:INDEX151 mark/5` | The matriculation-number prefix is repeated. | Each request is rejected; no records or assignment definitions change. |
-| IDENTIFIER-4 | `assignment 0 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 0 id/CS2103T:INDEX151 mark/5` | Displayed student indices start at 1. | Each request is rejected; no records or assignment definitions change. |
-| IDENTIFIER-5 | `assignment -1 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark -1 id/CS2103T:INDEX151 mark/5` | A displayed index cannot be negative. | Each request is rejected; no records or assignment definitions change. |
-| IDENTIFIER-6 | `assignment abc id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark abc id/CS2103T:INDEX151 mark/5` | A displayed index must be an integer. | Each request is rejected; no records or assignment definitions change. |
-| IDENTIFIER-7 | `assignment 1.5 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 1.5 id/CS2103T:INDEX151 mark/5` | A displayed index cannot be a decimal. | Each request is rejected; no records or assignment definitions change. |
-| IDENTIFIER-8 | `assignment 1 2 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 1 2 id/CS2103T:INDEX151 mark/5` | Only one student identifier is allowed. | Each request is rejected; no records or assignment definitions change. |
-| IDENTIFIER-9 | `assignment 99 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 99 id/CS2103T:INDEX151 mark/5` | Index 99 is outside the displayed list. | Each request raises the displayed-index error; no records or assignment definitions change. |
-
-**Invalid inputs**
-
-Run these cases while `find Irfan` is still active. Both commands in each row test the same invalid identifier; all other arguments are valid.
-
-| Case | Invalid input | Why it is invalid | Expected result |
-| --- | --- | --- | --- |
-| IDENTIFIER-1 | `assignment id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark id/CS2103T:INDEX151 mark/5` | No student identifier is supplied. | Each request is rejected; no records or assignment definitions change. |
-| IDENTIFIER-2 | `assignment 1 m/A6789012U id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 1 m/A6789012U id/CS2103T:INDEX151 mark/5` | An index and matriculation number cannot be supplied together. | Each request is rejected; no records or assignment definitions change. |
-| IDENTIFIER-3 | `assignment m/A6789012U m/A6789012U id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark m/A6789012U m/A6789012U id/CS2103T:INDEX151 mark/5` | The matriculation-number prefix is repeated. | Each request is rejected; no records or assignment definitions change. |
-| IDENTIFIER-4 | `assignment 0 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 0 id/CS2103T:INDEX151 mark/5` | Displayed student indices start at 1. | Each request is rejected; no records or assignment definitions change. |
-| IDENTIFIER-5 | `assignment -1 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark -1 id/CS2103T:INDEX151 mark/5` | A displayed index cannot be negative. | Each request is rejected; no records or assignment definitions change. |
-| IDENTIFIER-6 | `assignment abc id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark abc id/CS2103T:INDEX151 mark/5` | A displayed index must be an integer. | Each request is rejected; no records or assignment definitions change. |
-| IDENTIFIER-7 | `assignment 1.5 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 1.5 id/CS2103T:INDEX151 mark/5` | A displayed index cannot be a decimal. | Each request is rejected; no records or assignment definitions change. |
-| IDENTIFIER-8 | `assignment 1 2 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 1 2 id/CS2103T:INDEX151 mark/5` | Only one student identifier is allowed. | Each request is rejected; no records or assignment definitions change. |
-| IDENTIFIER-9 | `assignment 99 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 99 id/CS2103T:INDEX151 mark/5` | Index 99 is outside the displayed list. | Each request raises the displayed-index error; no records or assignment definitions change. |
+| IDENTIFIER-1 | `assignment id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark id/CS2103T:INDEX151 mark/5` | No student identifier is supplied. | <samp>Specify the student by either INDEX or m/MATRICULATION_NUMBER.</samp> followed by that command's usage, which shows both the index and `m/` worked examples. |
+| IDENTIFIER-2 | `assignment 1 m/A6789012U id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 1 m/A6789012U id/CS2103T:INDEX151 mark/5` | An index and matriculation number cannot be supplied together. | <samp>Specify the student by either INDEX or m/MATRICULATION_NUMBER, not both.</samp> followed by that command's usage, which shows both the index and `m/` worked examples. |
+| IDENTIFIER-3 | `assignment m/A6789012U m/A6789012U id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark m/A6789012U m/A6789012U id/CS2103T:INDEX151 mark/5` | The matriculation-number prefix is repeated. | <samp>Multiple values specified for the following single-valued field(s): m/</samp> |
+| IDENTIFIER-4 | `assignment 0 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 0 id/CS2103T:INDEX151 mark/5` | Displayed student indices start at 1. | <samp>Index must be a positive integer.</samp> |
+| IDENTIFIER-5 | `assignment -1 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark -1 id/CS2103T:INDEX151 mark/5` | A displayed index cannot be negative. | <samp>Index must be a positive integer.</samp> |
+| IDENTIFIER-6 | `assignment abc id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark abc id/CS2103T:INDEX151 mark/5` | `abc` is neither an index nor an `m/` matriculation number. | <samp>Specify the student by either INDEX or m/MATRICULATION_NUMBER.</samp> followed by that command's usage, which shows both the index and `m/` worked examples. |
+| IDENTIFIER-7 | `assignment 1.5 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 1.5 id/CS2103T:INDEX151 mark/5` | A displayed index cannot be a decimal. | <samp>Index must be a positive integer.</samp> |
+| IDENTIFIER-8 | `assignment 1 2 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 1 2 id/CS2103T:INDEX151 mark/5` | Only one student identifier is allowed; the space makes the identifier malformed. | <samp>Invalid command format!</samp> followed by that command's usage. |
+| IDENTIFIER-9 | `assignment 99 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 99 id/CS2103T:INDEX151 mark/5` | Index 99 is outside the displayed list. | <samp>The student index provided is invalid.</samp> |
+| IDENTIFIER-10 | `assignment A1234567X id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark A1234567X id/CS2103T:INDEX151 mark/5` | A bare matriculation number is missing the `m/` prefix. | <samp>Specify the student by either INDEX or m/MATRICULATION_NUMBER.</samp> followed by that command's usage, which shows both the index and `m/` worked examples. |
+| IDENTIFIER-11 | `assignment mat/A1234567X id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark mat/A1234567X id/CS2103T:INDEX151 mark/5` | `mat/` is not a supported prefix or alias for `m/`. | <samp>Invalid command format!</samp> followed by that command's usage. |
+| IDENTIFIER-12 | `assignment 2147483648 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 2147483648 id/CS2103T:INDEX151 mark/5` | The index is larger than the largest supported integer. | <samp>The student index provided is invalid.</samp> |
+| IDENTIFIER-13 | `mark 1 mark/5` | The required `id/` prefix is missing. | <samp>Missing required prefix: id/</samp>, followed by usage containing `mark 1 id/CS2103T:A1 mark/17.5` and `mark m/A1234567X id/CS2103T:A1 mark/17.5`. |
+| IDENTIFIER-14 | `mark 1 id/CS2103T:INDEX151` | The required `mark/` prefix is missing. | <samp>Missing required prefix: mark/</samp>, followed by the same two worked examples. |
+| IDENTIFIER-15 | `assignment 1` | The required `id/` prefix is missing. | <samp>Invalid command format!</samp>, followed by usage containing `assignment 1 id/CS2103T:A1 n/Assignment One max/20`, its matriculation counterpart, and both shorter existing-work examples. |
 
 ### Recording an assignment mark
 
