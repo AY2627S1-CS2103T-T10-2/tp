@@ -235,9 +235,13 @@ public class AttendanceCommandParserTest {
     }
 
     @Test
-    public void parse_subcommandTypoWithoutIndex_throwsIndexError() {
-        assertParseFailure(parser, " stat c/CS2103T-T10 d/07-10-2026", ParserUtil.MESSAGE_INVALID_INDEX);
-        assertParseFailure(parser, " unmak c/CS2103T-T10", ParserUtil.MESSAGE_INVALID_INDEX);
+    public void parse_subcommandTypoWithoutIndex_throwsIdentifierGuidance() {
+        assertParseFailure(parser, " stat c/CS2103T-T10 d/07-10-2026",
+                String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER,
+                        MarkAttendanceCommand.MESSAGE_USAGE));
+        assertParseFailure(parser, " unmak c/CS2103T-T10",
+                String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER,
+                        MarkAttendanceCommand.MESSAGE_USAGE));
     }
 
     @Test
@@ -263,7 +267,9 @@ public class AttendanceCommandParserTest {
     @Test
     public void parse_invalidIndex_throwsSpecificError() {
         assertParseFailure(parser, "", MESSAGE_MISSING_IDENTIFIER);
-        assertParseFailure(parser, "a", ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, "a",
+                String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER,
+                        MarkAttendanceCommand.MESSAGE_USAGE));
         assertParseFailure(parser, "0", ParserUtil.MESSAGE_INVALID_INDEX);
         assertParseFailure(parser, "-1", ParserUtil.MESSAGE_INVALID_INDEX);
         assertParseFailure(parser, " d/07-10-2026", MESSAGE_MISSING_IDENTIFIER);
@@ -320,7 +326,9 @@ public class AttendanceCommandParserTest {
 
     @Test
     public void parse_invalidIdentifierAndDate_throwsIdentifierError() {
-        assertParseFailure(parser, "a d/bad", ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, "a d/bad",
+                String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER,
+                        MarkAttendanceCommand.MESSAGE_USAGE));
         assertParseFailure(parser, " m/bad d/bad", MatriculationNumber.MESSAGE_CONSTRAINTS);
     }
 
@@ -343,7 +351,9 @@ public class AttendanceCommandParserTest {
 
     @Test
     public void parse_markClassWithoutIdentifier_throwsIdentifierError() {
-        assertParseFailure(parser, "a c/bad", ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, "a c/bad",
+                String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER,
+                        MarkAttendanceCommand.MESSAGE_USAGE));
         assertParseFailure(parser, " m/bad c/bad d/bad", MatriculationNumber.MESSAGE_CONSTRAINTS);
     }
 
@@ -427,7 +437,9 @@ public class AttendanceCommandParserTest {
         assertParseFailure(parser, "unmark 1 c/bad", ClassCode.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "unmark 1 c/", ClassCode.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "unmark 1 c/bad d/bad", ClassCode.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, "unmark a c/bad d/bad", ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, "unmark a c/bad d/bad",
+                String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER,
+                        UnmarkAttendanceCommand.MESSAGE_USAGE));
     }
 
     @Test

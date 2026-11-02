@@ -1,5 +1,7 @@
 package seedu.address.logic.parser;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ASSIGNMENT_ID;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
@@ -18,6 +20,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.AssignmentCommand;
 import seedu.address.logic.commands.StudentIdentifier;
+import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.gradebook.Assignment;
 import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.person.MatriculationNumber;
@@ -29,13 +32,36 @@ public class AssignmentCommandParserTest {
     private final String required = " m/A1234567X id/CS2103T:A1";
 
     @Test
+    public void parse_nonnumericIdentifier_explainsBothForms() {
+        for (String identifier : new String[] {"abc", "A1234567X", "a1234567x"}) {
+            String message = assertThrows(ParseException.class, () -> parser.parse(" " + identifier
+                    + " id/CS2103T:A1")).getMessage();
+            assertTrue(message.contains("Specify the student by either INDEX or m/MATRICULATION_NUMBER."));
+            assertTrue(message.contains("INDEX refers to the current displayed list."));
+            assertTrue(message.contains("assignment 1 id/CS2103T:A1 n/Assignment One max/20"));
+            assertTrue(message.contains("assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20"));
+        }
+    }
+
+    @Test
+    public void parse_missingFields_includesWorkedExamples() {
+        for (String input : new String[] {" 1", " m/A1234567X", " 1 id/CS2103T:A1 n/Assignment One"}) {
+            String message = assertThrows(ParseException.class, () -> parser.parse(input)).getMessage();
+            assertTrue(message.contains("assignment 1 id/CS2103T:A1 n/Assignment One max/20"));
+            assertTrue(message.contains("assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20"));
+            assertTrue(message.contains("\nassignment 1 id/CS2103T:A1\n"));
+            assertTrue(message.contains("\nassignment m/A1234567X id/CS2103T:A1"));
+        }
+    }
+
+    @Test
     public void parse_displayedIndex_successAndInvalidIndicesRejected() {
         assertParseSuccess(parser, " 1 id/CS2103T:A1",
                 new AssignmentCommand(new StudentIdentifier(Index.fromOneBased(1)), id));
         assertParseSuccess(parser, " 1 id/CS2103T:A1 n/Assignment One max/20",
                 new AssignmentCommand(new StudentIdentifier(Index.fromOneBased(1)),
                         new Assignment(id, "Assignment One", new BigDecimal("20"))));
-        for (String input : new String[] {"0", "-1", "abc", "1.5"}) {
+        for (String input : new String[] {"0", "-1", "1.5"}) {
             assertParseFailure(parser, " " + input + " id/CS2103T:A1",
                     ParserUtil.MESSAGE_INVALID_INDEX);
         }
@@ -47,6 +73,8 @@ public class AssignmentCommandParserTest {
     @Test
     public void parse_mistypedIdPrefix_throwsUsageError() {
         assertParseFailure(parser, " 1id/CS2103T:A1",
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, AssignmentCommand.MESSAGE_USAGE));
+        assertParseFailure(parser, " mat/A1234567X id/CS2103T:A1",
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, AssignmentCommand.MESSAGE_USAGE));
     }
 

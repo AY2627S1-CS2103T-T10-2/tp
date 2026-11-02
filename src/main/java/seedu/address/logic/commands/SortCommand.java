@@ -126,6 +126,10 @@ public class SortCommand extends Command {
         Comparator<Person> comparator = (first, second) -> {
             Optional<Mark> firstMark = marks.getOrDefault(first.getMatriculationNumber(), Optional.empty());
             Optional<Mark> secondMark = marks.getOrDefault(second.getMatriculationNumber(), Optional.empty());
+            if (firstMark.isEmpty() && secondMark.isEmpty()) {
+                return Boolean.compare(!marks.containsKey(first.getMatriculationNumber()),
+                        !marks.containsKey(second.getMatriculationNumber()));
+            }
             if (firstMark.isEmpty() || secondMark.isEmpty()) {
                 return Boolean.compare(firstMark.isEmpty(), secondMark.isEmpty());
             }
