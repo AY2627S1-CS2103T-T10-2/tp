@@ -1861,10 +1861,12 @@ Prerequisites: Start in a fresh test folder with the original six sample student
 
 ### Viewing assignment marks
 
+Prerequisites: Ensure `CS2103T:A1` is assigned to multiple students, including Alex Yeoh and at least one student whose name does not contain the word `Alex`. Record a mark for at least one assigned student and leave at least one other assigned student unmarked. Run `list` to show all students before starting.
+
 1. After recording marks for `CS2103T:A1`, enter `marks id/CS2103T:A1`.<br>
    Expected: TAssist shows the assignment name and maximum, then every assigned student in matriculation number order. Recorded scores appear as <samp>MARK/MAX_MARK</samp>; students without a score appear as <samp>Unmarked</samp>.
-1. Run `find` so some assigned students are hidden, then enter `marks id/CS2103T:A1` again.<br>
-   Expected: The marks result still contains all assigned students, and the current student list remains filtered.
+1. Enter `find Alex`. Confirm that Alex Yeoh is displayed and at least one other assigned student is hidden. Then enter `marks id/CS2103T:A1` again.<br>
+   Expected: The marks result still contains every assigned student, including those hidden by `find Alex`, with the same scores and unmarked statuses as before. The student list still shows only the students matching `Alex`, in the same order as immediately before the `marks` command.
 
 ### Viewing marks in a student profile
 

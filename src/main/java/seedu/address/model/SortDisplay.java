@@ -24,23 +24,31 @@ public final class SortDisplay {
         this.assignmentId = assignmentId;
     }
 
-    /** Creates a display description using the given student detail formatter. */
+    /**
+     * Creates a display description using the given student detail formatter.
+     */
     public static SortDisplay createWithDetail(Function<Person, String> detailFormatter) {
         return new SortDisplay(Optional.of(requireNonNull(detailFormatter)), Optional.empty());
     }
 
-    /** Creates a display description for a sort on one assignment's marks. */
+    /**
+     * Creates a display description for a sort on one assignment's marks.
+     */
     public static SortDisplay createForAssignment(AssignmentId assignmentId,
             Function<Person, String> detailFormatter) {
         return new SortDisplay(Optional.of(requireNonNull(detailFormatter)), Optional.of(requireNonNull(assignmentId)));
     }
 
-    /** Returns whether this display belongs to a sort on assignment marks. */
+    /**
+     * Returns whether this display belongs to a sort on assignment marks.
+     */
     public boolean isAssignmentSort() {
         return assignmentId.isPresent();
     }
 
-    /** Returns the extra detail to display for a student, if any. */
+    /**
+     * Returns the extra detail to display for a student, if any.
+     */
     public Optional<String> getDetailFor(Person person) {
         requireNonNull(person);
         return detailFormatter.map(formatter -> formatter.apply(person));

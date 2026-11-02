@@ -20,7 +20,9 @@ public interface Model {
     /** {@code Predicate} that always evaluates to true */
     Predicate<Person> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
 
-    /** {@code Comparator} that compares persons by name, then matriculation number. */
+    /**
+     * {@code Comparator} that compares persons by name, then matriculation number.
+     */
     Comparator<Person> COMPARATOR_NAME_ASC = Comparator
             .comparing((Person person) -> person.getName().fullName, String.CASE_INSENSITIVE_ORDER)
             .thenComparing(person -> person.getMatriculationNumber().value);
@@ -107,10 +109,14 @@ public interface Model {
      */
     void sortPersons(Comparator<Person> comparator);
 
-    /** Sorts the displayed persons and selects an extra detail to show on each card. */
+    /**
+     * Sorts the displayed persons and selects an extra detail to show on each card.
+     */
     void sortPersons(Comparator<Person> comparator, SortDisplay sortDisplay);
 
-    /** Returns the display detail selected by the active sort. */
+    /**
+     * Returns the display detail selected by the active sort.
+     */
     ObservableValue<SortDisplay> sortDisplayProperty();
 
     /** Returns an unmodifiable view of the filtered person list */
