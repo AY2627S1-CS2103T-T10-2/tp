@@ -31,9 +31,14 @@ public class AssignmentCommand extends Command {
             + "Parameters for existing work: (INDEX | " + PREFIX_MATRICULATION_NUMBER + "MATRICULATION_NUMBER) "
             + PREFIX_ASSIGNMENT_ID + "MODULE:CODE\n"
             + "Specify exactly one identifier. INDEX refers to the current displayed list.\n"
-            + "Example: " + COMMAND_WORD + " " + PREFIX_MATRICULATION_NUMBER + "A1234567X "
+            + "Examples for new work:\n" + COMMAND_WORD + " 1 " + PREFIX_ASSIGNMENT_ID + "CS2103T:A1 "
+            + PREFIX_NAME + "Assignment One " + PREFIX_MAX_MARK + "20\n"
+            + COMMAND_WORD + " " + PREFIX_MATRICULATION_NUMBER + "A1234567X "
             + PREFIX_ASSIGNMENT_ID + "CS2103T:A1 " + PREFIX_NAME + "Assignment One "
-            + PREFIX_MAX_MARK + "20";
+            + PREFIX_MAX_MARK + "20\n"
+            + "Examples for existing work:\n" + COMMAND_WORD + " 1 " + PREFIX_ASSIGNMENT_ID + "CS2103T:A1\n"
+            + COMMAND_WORD + " " + PREFIX_MATRICULATION_NUMBER + "A1234567X "
+            + PREFIX_ASSIGNMENT_ID + "CS2103T:A1";
 
     public static final String MESSAGE_SUCCESS = "Assigned %1$s (out of %3$s) to student %2$s.";
     public static final String MESSAGE_STUDENT_NOT_ENROLLED =

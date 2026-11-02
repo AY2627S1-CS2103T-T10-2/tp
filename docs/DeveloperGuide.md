@@ -209,6 +209,10 @@ Module enrollment is a prerequisite for the `assignment` command, rather than a 
 
 `MarkCommandParser` accepts one displayed index or matriculation number, an assignment ID, and a nonnegative decimal score. Both parsers reuse `ParserUtil#parseStudentIdentifier` to reject missing, combined, repeated, or malformed identifiers. `MarkCommand` uses the same `StudentIdentifier` resolution as `assignment`, before reading or mutating the gradebook. Out-of-range indices raise the standard displayed-index error. Rejected commands preserve records and undo/redo history. `MarkCommand` checks that the student, shared definition, and student's assignment link exist before calling `Model#recordMark`. The gradebook rejects scores above the shared maximum before changing any records, with `Mark cannot exceed the maximum mark of MAXIMUM.` The maximum comes from the assignment definition and uses plain decimal notation. `recordMark` returns the previous optional value, allowing the command to distinguish the first recorded mark from an update; a previous zero is present and therefore produces the updated response. The command changes only that student's score. `edit` remains for student particulars. The student profile also displays these marks, as described below.
 
+`parseStudentIdentifier` uses the calling command's usage when an identifier is missing, both forms are supplied, or a nonnumeric token such as bare `A1234567X` is supplied. The nonnumeric-token error explains `INDEX` and `m/MATRICULATION_NUMBER`. Tokens beginning with a digit, sign or decimal point retain index validation; `0`, `-1` and `1.5` report `Index must be a positive integer.`, while oversized positive integers report `The student index provided is invalid.` Whitespace or slashes in the preamble still produce a command-format error with usage; `mat/` remains unsupported. These rules are shared by the other callers of this helper. `parseIndex` itself is unchanged, so index-only commands retain their own guidance.
+
+`AssignmentCommand.MESSAGE_USAGE` and `MarkCommand.MESSAGE_USAGE` contain worked index and matriculation examples. Assignment usage covers both new and existing work. Parser errors append these shared constants. Mark checks missing `id/` and `mark/` prefixes before parsing the student identifier and names the first missing prefix before showing usage.
+
 `MarksCommandParser` accepts one assignment ID. `MarksCommand` obtains a read-only gradebook snapshot and joins that assignment's student marks to current student names by matriculation number. It sorts rows by matriculation number, independently of the filtered and sorted student list, and formats each score against the shared maximum. A missing `Mark` is printed as `Unmarked`, while a recorded zero is printed as `0/MAX_MARK`. An assignment with no students prints `None assigned.`. This command does not change the model or the displayed student list.
 
 `RemoveAssignmentCommandParser` accepts an assignment ID and an optional matriculation number. With a student number, `RemoveAssignmentCommand` checks that the student and assignment exist, then calls `Model#unassignStudent`; the gradebook removes only that student's link and optional mark. Without a student number, it calls `Model#removeAssignment`, which removes the definition and all links and marks under that ID. Both operations leave `Person` objects and unrelated gradebook entries untouched. Removing a definition releases its ID and name for reuse. The changed address book is saved through the usual command flow, so the removal persists after reopening the app. There is no archive or separate assignment edit operation.
@@ -1799,10 +1803,33 @@ Start with the original six sample students in a disposable data folder. Ensure 
    Expected: The existing definition attaches to the first search result, and only their mark changes.
 1. Use `mark m/MATRICULATION_NUMBER id/CS2103T:INDEX151 mark/12`, substituting the hidden student's number.<br>
    Expected: Their mark changes despite being hidden. Use the matriculation form of `assignment` with a fresh ID, name, and maximum to verify hidden-student creation too.
+1. Run `marks id/CS2103T:INDEX151` and confirm Irfan (`A5678901V`) has <samp>5/20</samp> and Roy (`A6789012U`) has <samp>12/20</samp>. Enter `mark m/A5678901V id/CS2103T:INDEX151 mark/6`.<br>
+   Expected: Irfan's mark becomes <samp>6/20</samp> and Roy's remains <samp>12/20</samp>. This accepted change provides a known undo checkpoint for the rejection cases below. Do not restart yet. Use matriculation numbers for the history checks because undo and redo reset the displayed list.
 1. For both commands, omit the identifier, combine `1 m/MATRICULATION_NUMBER`, repeat `m/`, or use `0`, `-1`, `abc`, `1.5`, `1 2`, or an index beyond the displayed list.<br>
    Expected: Each request fails without changing students, definitions, links, or marks. A rejected new assignment must not leave its definition behind.
+
+1. Run each command below to check identifier diagnostics and worked usage examples. Every request must be rejected without changing records or undo/redo history.
+
+   | Command | Expected guidance |
+   | --- | --- |
+   | `mark A1234567X id/CS2103T:INDEX151 mark/5` | <samp>Specify the student by either INDEX or m/MATRICULATION_NUMBER.</samp>, followed by mark usage with both worked identifier forms. |
+   | `assignment A1234567X id/CS2103T:INDEX151` | The same identifier guidance, followed by assignment usage with both identifier forms for new and existing work. |
+   | `mark mat/A1234567X id/CS2103T:INDEX151 mark/5` | <samp>Invalid command format!</samp>, followed by mark usage. The prefix is not accepted as an alias. |
+   | `assignment mat/A1234567X id/CS2103T:INDEX151` | <samp>Invalid command format!</samp>, followed by assignment usage. |
+   | `mark 0 id/CS2103T:INDEX151 mark/5` | <samp>Index must be a positive integer.</samp> Repeat with `-1` and `1.5`; the same diagnostic is retained. |
+   | `assignment 2147483648 id/CS2103T:INDEX151` | <samp>The student index provided is invalid.</samp> |
+   | `mark 1 mark/5` | <samp>Missing required prefix: id/</samp>, followed by usage containing `mark 1 id/CS2103T:A1 mark/17.5` and `mark m/A1234567X id/CS2103T:A1 mark/17.5`. |
+   | `mark 1 id/CS2103T:INDEX151` | <samp>Missing required prefix: mark/</samp>, followed by the same worked examples. |
+   | `assignment 1` | <samp>Invalid command format!</samp>, followed by usage containing `assignment 1 id/CS2103T:A1 n/Assignment One max/20`, its matriculation counterpart, and both shorter existing-work examples. |
+
+1. Enter `undo`, then `marks id/CS2103T:INDEX151`.<br>
+   Expected: Undo succeeds and Irfan's mark returns to <samp>5/20</samp>, while Roy's remains <samp>12/20</samp>. This confirms the rejected commands added no undo history entries.
+1. Repeat the rejection cases from the preceding two rejection steps, without running any successful data-changing commands. Then enter `redo`, followed by `marks id/CS2103T:INDEX151`.<br>
+   Expected: Redo succeeds and Irfan's mark returns to <samp>6/20</samp>, while Roy's remains <samp>12/20</samp>. This confirms the rejected commands preserved the pending redo.
+1. Enter `mark m/A5678901V id/CS2103T:INDEX151 mark/5`, then `marks id/CS2103T:INDEX151`.<br>
+   Expected: Irfan has <samp>5/20</samp> and Roy has <samp>12/20</samp>, restoring the expected marks before checking persistence.
 1. Close and reopen TAssist. Run `marks id/CS2103T:INDEX151`.<br>
-   Expected: Both students' assignment links and latest accepted marks persist; rejected changes remain absent.
+   Expected: Both students' assignment links persist, with Irfan at <samp>5/20</samp> and Roy at <samp>12/20</samp>. Rejected changes remain absent.
 
 ### Recording an assignment mark
 

@@ -35,11 +35,14 @@ import seedu.address.logic.commands.MarkAttendanceCommand;
 import seedu.address.logic.commands.MarkClassAttendanceCommand;
 import seedu.address.logic.commands.MarkCommand;
 import seedu.address.logic.commands.MarksCommand;
+import seedu.address.logic.commands.ParticipationCommand;
 import seedu.address.logic.commands.RemoveAssignmentCommand;
+import seedu.address.logic.commands.RemoveParticipationCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.commands.UnenrollCommand;
 import seedu.address.logic.commands.UnmarkAttendanceCommand;
+import seedu.address.logic.commands.ViewParticipationCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.classcode.ModuleCode;
@@ -222,7 +225,7 @@ public class AddressBookParserTest {
     }
 
     @Test
-    public void parseCommand_invalidStudentIndex_throwsConsistentError() {
+    public void parseCommand_invalidNumericStudentIndex_throwsConsistentError() {
         String[] commandFormats = {
             "delete %s",
             "attendance %s",
@@ -234,9 +237,44 @@ public class AddressBookParserTest {
             "unenroll %s all/"
         };
         // Overflow and malformed preambles have separate diagnostics covered by ParserUtilTest.
-        String[] invalidIndices = {"0", "-1", "a", "1.5"};
+        String[] invalidIndices = {"0", "-1", "1.5"};
         for (String commandFormat : commandFormats) {
             for (String invalidIndex : invalidIndices) {
+                String command = String.format(commandFormat, invalidIndex);
+                assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_INDEX, ()
+                    -> parser.parseCommand(command));
+            }
+        }
+    }
+
+    @Test
+    public void parseCommand_nonnumericStudentIdentifier_throwsIdentifierGuidance() {
+        String[][] testCases = {
+            {"delete %s", DeleteCommand.MESSAGE_USAGE},
+            {"attendance %s", MarkAttendanceCommand.MESSAGE_USAGE},
+            {"attendance unmark %s", UnmarkAttendanceCommand.MESSAGE_USAGE},
+            {"enroll %s c/CS2103T-T10", EnrollCommand.MESSAGE_USAGE},
+            {"unenroll %s c/CS2103T-T10", UnenrollCommand.MESSAGE_USAGE},
+            {"unenroll %s all/", UnenrollCommand.MESSAGE_USAGE},
+            {"assignment %s id/CS2103T:A1", AssignmentCommand.MESSAGE_USAGE},
+            {"mark %s id/CS2103T:A1 mark/5", MarkCommand.MESSAGE_USAGE},
+            {"participation %s", ParticipationCommand.MESSAGE_USAGE},
+            {"participation view %s", ViewParticipationCommand.MESSAGE_USAGE},
+            {"participation remove %s", RemoveParticipationCommand.MESSAGE_USAGE}
+        };
+        for (String[] testCase : testCases) {
+            for (String invalidIdentifier : new String[] {"a", "A1234567X"}) {
+                String command = String.format(testCase[0], invalidIdentifier);
+                String expectedMessage = String.format(ParserUtil.MESSAGE_MISSING_STUDENT_IDENTIFIER, testCase[1]);
+                assertThrows(ParseException.class, expectedMessage, () -> parser.parseCommand(command));
+            }
+        }
+    }
+
+    @Test
+    public void parseCommand_nonnumericIndexOnlyTarget_throwsIndexError() {
+        for (String commandFormat : new String[] {"view %s", "edit %s n/X"}) {
+            for (String invalidIndex : new String[] {"a", "A1234567X"}) {
                 String command = String.format(commandFormat, invalidIndex);
                 assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_INDEX, ()
                     -> parser.parseCommand(command));
