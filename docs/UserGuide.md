@@ -65,10 +65,10 @@ TAssist is a **desktop application for managing students, optimized for use thro
   For example, if the command specifies `n/NAME m/MATRICULATION_NUMBER`, `m/MATRICULATION_NUMBER n/NAME` is also acceptable.
 
 * Parameters without a prefix, such as `INDEX`, and subcommand words, such as `unmark`, must be in the position shown in the format.<br>
-  For example, `attendance 1 c/CS2103T-T10` is accepted, but `attendance c/CS2103T-T10 1` is rejected.
+  For example, `attendance 1 c/CS2100-T01` is accepted, but `attendance c/CS2100-T01 1` is rejected.
 
 * A mistyped subcommand word with no `INDEX` after it is read as the index.<br>
-  For example, `attendance stat c/CS2103T-T10 d/07-10-2026` (instead of `stats`) shows `Index must be a positive integer.` If you see this error, check the spelling of the subcommand.
+  For example, `attendance stat c/CS2103T-T10 d/07-10-2026` (instead of `stats`) shows `Index must be a positive integer.`, and `attendance unmrk m/A1234567X c/CS2100-T01 d/01-09-2026` (instead of `unmark`) shows `Specify the student by either INDEX or m/MATRICULATION_NUMBER, not both.` If you see either error, check the spelling of the subcommand.
 
 * Extraneous parameters for some of the commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
