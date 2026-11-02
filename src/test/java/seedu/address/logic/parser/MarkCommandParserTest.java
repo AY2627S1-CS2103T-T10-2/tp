@@ -1,5 +1,7 @@
 package seedu.address.logic.parser;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ASSIGNMENT_ID;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MARK;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
@@ -16,6 +18,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.MarkCommand;
 import seedu.address.logic.commands.StudentIdentifier;
+import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.gradebook.Mark;
 import seedu.address.model.person.MatriculationNumber;
@@ -27,10 +30,31 @@ public class MarkCommandParserTest {
     private final String required = " m/A1234567X id/CS2103T:A1 mark/17.5";
 
     @Test
+    public void parse_nonnumericIdentifier_explainsBothForms() {
+        for (String identifier : new String[] {"abc", "A1234567X", "a1234567x"}) {
+            String message = assertThrows(ParseException.class, () -> parser.parse(" " + identifier
+                    + " id/CS2103T:A1 mark/5")).getMessage();
+            assertTrue(message.contains("Specify the student by either INDEX or m/MATRICULATION_NUMBER."));
+            assertTrue(message.contains("INDEX refers to the current displayed list."));
+            assertTrue(message.contains("mark 1 id/CS2103T:A1 mark/17.5"));
+            assertTrue(message.contains("mark m/A1234567X id/CS2103T:A1 mark/17.5"));
+        }
+    }
+
+    @Test
+    public void parse_missingFields_includesWorkedExamples() {
+        for (String input : new String[] {" 1 mark/5", " 1 id/CS2103T:A1"}) {
+            String message = assertThrows(ParseException.class, () -> parser.parse(input)).getMessage();
+            assertTrue(message.contains("mark 1 id/CS2103T:A1 mark/17.5"));
+            assertTrue(message.contains("mark m/A1234567X id/CS2103T:A1 mark/17.5"));
+        }
+    }
+
+    @Test
     public void parse_displayedIndex_successAndInvalidIndicesRejected() {
         assertParseSuccess(parser, " 1 id/CS2103T:A1 mark/10",
                 new MarkCommand(new StudentIdentifier(Index.fromOneBased(1)), id, new Mark(BigDecimal.TEN)));
-        for (String input : new String[] {"0", "-1", "abc", "1.5"}) {
+        for (String input : new String[] {"0", "-1", "1.5"}) {
             assertParseFailure(parser, " " + input + " id/CS2103T:A1 mark/10",
                     ParserUtil.MESSAGE_INVALID_INDEX);
         }
