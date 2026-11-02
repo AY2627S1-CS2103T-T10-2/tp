@@ -10,7 +10,6 @@ import java.util.Optional;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.gradebook.Assignment;
 import seedu.address.model.gradebook.AssignmentId;
@@ -25,15 +24,16 @@ import seedu.address.model.person.MatriculationNumber;
 public class MarkCommand extends Command {
     public static final String COMMAND_WORD = "mark";
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Records or updates an assignment mark.\n"
-            + "Parameters: " + PREFIX_MATRICULATION_NUMBER + "MATRICULATION_NUMBER "
+            + "Parameters: (INDEX | " + PREFIX_MATRICULATION_NUMBER + "MATRICULATION_NUMBER) "
             + PREFIX_ASSIGNMENT_ID + "MODULE:CODE " + PREFIX_MARK + "MARK\n"
+            + "Specify exactly one identifier. INDEX refers to the current displayed list.\n"
             + "Example: " + COMMAND_WORD + " " + PREFIX_MATRICULATION_NUMBER + "A1234567X "
             + PREFIX_ASSIGNMENT_ID + "CS2103T:A1 " + PREFIX_MARK + "17.5";
 
     public static final String MESSAGE_RECORDED = "Recorded %1$s/%2$s for %3$s on %4$s.";
     public static final String MESSAGE_UPDATED = "Updated mark to %1$s/%2$s for %3$s on %4$s.";
 
-    private final MatriculationNumber student;
+    private final StudentIdentifier student;
     private final AssignmentId assignmentId;
     private final Mark mark;
 
@@ -41,6 +41,13 @@ public class MarkCommand extends Command {
      * Creates a command to record or replace a student's assignment mark.
      */
     public MarkCommand(MatriculationNumber student, AssignmentId assignmentId, Mark mark) {
+        this(new StudentIdentifier(student), assignmentId, mark);
+    }
+
+    /**
+     * Creates a command using a displayed index or matriculation number.
+     */
+    public MarkCommand(StudentIdentifier student, AssignmentId assignmentId, Mark mark) {
         this.student = requireNonNull(student);
         this.assignmentId = requireNonNull(assignmentId);
         this.mark = requireNonNull(mark);
@@ -49,28 +56,24 @@ public class MarkCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        boolean hasStudent = model.getAddressBook().getPersonList().stream()
-                .anyMatch(person -> person.getMatriculationNumber().equals(student));
-        if (!hasStudent) {
-            throw new CommandException(AddressBook.MESSAGE_STUDENT_NOT_FOUND);
-        }
+        MatriculationNumber studentNumber = student.resolve(model).getMatriculationNumber();
 
         ReadOnlyGradebook gradebook = model.getAddressBook().getGradebook();
         Assignment assignment = gradebook.findAssignment(assignmentId)
                 .orElseThrow(() -> new CommandException(Gradebook.MESSAGE_UNKNOWN_ASSIGNMENT));
-        if (!gradebook.getMarksForStudent(student).containsKey(assignmentId)) {
+        if (!gradebook.getMarksForStudent(studentNumber).containsKey(assignmentId)) {
             throw new CommandException(Gradebook.MESSAGE_UNASSIGNED_STUDENT);
         }
 
         Optional<Mark> previous;
         try {
-            previous = model.recordMark(student, assignmentId, mark);
+            previous = model.recordMark(studentNumber, assignmentId, mark);
         } catch (IllegalArgumentException ex) {
             throw new CommandException(ex.getMessage());
         }
         String messageFormat = previous.isPresent() ? MESSAGE_UPDATED : MESSAGE_RECORDED;
         return new CommandResult(String.format(messageFormat, mark, assignment.getMaxMark().toPlainString(),
-                student, assignmentId));
+                studentNumber, assignmentId));
     }
 
     @Override
