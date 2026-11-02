@@ -65,10 +65,11 @@ TAssist is a **desktop application for managing students, optimized for use thro
   For example, if the command specifies `n/NAME m/MATRICULATION_NUMBER`, `m/MATRICULATION_NUMBER n/NAME` is also acceptable.
 
 * Parameters without a prefix, such as `INDEX`, and subcommand words, such as `unmark`, must be in the position shown in the format.<br>
-  For example, `attendance 1 c/CS2103T-T10` is accepted, but `attendance c/CS2103T-T10 1` is rejected.
+  For example, `attendance 1 c/CS2100-T01` is accepted, but `attendance c/CS2100-T01 1` is rejected.
 
-* A mistyped subcommand word with no `INDEX` after it is read as the student identifier.<br>
+* A mistyped subcommand word is read as a student identifier.<br>
   For example, `attendance stat c/CS2103T-T10 d/07-10-2026` (instead of `stats`) shows `Specify the student by either INDEX or m/MATRICULATION_NUMBER.`, followed by command usage. If you intended a subcommand, check its spelling.
+  When a matriculation number is also supplied, `attendance unmrk m/A1234567X c/CS2100-T01 d/01-09-2026` (instead of `unmark`) shows `Specify the student by either INDEX or m/MATRICULATION_NUMBER, not both.`, followed by command usage.
 
 * Commands accepting either `INDEX` or `m/MATRICULATION_NUMBER` require the `m/` prefix for matriculation numbers.<br>
   For example, `mark A1234567X id/CS2103T:A1 mark/5` is rejected with guidance explaining both identifier forms and command usage. Use `mark m/A1234567X id/CS2103T:A1 mark/5` or a displayed index instead. Numeric-looking invalid indexes, such as `0`, `-1`, and `1.5`, retain index-specific errors.
@@ -107,24 +108,6 @@ The email address must follow the [email constraints](#email-constraints) below.
 Examples:
 * `add n/John Doe m/A1234567A e/johnd@example.com`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com m/A2345678A t/criminal`
-
-#### Email constraints
-
-These rules apply to the `e/EMAIL` field in both `add` and `edit`.
-
-* The address must have the form `local-part@domain`, with exactly one `@` and no spaces.
-* The local part (before `@`) must contain 1 to 64 ASCII characters. It may contain English letters (`A`–`Z`, `a`–`z`), digits (`0`–`9`), periods (`.`), and these special characters: `` !#$%&'*+/=?^_`{|}~- ``.
-* Periods cannot appear at the start or end of the local part, or consecutively. All other allowed special characters may appear at the start or end, repeat, or appear next to each other.
-* The domain (after `@`) consists of one or more labels separated by periods. Each label must contain 1 to 63 ASCII letters, digits, or hyphens, and must start and end with a letter or digit. Hyphens may repeat within a label. Underscores are not allowed in the domain.
-* The final domain label (the top-level domain for addresses such as `example.com`) must contain at least **2 characters**.
-* The entire address, including `@` and periods, must not exceed **254 characters**.
-* Quoted local parts (such as `"john doe"@example.com`), IP-address domains (such as `john@[127.0.0.1]`), and non-ASCII addresses are not supported.
-
-Accepted examples: `john__doe@example.com`, `_john@example.com`, `john_@example.com`, `john++doe@example.com`, `john_.doe@example.com`, and `o'connor@example.com`.
-
-Rejected examples: `.john@example.com`, `john.@example.com`, `john..doe@example.com`, `john@exam_ple.com`, and `john@example.c`.
-
-TAssist checks the address format only; it does not check whether the domain or mailbox exists.
 
 ### Listing all students: `list`
 
@@ -710,6 +693,127 @@ Furthermore, certain edits can cause TAssist to behave in unexpected ways (e.g.,
 _Details coming soon ..._
 
 --------------------------------------------------------------------------------------------------------------------
+## Field constraints
+
+This section lists what the text fields accept. Commands that use these fields refer to the rules here. Rules for numbers and dates are explained in the commands that use them.
+
+<box type="tip" seamless>
+
+**Tip:** If TAssist rejects your input, the error message names the parameter and the rule it broke. Compare it with the rules below.
+</box>
+
+### Name constraints
+
+These rules apply to a student's name, given by `n/NAME` in `add` and `edit`. (In the `assignment` command, `n/` is the assignment name instead. See [Assignment name constraints](#assignment-name-constraints).)
+
+* The name may contain only English letters (`A`–`Z`, `a`–`z`), digits (`0`–`9`) and spaces.
+* The name cannot be blank.
+* Letters with accents or other non-English characters (such as `é` or `ö`) are not supported.
+* Symbols are not supported. This includes apostrophes (`'`), hyphens (`-`), slashes (`/`) and periods (`.`).
+* Spaces before and after the name are ignored.
+* TAssist shows the name with the same capitalisation you typed.
+* There is no maximum length.
+
+Accepted examples: `John Doe`, `Betsy Crowe`, `Tan Ah Kow`, `Alex 2`.
+
+Rejected examples: `O'Brien`, `Tan Ah-Kow`, `Nur Aisyah d/o Ahmad`, `Zoë`, and `n/` with nothing after it.
+
+If a student's name contains an unsupported symbol, enter it without the symbol (for example, `OBrien` or `Tan Ah Kow`).
+
+### Matriculation number constraints
+
+These rules apply to the `m/MATRICULATION_NUMBER` field.
+
+* It must be the letter `A`, followed by exactly 7 digits, followed by a letter (for example, `A1234567B`).
+* It is not case-sensitive. TAssist stores it in upper case, so `a1234567b` is saved as `A1234567B`.
+
+Accepted examples: `A1234567B`, `a1234567b`.
+
+Rejected examples: `A123456B` (only 6 digits), `A1234567` (no ending letter), `1234567B` (no starting `A`), `U1234567B`.
+
+TAssist checks the format only; it does not check that the number belongs to a real student.
+
+### Email constraints
+
+These rules apply to the `e/EMAIL` field.
+
+* The address must have the form `local-part@domain`, with exactly one `@` and no spaces.
+* The local part (before `@`) must contain 1 to 64 ASCII characters. It may contain English letters (`A`–`Z`, `a`–`z`), digits (`0`–`9`), periods (`.`), and these special characters: `` !#$%&'*+/=?^_`{|}~- ``.
+* Periods cannot appear at the start or end of the local part, or consecutively. All other allowed special characters may appear at the start or end, repeat, or appear next to each other.
+* The domain (after `@`) consists of one or more labels separated by periods. Each label must contain 1 to 63 ASCII letters, digits, or hyphens, and must start and end with a letter or digit. Hyphens may repeat within a label. Underscores are not allowed in the domain.
+* The final domain label (the top-level domain for addresses such as `example.com`) must contain at least **2 characters**.
+* The entire address, including `@` and periods, must not exceed **254 characters**.
+* Quoted local parts (such as `"john doe"@example.com`), IP-address domains (such as `john@[127.0.0.1]`), and non-ASCII addresses are not supported.
+
+Accepted examples: `john__doe@example.com`, `_john@example.com`, `john_@example.com`, `john++doe@example.com`, `john_.doe@example.com`, and `o'connor@example.com`.
+
+Rejected examples: `.john@example.com`, `john.@example.com`, `john..doe@example.com`, `john@exam_ple.com`, and `john@example.c`.
+
+TAssist checks the address format only; it does not check whether the domain or mailbox exists.
+
+### Tag constraints
+
+These rules apply to each `t/TAG` field in `add` and `edit`. A student can have any number of tags.
+
+* A tag may contain only English letters and digits.
+* A tag cannot contain spaces or symbols.
+* Tags are case-sensitive: `Friend` and `friend` are different tags.
+* In `add`, `t/` must be followed by a tag. In `edit`, a lone `t/` with nothing after it removes all of the student's tags.
+
+Accepted examples: `friend`, `week5`, `CS2103T`.
+
+Rejected examples: `needs help` (space), `at-risk` (hyphen).
+
+### Module code constraints
+
+These rules apply to the module part of a class code or assignment ID, and to the module keywords in `filter`.
+
+* A module code is 2 to 3 letters, followed by 4 digits, followed by an optional suffix of up to 2 letters.
+* It cannot contain spaces.
+* It is not case-sensitive. TAssist stores it in upper case, so `cs2103t` is saved as `CS2103T`.
+
+Accepted examples: `CS2103T`, `cs2103t`, `CS3230`, `GEA1000`, `MA1521`.
+
+Rejected examples: `C2103T` (only 1 letter), `CS210` (only 3 digits), `CS2103TXYZ` (suffix longer than 2 letters), `CS 2103T` (space).
+
+### Class code constraints
+
+These rules apply to the `c/CLASS_CODE` field, and to the class code keywords in `filter`.
+
+* A class code has the form `MODULE-GROUP`, joined by exactly one hyphen (`-`).
+* `MODULE` must follow the [module code constraints](#module-code-constraints).
+* `GROUP` must be 1 to 5 English letters or digits, with no spaces or symbols.
+* It is not case-sensitive. TAssist stores it in upper case, so `cs2103t-t10` is saved as `CS2103T-T10`.
+
+Accepted examples: `CS2103T-T10`, `cs2103t-t10`, `CS3230-1`.
+
+Rejected examples: `CS2103T` (no group), `CS2103T-` (empty group), `CS2103T-T10000` (group longer than 5 characters), `CS2103T-T-10` (two hyphens).
+
+### Assignment ID constraints
+
+These rules apply to the `id/ASSIGNMENT_ID` field.
+
+* An assignment ID has the form `MODULE:CODE`, joined by exactly one colon (`:`).
+* `MODULE` must follow the [module code constraints](#module-code-constraints).
+* `CODE` must start with a letter and may contain only English letters and digits.
+* It is not case-sensitive. TAssist stores it in upper case, so `cs2103t:a1` is saved as `CS2103T:A1`.
+
+Accepted examples: `CS2103T:A1`, `cs2103t:a1`, `CS3230:PS2`.
+
+Rejected examples: `CS2103T` (no code), `CS2103T:1A` (code starts with a digit), `CS2103T:A-1` (hyphen), `CS2103T:A1:B` (two colons).
+
+### Assignment name constraints
+
+These rules apply to the assignment name, given by `n/NAME` in the `assignment` command.
+
+* The name must not be blank.
+* Any other characters are allowed, including symbols.
+* Spaces at the start and end are removed, and runs of spaces inside the name are reduced to a single space.
+* The name cannot contain a space followed by a parameter prefix (such as ` n/`, ` id/` or ` max/`), because TAssist would read it as the start of the next parameter.
+
+Accepted examples: `Problem Set 2`, `Lab #3 (Graded)`.
+
+Rejected examples: `n/` with nothing after it.
 
 ## FAQ
 
