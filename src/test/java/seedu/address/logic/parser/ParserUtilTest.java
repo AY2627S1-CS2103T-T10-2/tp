@@ -87,10 +87,18 @@ public class ParserUtilTest {
 
     @Test
     public void parseStudentIdentifier_malformedIndex_throwsParseException() {
-        for (String input : List.of(" 0", " -1", " a")) {
+        for (String input : List.of(" 0", " -1", " 1.5", " +1", " .5", " -", " +", " .")) {
             assertStudentIdentifierParseFailure(input, "Index must be a positive integer.");
         }
         assertStudentIdentifierParseFailure(" 1 extra", "Invalid command format!\nusage");
+    }
+
+    @Test
+    public void parseStudentIdentifier_nonnumericToken_explainsBothForms() {
+        for (String input : List.of(" a", " abc", " A1234567X", " a1234567x", " stat", " ?")) {
+            assertStudentIdentifierParseFailure(input,
+                    "Specify the student by either INDEX or m/MATRICULATION_NUMBER.\nusage");
+        }
     }
 
     @Test
@@ -122,7 +130,7 @@ public class ParserUtilTest {
 
     @Test
     public void parseStudentIdentifier_malformedIndexNotTooLarge_throwsIndexError() {
-        for (String input : List.of(" 00", " 00000000000", " +2147483648", " -2147483648", " 1c", " 1,2", " stat")) {
+        for (String input : List.of(" 00", " 00000000000", " +2147483648", " -2147483648", " 1c", " 1,2")) {
             assertStudentIdentifierParseFailure(input, "Index must be a positive integer.");
         }
     }

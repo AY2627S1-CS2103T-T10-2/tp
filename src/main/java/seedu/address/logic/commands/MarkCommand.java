@@ -27,7 +27,8 @@ public class MarkCommand extends Command {
             + "Parameters: (INDEX | " + PREFIX_MATRICULATION_NUMBER + "MATRICULATION_NUMBER) "
             + PREFIX_ASSIGNMENT_ID + "MODULE:CODE " + PREFIX_MARK + "MARK\n"
             + "Specify exactly one identifier. INDEX refers to the current displayed list.\n"
-            + "Example: " + COMMAND_WORD + " " + PREFIX_MATRICULATION_NUMBER + "A1234567X "
+            + "Examples:\n" + COMMAND_WORD + " 1 " + PREFIX_ASSIGNMENT_ID + "CS2103T:A1 " + PREFIX_MARK + "17.5\n"
+            + COMMAND_WORD + " " + PREFIX_MATRICULATION_NUMBER + "A1234567X "
             + PREFIX_ASSIGNMENT_ID + "CS2103T:A1 " + PREFIX_MARK + "17.5";
 
     public static final String MESSAGE_RECORDED = "Recorded %1$s/%2$s for %3$s on %4$s.";

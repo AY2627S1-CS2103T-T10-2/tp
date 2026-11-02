@@ -37,11 +37,12 @@ public class ParserUtil {
 
     private static final String REGEX_WHITESPACE_OR_SLASH = ".*[\\s/].*";
     private static final String REGEX_NON_ZERO_DIGITS = "0*[1-9][0-9]*";
+    private static final String REGEX_NUMERIC_START = "[+\\-0-9.].*";
 
     /**
      * Parses the student identifier in {@code argMultimap}: either an index in the preamble or a
      * matriculation number after m/, but not both.
-     * {@code messageUsage} is the calling command's usage, appended to the missing/both/mistyped errors.
+     * {@code messageUsage} is the calling command's usage, appended to missing, combined or mistyped identifier errors.
      *
      * @throws ParseException if m/ is repeated, both or neither identifier is given, or the given one is invalid.
      */
@@ -61,6 +62,10 @@ public class ParserUtil {
         }
         if (preamble.matches(REGEX_WHITESPACE_OR_SLASH)) {
             throw new ParseException(String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, messageUsage));
+        }
+        // Keep numeric-looking mistakes on the index-validation path.
+        if (!preamble.matches(REGEX_NUMERIC_START)) {
+            throw new ParseException(String.format(MESSAGE_MISSING_STUDENT_IDENTIFIER, messageUsage));
         }
         if (preamble.matches(REGEX_NON_ZERO_DIGITS) && !StringUtil.isNonZeroUnsignedInteger(preamble)) {
             throw new ParseException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);

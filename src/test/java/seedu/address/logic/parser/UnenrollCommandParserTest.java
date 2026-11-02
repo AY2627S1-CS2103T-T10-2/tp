@@ -74,7 +74,7 @@ public class UnenrollCommandParserTest {
         assertParseFailure(parser, " 0 " + PREFIX_CLASS_CODE + VALID_CLASS_CODE_CS2103T_T10,
                 ParserUtil.MESSAGE_INVALID_INDEX);
         assertParseFailure(parser, " a " + PREFIX_CLASS_CODE + VALID_CLASS_CODE_CS2103T_T10,
-                ParserUtil.MESSAGE_INVALID_INDEX);
+                MISSING_IDENTIFIER);
     }
 
     @Test
