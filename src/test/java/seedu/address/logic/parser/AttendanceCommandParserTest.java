@@ -167,8 +167,14 @@ public class AttendanceCommandParserTest {
     }
 
     @Test
-    public void parse_unmarkInvalidIndex_throwsIndexError() {
-        assertParseFailure(parser, "unmark 1 extra", ParserUtil.MESSAGE_INVALID_INDEX);
+    public void parse_unmarkExtraToken_throwsUsageError() {
+        assertParseFailure(parser, "unmark 1 extra",
+                String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, UnmarkAttendanceCommand.MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parse_unmarkTooLargeIndex_throwsInvalidIndexError() {
+        assertParseFailure(parser, "unmark 2147483648", Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
     @Test
@@ -193,10 +199,45 @@ public class AttendanceCommandParserTest {
     }
 
     @Test
-    public void parse_notUnmarkSubcommand_throwsIndexError() {
-        assertParseFailure(parser, "unmarkx 1", ParserUtil.MESSAGE_INVALID_INDEX);
-        assertParseFailure(parser, "un mark 1", ParserUtil.MESSAGE_INVALID_INDEX);
-        assertParseFailure(parser, "1 unmark", ParserUtil.MESSAGE_INVALID_INDEX);
+    public void parse_notUnmarkSubcommand_throwsUsageError() {
+        String expectedMessage =
+                String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, MarkAttendanceCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, "unmarkx 1", expectedMessage);
+        assertParseFailure(parser, "un mark 1", expectedMessage);
+        assertParseFailure(parser, "1 unmark", expectedMessage);
+    }
+
+    @Test
+    public void parse_issueInputs_throwSpecificErrors() {
+        String expectedMessage =
+                String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, MarkAttendanceCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, " 1c/CS2103T-T10", expectedMessage);
+        assertParseFailure(parser, " 1 C/CS2103T-T10", expectedMessage);
+        assertParseFailure(parser, " unmak 1 c/CS2103T-T10", expectedMessage);
+        assertParseFailure(parser, " 2147483648 c/CS2103T-T10", Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void parse_mistypedPreambleWithDuplicateClass_reportsDuplicatePrefix() {
+        assertParseFailure(parser, " 1 x c/CS2103T-T10 c/CS3230-T01",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_CLASS_CODE));
+    }
+
+    @Test
+    public void parse_mistypedPreambleWithInvalidDate_throwsUsageError() {
+        assertParseFailure(parser, " 1 x c/CS2103T-T10 d/bad",
+                String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, MarkAttendanceCommand.MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parse_tooLargeIndexWithInvalidClass_throwsInvalidIndexError() {
+        assertParseFailure(parser, " 2147483648 c/bad d/bad", Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void parse_subcommandTypoWithoutIndex_throwsIndexError() {
+        assertParseFailure(parser, " stat c/CS2103T-T10 d/07-10-2026", ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, " unmak c/CS2103T-T10", ParserUtil.MESSAGE_INVALID_INDEX);
     }
 
     @Test
@@ -225,8 +266,9 @@ public class AttendanceCommandParserTest {
         assertParseFailure(parser, "a", ParserUtil.MESSAGE_INVALID_INDEX);
         assertParseFailure(parser, "0", ParserUtil.MESSAGE_INVALID_INDEX);
         assertParseFailure(parser, "-1", ParserUtil.MESSAGE_INVALID_INDEX);
-        assertParseFailure(parser, "d/07-10-2026", ParserUtil.MESSAGE_INVALID_INDEX);
-        assertParseFailure(parser, "1 extra d/07-10-2026", ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, " d/07-10-2026", MESSAGE_MISSING_IDENTIFIER);
+        assertParseFailure(parser, "1 extra d/07-10-2026",
+                String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, MarkAttendanceCommand.MESSAGE_USAGE));
     }
 
     @Test
