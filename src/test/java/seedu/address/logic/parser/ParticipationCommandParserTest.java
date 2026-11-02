@@ -96,7 +96,7 @@ public class ParticipationCommandParserTest {
         assertParseFailure(parser, "0" + CLASS_AND_DATE + " p/2",
                 ParserUtil.MESSAGE_INVALID_INDEX);
         assertParseFailure(parser, "1 2" + CLASS_AND_DATE + " p/2",
-                ParserUtil.MESSAGE_INVALID_INDEX);
+                String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, ParticipationCommand.MESSAGE_USAGE));
         assertParseFailure(parser, "m/A123" + CLASS_AND_DATE + " p/2",
                 MatriculationNumber.MESSAGE_CONSTRAINTS);
     }
