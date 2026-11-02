@@ -222,6 +222,29 @@ public class AddressBookParserTest {
     }
 
     @Test
+    public void parseCommand_invalidStudentIndex_throwsConsistentError() {
+        String[] commandFormats = {
+            "delete %s",
+            "attendance %s",
+            "attendance unmark %s",
+            "view %s",
+            "edit %s n/X",
+            "enroll %s c/CS2103T-T10",
+            "unenroll %s c/CS2103T-T10",
+            "unenroll %s all/"
+        };
+        // Overflow and malformed preambles have separate diagnostics covered by ParserUtilTest.
+        String[] invalidIndices = {"0", "-1", "a", "1.5"};
+        for (String commandFormat : commandFormats) {
+            for (String invalidIndex : invalidIndices) {
+                String command = String.format(commandFormat, invalidIndex);
+                assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_INDEX, ()
+                    -> parser.parseCommand(command));
+            }
+        }
+    }
+
+    @Test
     public void parseCommand_unrecognisedInput_throwsParseException() {
         assertThrows(ParseException.class, String.format(MESSAGE_INVALID_COMMAND_FORMAT, HelpCommand.MESSAGE_USAGE), ()
             -> parser.parseCommand(""));
