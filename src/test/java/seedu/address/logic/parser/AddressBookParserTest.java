@@ -233,7 +233,8 @@ public class AddressBookParserTest {
             "unenroll %s c/CS2103T-T10",
             "unenroll %s all/"
         };
-        String[] invalidIndices = {"0", "-1", "a", "1.5", "2147483648", "1 extra"};
+        // Overflow and malformed preambles have separate diagnostics covered by ParserUtilTest.
+        String[] invalidIndices = {"0", "-1", "a", "1.5"};
         for (String commandFormat : commandFormats) {
             for (String invalidIndex : invalidIndices) {
                 String command = String.format(commandFormat, invalidIndex);
