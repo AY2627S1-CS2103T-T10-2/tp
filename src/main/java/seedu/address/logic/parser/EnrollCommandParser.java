@@ -23,13 +23,10 @@ public class EnrollCommandParser implements Parser<EnrollCommand> {
         requireNonNull(args);
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_CLASS_CODE);
 
-        Index index;
-        try {
-            index = ParserUtil.parseIndex(argMultimap.getPreamble());
-        } catch (ParseException pe) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EnrollCommand.MESSAGE_USAGE),
-                    pe);
+        if (argMultimap.getPreamble().isEmpty()) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EnrollCommand.MESSAGE_USAGE));
         }
+        Index index = ParserUtil.parseIndex(argMultimap.getPreamble());
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_CLASS_CODE);
 

@@ -24,13 +24,10 @@ public class UnenrollCommandParser implements Parser<UnenrollCommand> {
         requireNonNull(args);
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_CLASS_CODE, PREFIX_ALL);
 
-        Index index;
-        try {
-            index = ParserUtil.parseIndex(argMultimap.getPreamble());
-        } catch (ParseException pe) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, UnenrollCommand.MESSAGE_USAGE),
-                    pe);
+        if (argMultimap.getPreamble().isEmpty()) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, UnenrollCommand.MESSAGE_USAGE));
         }
+        Index index = ParserUtil.parseIndex(argMultimap.getPreamble());
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_CLASS_CODE);
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_ALL);
