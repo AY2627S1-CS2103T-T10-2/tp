@@ -30,10 +30,14 @@ public class MarkCommandParserTest {
     public void parse_displayedIndex_successAndInvalidIndicesRejected() {
         assertParseSuccess(parser, " 1 id/CS2103T:A1 mark/10",
                 new MarkCommand(new StudentIdentifier(Index.fromOneBased(1)), id, new Mark(BigDecimal.TEN)));
-        for (String input : new String[] {"0", "-1", "abc", "1.5", "1 2", "2147483648"}) {
+        for (String input : new String[] {"0", "-1", "abc", "1.5"}) {
             assertParseFailure(parser, " " + input + " id/CS2103T:A1 mark/10",
                     ParserUtil.MESSAGE_INVALID_INDEX);
         }
+        assertParseFailure(parser, " 1 2 id/CS2103T:A1 mark/10",
+                String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, MarkCommand.MESSAGE_USAGE));
+        assertParseFailure(parser, " 2147483648 id/CS2103T:A1 mark/10",
+                Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
     @Test
@@ -99,7 +103,13 @@ public class MarkCommandParserTest {
         assertMissingPrefix(" m/A1234567X i/CS2103T:A1 mark/5", "id/");
         assertMissingPrefix(" m/A1234567X id/CS2103T:A1 marks/5", "mark/");
         assertParseFailure(parser, " mat/A1234567X id/CS2103T:A1 mark/5",
-                ParserUtil.MESSAGE_INVALID_INDEX);
+                String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, MarkCommand.MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parse_mistypedPrefixWithIndex_reportsMissingPrefix() {
+        assertMissingPrefix(" 1 i/CS2103T:A1 mark/5", "id/");
+        assertMissingPrefix(" 1id/CS2103T:A1 mark/5", "id/");
     }
 
     @Test

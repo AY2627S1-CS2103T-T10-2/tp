@@ -15,6 +15,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.classcode.ClassCode;
@@ -86,9 +87,56 @@ public class ParserUtilTest {
 
     @Test
     public void parseStudentIdentifier_malformedIndex_throwsParseException() {
-        for (String input : List.of(" 0", " -1", " a", " 1 extra")) {
+        for (String input : List.of(" 0", " -1", " a")) {
             assertStudentIdentifierParseFailure(input, "Index must be a positive integer.");
         }
+        assertStudentIdentifierParseFailure(" 1 extra", "Invalid command format!\nusage");
+    }
+
+    @Test
+    public void parseStudentIdentifier_preambleWithWhitespaceOrSlash_throwsUsageError() {
+        for (String input : List.of(" 1 C/CS2103T-T10", " 1c/CS2103T-T10", " unmak 1", " unmak\t1", " 1/2")) {
+            assertStudentIdentifierParseFailure(input, "Invalid command format!\nusage");
+        }
+    }
+
+    @Test
+    public void parseStudentIdentifier_indexTooLarge_throwsInvalidIndexError() {
+        for (String input : List.of(" 2147483648", " 99999999999999999999", " 0002147483648")) {
+            assertStudentIdentifierParseFailure(input, "The student index provided is invalid.");
+        }
+    }
+
+    @Test
+    public void parseStudentIdentifier_largestValidIndex_returnsIdentifier() throws Exception {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" 2147483647", PREFIX_MATRICULATION_NUMBER);
+        assertEquals(new StudentIdentifier(Index.fromOneBased(2147483647)),
+                ParserUtil.parseStudentIdentifier(arguments, USAGE));
+    }
+
+    @Test
+    public void parseStudentIdentifier_leadingZeros_returnsIdentifier() throws Exception {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" 000000000001", PREFIX_MATRICULATION_NUMBER);
+        assertEquals(new StudentIdentifier(INDEX_FIRST_PERSON), ParserUtil.parseStudentIdentifier(arguments, USAGE));
+    }
+
+    @Test
+    public void parseStudentIdentifier_malformedIndexNotTooLarge_throwsIndexError() {
+        for (String input : List.of(" 00", " 00000000000", " +2147483648", " -2147483648", " 1c", " 1,2", " stat")) {
+            assertStudentIdentifierParseFailure(input, "Index must be a positive integer.");
+        }
+    }
+
+    @Test
+    public void parseStudentIdentifier_mistypedPreambleWithMatriculationNumber_throwsMultipleIdentifiersError() {
+        assertStudentIdentifierParseFailure(" 1 extra m/A1234567X",
+                "Specify the student by either INDEX or m/MATRICULATION_NUMBER, not both.\nusage");
+    }
+
+    @Test
+    public void parseStudentIdentifier_mistypedPreambleWithDuplicateMatriculationNumbers_throwsDuplicateError() {
+        assertStudentIdentifierParseFailure(" 1 extra m/A1234567X m/A7654321B",
+                "Multiple values specified for the following single-valued field(s): m/");
     }
 
     @Test
