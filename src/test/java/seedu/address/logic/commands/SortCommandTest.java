@@ -251,14 +251,14 @@ public class SortCommandTest {
         executeCommand("attendance 1 c/CS2103T-T10 d/10-10-2026");
         assertSampleMarkSort(display, List.of("Bernice Yu", "Alex Yeoh", "Charlotte Oliveiro",
                 "David Li", "Irfan Ibrahim", "Roy Balakrishnan"));
-        assertEquals(berniceAttendance.withRecord(attendanceRecord("10-10-2026")),
+        assertEquals(berniceAttendance.withRecord(createAttendanceRecord("10-10-2026")),
                 model.getFilteredPersonList().getFirst().getAttendance());
         executeCommand("attendance 1 c/CS2103T-T10 d/11-10-2026");
 
         assertSampleMarkSort(display, List.of("Bernice Yu", "Alex Yeoh", "Charlotte Oliveiro",
                 "David Li", "Irfan Ibrahim", "Roy Balakrishnan"));
-        assertEquals(berniceAttendance.withRecord(attendanceRecord("10-10-2026"))
-                .withRecord(attendanceRecord("11-10-2026")),
+        assertEquals(berniceAttendance.withRecord(createAttendanceRecord("10-10-2026"))
+                .withRecord(createAttendanceRecord("11-10-2026")),
                 model.getFilteredPersonList().getFirst().getAttendance());
         assertEquals(alexAttendance, model.getFilteredPersonList().get(1).getAttendance());
     }
@@ -312,15 +312,15 @@ public class SortCommandTest {
 
         executeCommand("attendance c/CS2103T-T10 d/10-10-2026");
         assertSampleMarkSort(display, expectedNames);
-        assertEquals(berniceAttendance.withRecord(attendanceRecord("10-10-2026")),
+        assertEquals(berniceAttendance.withRecord(createAttendanceRecord("10-10-2026")),
                 model.getFilteredPersonList().getFirst().getAttendance());
-        assertEquals(alexAttendance.withRecord(attendanceRecord("10-10-2026")),
+        assertEquals(alexAttendance.withRecord(createAttendanceRecord("10-10-2026")),
                 model.getFilteredPersonList().get(1).getAttendance());
 
         executeCommand("attendance unmark 1 c/CS2103T-T10 d/10-10-2026");
         assertSampleMarkSort(display, expectedNames);
         assertEquals(berniceAttendance, model.getFilteredPersonList().getFirst().getAttendance());
-        assertEquals(alexAttendance.withRecord(attendanceRecord("10-10-2026")),
+        assertEquals(alexAttendance.withRecord(createAttendanceRecord("10-10-2026")),
                 model.getFilteredPersonList().get(1).getAttendance());
 
         for (String command : List.of("enroll 1 c/CS2103T-T11", "unenroll 1 c/CS2103T-T11",
@@ -427,7 +427,7 @@ public class SortCommandTest {
         }
     }
 
-    private AttendanceRecord attendanceRecord(String date) {
+    private AttendanceRecord createAttendanceRecord(String date) {
         return new AttendanceRecord(new AttendanceDate(date), new ClassCode("CS2103T-T10"));
     }
 
