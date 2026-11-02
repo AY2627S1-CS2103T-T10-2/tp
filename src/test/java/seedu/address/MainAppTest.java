@@ -154,6 +154,23 @@ public class MainAppTest {
         assertFalse(Files.exists(dataFilePath));
         app.logic.execute("list");
         assertTrue(Files.exists(dataFilePath));
+        MainApp restartedApp = initializeApp(new JsonAddressBookStorage(dataFilePath));
+        assertEquals(app.model.getAddressBook(), restartedApp.model.getAddressBook());
+    }
+
+    @Test
+    public void initModelAndLogic_savedEmptyFile_doesNotInsertSamples() throws Exception {
+        Path dataFilePath = temporaryFolder.resolve("empty.json");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(dataFilePath);
+        storage.saveAddressBook(new AddressBook());
+        byte[] savedRecords = Files.readAllBytes(dataFilePath);
+
+        MainApp app = initializeApp(storage);
+
+        assertEquals(new AddressBook(), app.model.getAddressBook());
+        assertArrayEquals(savedRecords, Files.readAllBytes(dataFilePath));
+        app.logic.execute("list");
+        assertEquals(new AddressBook(), storage.readAddressBook().orElseThrow());
     }
 
     @Test

@@ -1160,6 +1160,8 @@ Compatibility, packaging and storage requirements follow the [CS2103T project co
 
 Given below are instructions to test the app manually.
 
+Fresh folders load the original six identities with `@u.nus.edu` emails. Alex, Bernice and Charlotte are enrolled in CS2100-T01; David, Irfan and Roy in CS2040S-T02. Each has attendance on 01-09-2026 and 08-09-2026 and 2 participation points on 08-09-2026 in that class. Each is assigned their module's QUIZ1 (Week 4 Quiz, maximum 20), marked 17.5 except Roy, whose work is unmarked. These modules and dates are separate from the exercises below. Existing saved files, including empty datasets, are loaded unchanged.
+
 Commands to enter are formatted like `redo`; messages and text displayed by TAssist are formatted like <samp>Redo successful.</samp>. In output samples, NAME represents the student's name and MARK/MAX_MARK represents the recorded mark and assignment maximum.
 
 <box type="info" seamless>
@@ -1246,7 +1248,7 @@ Start in a fresh test folder with the six original sample students. Run each ste
 
 ### Unenrolling from one or all classes
 
-Start in a fresh test folder with the original sample students. Run these steps in order.
+Start in a fresh test folder with the original sample students. Run `unenroll 1 all/` first to remove Alex's sample enrollment (academic records remain). Run these steps in order.
 
 1. Run `enroll 1 c/CS2103T-T10` and `enroll 1 c/CS3230-T01`, then `assignment m/A1234567X id/CS2103T:A1 n/Quiz max/10` and `mark m/A1234567X id/CS2103T:A1 mark/8`.<br>
    Expected: Alex Yeoh is enrolled in both classes and has a quiz mark of `8/10`.
@@ -1293,7 +1295,7 @@ Start in a fresh test folder with the original sample students. Run these steps 
       Expected: Students appear in descending matriculation number order. Roy Balakrishnan appears first.
 
    1. Run `sort email asc`.<br>
-      Expected: Students appear in ascending email order. Alex Yeoh appears first, followed by Roy Balakrishnan.
+      Expected: Students appear in ascending email order. Alex Yeoh appears first, followed by Bernice Yu; Roy Balakrishnan appears last.
 
    1. Run `list`.<br>
       Expected: Students return to alphabetical name order.
@@ -1301,10 +1303,10 @@ Start in a fresh test folder with the original sample students. Run these steps 
 1. Sorting by attendance record count
 
    1. In a fresh data folder with the original sample students, run `sort attendance desc`.<br>
-      Expected: Every student card shows <samp>Attendance records: 0</samp>, and students remain in name order.
+      Expected: Every student card shows <samp>Attendance records: 2</samp>, and students remain in name order.
 
    1. Run `enroll 6 c/CS2103T-T10` to enroll Roy Balakrishnan, then `attendance m/A6789012U c/CS2103T-T10 d/07-10-2026`.<br>
-      Expected: Roy Balakrishnan moves to the first position and shows <samp>Attendance records: 1</samp>.
+      Expected: Roy Balakrishnan moves to the first position and shows <samp>Attendance records: 3</samp>.
 
    1. Run `list`.<br>
       Expected: Students return to name order and the attendance count line disappears.
@@ -1331,7 +1333,7 @@ Run the following scenarios in order in a test data folder. Keep the details win
 
 1. Refreshing details after edits
 
-   1. Prerequisites: Have at least two students. The first student must not be enrolled in CS2103T-T10 and must have no attendance or participation records for that class. Ensure A9999999Z is unused. Run `list`, then `view 1`.
+   1. Prerequisites: Have at least two students. First add `add n/Aaron Profile m/A1111111A e/aaron.profile@u.nus.edu` so the first student has no enrollment or academic history. The first student must not be enrolled in CS2103T-T10 and must have no attendance or participation records for that class. Ensure A9999999Z is unused. Run `list`, then `view 1`.
 
    2. Run `edit 1 n/Aaron Updated m/A9999999Z e/aaron.updated@example.com t/updated`.<br>
       Expected: The existing details window immediately shows the new name, matriculation number, email and tag, and its title uses the new name. It does not take keyboard focus from the main window.
@@ -1547,7 +1549,7 @@ For additional restoration checks involving deleted students, assignment links a
    1. Prerequisites: Run `enroll 1 c/CS2103T-T11`. The first student has no attendance recorded on 07-10-2026.
 
    1. Test case: `attendance 1 c/CS2103T-T10 d/07-10-2026`, then `attendance 1 c/CS2103T-T11 d/07-10-2026`<br>
-      Expected: Both succeed. `view 1` shows <samp>2 records</samp>, with CS2103T-T10 before CS2103T-T11 for that date.
+      Expected: Both succeed. `view 1` shows <samp>4 records</samp> (including the two September sample records), with CS2103T-T10 before CS2103T-T11 for that date.
 
    1. Test case: `attendance unmark 1 d/07-10-2026`<br>
       Expected: The status message shows <samp>NAME has attendance recorded in more than one class on 07-10-2026: CS2103T-T10, CS2103T-T11. Specify the class with c/MODULE-CLASS.</samp> Both records remain.
