@@ -1,0 +1,59 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":FindCommand" as FindCommand LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "p:NameContainsKeywordsPredicate" as Predicate MODEL_COLOR
+participant "m:Model" as Model MODEL_COLOR
+end box
+
+[-> FindCommand : execute(m)
+activate FindCommand
+
+FindCommand -> Predicate : ignoresActiveFilter()
+activate Predicate
+
+Predicate --> FindCommand : false
+deactivate Predicate
+
+FindCommand -> Model : updateFindPredicate(p)
+activate Model
+
+note right of Model
+Stores p as findPredicate.
+filterPredicate is untouched, so
+the displayed list satisfies
+filterPredicate AND findPredicate.
+end note
+
+Model --> FindCommand
+deactivate Model
+
+FindCommand -> Model : sortPersons(COMPARATOR_NAME_ASC)
+activate Model
+
+Model --> FindCommand
+deactivate Model
+
+FindCommand -> Model : getFilteredPersonList()
+activate Model
+
+Model --> FindCommand : list
+deactivate Model
+
+create CommandResult
+FindCommand -> CommandResult
+activate CommandResult
+
+CommandResult --> FindCommand : r
+deactivate CommandResult
+
+[<-- FindCommand : r
+deactivate FindCommand
+
+@enduml

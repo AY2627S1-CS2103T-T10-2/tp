@@ -60,6 +60,13 @@ public class AddressBookParserTest {
     private final AddressBookParser parser = new AddressBookParser();
 
     @Test
+    public void parseCommand_attendanceFutureDate_throwsParseException() {
+        assertThrows(ParseException.class,
+                "Attendance date 28-10-2099 is in the future. Use today or an earlier date.", ()
+                -> parser.parseCommand("attendance 1 c/CS2103T-T10 d/28-10-2099"));
+    }
+
+    @Test
     public void parseCommand_add() throws Exception {
         Person person = new PersonBuilder().build();
         AddCommand command = (AddCommand) parser.parseCommand(PersonUtil.getAddCommand(person));
@@ -212,6 +219,29 @@ public class AddressBookParserTest {
                 FilterCommand.COMMAND_WORD + " " + String.join(" ", VALID_CLASS_CODE_CS3230_T01,
                         VALID_CLASS_CODE_CS2103T_T10, "CS2103T", "CS3230"));
         assertEquals(new FilterCommand(new PersonInModuleOrClassPredicate(classCodes, moduleCodes)), command);
+    }
+
+    @Test
+    public void parseCommand_invalidStudentIndex_throwsConsistentError() {
+        String[] commandFormats = {
+            "delete %s",
+            "attendance %s",
+            "attendance unmark %s",
+            "view %s",
+            "edit %s n/X",
+            "enroll %s c/CS2103T-T10",
+            "unenroll %s c/CS2103T-T10",
+            "unenroll %s all/"
+        };
+        // Overflow and malformed preambles have separate diagnostics covered by ParserUtilTest.
+        String[] invalidIndices = {"0", "-1", "a", "1.5"};
+        for (String commandFormat : commandFormats) {
+            for (String invalidIndex : invalidIndices) {
+                String command = String.format(commandFormat, invalidIndex);
+                assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_INDEX, ()
+                    -> parser.parseCommand(command));
+            }
+        }
     }
 
     @Test

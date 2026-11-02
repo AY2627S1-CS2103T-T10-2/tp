@@ -35,6 +35,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AssignmentCommandParser;
 import seedu.address.logic.parser.MarkCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
@@ -67,6 +68,56 @@ public class LogicManagerTest {
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
         StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
         logic = new LogicManager(model, storage);
+    }
+
+    @Test
+    public void execute_indexGradebookCommands_undoRedoAndPersistence() throws Exception {
+        model.addPerson(new PersonBuilder(AMY).withClassCodes("CS2103T-T10").build());
+        AssignmentId id = new AssignmentId("CS2103T:A1");
+        logic.execute("assignment 1 id/CS2103T:A1 n/Quiz max/20");
+        logic.execute("undo");
+        assertTrue(logic.getGradebook().findAssignment(id).isEmpty());
+        logic.execute("redo");
+        logic.execute("mark 1 id/CS2103T:A1 mark/10");
+        logic.execute("undo");
+        assertEquals(Optional.empty(), logic.getGradebook().getMarksForStudent(AMY.getMatriculationNumber()).get(id));
+        logic.execute("redo");
+        JsonAddressBookStorage saved = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());
+        assertEquals(Optional.of(new Mark(BigDecimal.TEN)),
+                logic.getGradebook().getMarksForStudent(AMY.getMatriculationNumber()).get(id));
+    }
+
+    @Test
+    public void execute_invalidGradebookIdentifiers_preserveRecordsAndSavedData() throws Exception {
+        model.addPerson(new PersonBuilder(AMY).withClassCodes("CS2103T-T10").build());
+        logic.execute("assignment 1 id/CS2103T:A1 n/Quiz max/20");
+        logic.execute("mark 1 id/CS2103T:A1 mark/10");
+        AddressBook original = new AddressBook(model.getAddressBook());
+        Path savedPath = temporaryFolder.resolve("addressBook.json");
+        String saved = Files.readString(savedPath);
+        String[] invalidIdentifiers = {"", "0", "-1", "bad", "1.5", "1 2", "2147483648",
+            "1 m/" + AMY.getMatriculationNumber(), "m/bad", "m/"};
+        for (String identifier : invalidIdentifiers) {
+            for (String command : new String[] {
+                "assignment " + identifier + " id/CS2103T:A2 n/New Work max/20",
+                "mark " + identifier + " id/CS2103T:A1 mark/5"
+            }) {
+                assertThrows(ParseException.class, () -> logic.execute(command));
+                assertEquals(original, model.getAddressBook());
+                assertEquals(saved, Files.readString(savedPath));
+            }
+        }
+        String[] outOfRangeCommands = {"assignment 2 id/CS2103T:A2 n/New Work max/20",
+            "mark 2 id/CS2103T:A1 mark/5"};
+        for (String command : outOfRangeCommands) {
+            assertThrows(CommandException.class, () -> logic.execute(command));
+            assertEquals(original, model.getAddressBook());
+            assertEquals(saved, Files.readString(savedPath));
+        }
+        logic.execute("undo");
+        assertEquals(Optional.empty(), logic.getGradebook().getMarksForStudent(AMY.getMatriculationNumber())
+                .get(new AssignmentId("CS2103T:A1")));
     }
 
     @Test
@@ -114,7 +165,7 @@ public class LogicManagerTest {
                 + " id/CS2103T:A1 n/Assignment One max/20.5";
         AssignmentId id = new AssignmentId("CS2103T:A1");
 
-        assertEquals(String.format(AssignmentCommand.MESSAGE_SUCCESS, id, AMY.getMatriculationNumber()),
+        assertEquals(String.format(AssignmentCommand.MESSAGE_SUCCESS, id, AMY.getMatriculationNumber(), "20.5"),
                 logic.execute(command).getFeedbackToUser());
         JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
         ReadOnlyAddressBook restored = storage.readAddressBook().orElseThrow();
@@ -135,8 +186,11 @@ public class LogicManagerTest {
                 logic.execute("mark m/" + student + assignment + " mark/0").getFeedbackToUser());
         assertEquals(String.format(MarkCommand.MESSAGE_UPDATED, "17.5", "20", student, "CS2103T:A1"),
                 logic.execute("mark m/" + student + assignment + " mark/17.5").getFeedbackToUser());
-        assertThrows(CommandException.class, Gradebook.MESSAGE_MARK_EXCEEDS_MAX, () ->
+        Path savedPath = temporaryFolder.resolve("addressBook.json");
+        String saved = Files.readString(savedPath);
+        assertThrows(CommandException.class, "Mark cannot exceed the maximum mark of 20.", () ->
                 logic.execute("mark m/" + student + assignment + " mark/21"));
+        assertEquals(saved, Files.readString(savedPath));
 
         JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
         ReadOnlyAddressBook restored = storage.readAddressBook().orElseThrow();
@@ -147,6 +201,35 @@ public class LogicManagerTest {
                 + "Student marks:\n" + student + " - " + AMY.getName() + ": 17.5/20";
         assertEquals(expectedMarks, new MarksCommand(new AssignmentId("CS2103T:A1"))
                 .execute(new ModelManager(restored, new UserPrefs())).getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_mistypedMarkPrefix_preservesSavedMarkAndHistory() throws Exception {
+        model.addPerson(AMY);
+        logic.execute("enroll 1 c/CS2103T-T10");
+        String student = AMY.getMatriculationNumber().toString();
+        logic.execute("assignment m/" + student + " id/CS2103T:A1 n/Quiz max/20");
+        String markCommand = "mark m/" + student + " id/CS2103T:A1 mark/";
+        logic.execute(markCommand + "10");
+        logic.execute(markCommand + "15");
+        logic.execute("undo");
+        Path filePath = temporaryFolder.resolve("addressBook.json");
+        String saved = Files.readString(filePath);
+        ReadOnlyAddressBook original = new JsonAddressBookStorage(filePath).readAddressBook().orElseThrow();
+
+        assertParseExceptionWithoutChangingSavedData("mark m/" + student + " i/CS2103T:A1 mark/5",
+                String.format(MarkCommandParser.MESSAGE_MISSING_REQUIRED_PREFIX, "id/", MarkCommand.MESSAGE_USAGE),
+                original, saved);
+        assertEquals(Optional.of(new Mark(BigDecimal.TEN)), logic.getGradebook()
+                .getMarksForStudent(AMY.getMatriculationNumber()).get(new AssignmentId("CS2103T:A1")));
+        logic.execute("redo");
+        assertEquals(Optional.of(new Mark(new BigDecimal("15"))), logic.getGradebook()
+                .getMarksForStudent(AMY.getMatriculationNumber()).get(new AssignmentId("CS2103T:A1")));
+        logic.execute("undo");
+        assertEquals(original, model.getAddressBook());
+        logic.execute("undo");
+        assertEquals(Optional.empty(), logic.getGradebook()
+                .getMarksForStudent(AMY.getMatriculationNumber()).get(new AssignmentId("CS2103T:A1")));
     }
 
     @Test

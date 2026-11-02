@@ -25,7 +25,8 @@ TAssist is a **desktop application for managing students, optimized for use thro
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar "addressbook.jar"`. If your downloaded file has a different name, substitute that filename inside the quotes.<br>
    Double-clicking the JAR file may not work on some systems. Use the terminal command above to launch TAssist.<br>
-   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
+   Only one TAssist instance can run from the same home folder. If it is already open, use the existing window or close it before launching again.<br>
+   A GUI similar to the one below should appear in a few seconds. The six sample students use `@u.nus.edu` emails and are enrolled in CS2100-T01 or CS2040S-T02, with attendance, participation and quiz records. Try `view 1` to explore a profile; Roy's quiz is unmarked. Samples are loaded only when no saved data file exists.<br>
    ![Ui](images/Ui.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
@@ -60,8 +61,14 @@ TAssist is a **desktop application for managing students, optimized for use thro
 * Items followed by `...` can appear zero or more times.<br>
   For example, `[t/TAG]... ` may be omitted, or written as `t/friend` or `t/friend t/family`.
 
-* Parameters can be in any order.<br>
+* Parameters with a prefix, such as `n/NAME` or `c/MODULE-CLASS`, can be in any order.<br>
   For example, if the command specifies `n/NAME m/MATRICULATION_NUMBER`, `m/MATRICULATION_NUMBER n/NAME` is also acceptable.
+
+* Parameters without a prefix, such as `INDEX`, and subcommand words, such as `unmark`, must be in the position shown in the format.<br>
+  For example, `attendance 1 c/CS2103T-T10` is accepted, but `attendance c/CS2103T-T10 1` is rejected.
+
+* A mistyped subcommand word with no `INDEX` after it is read as the index.<br>
+  For example, `attendance stat c/CS2103T-T10 d/07-10-2026` (instead of `stats`) shows `Index must be a positive integer.` If you see this error, check the spelling of the subcommand.
 
 * Extraneous parameters for some of the commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
@@ -183,19 +190,20 @@ Examples:
 
 ### Viewing a student's details: `view`
 
-Opens a separate student details window showing particulars, enrolled classes and modules, assignment marks, and attendance records with their dates and classes.
+Opens a separate student details window showing particulars, enrolled classes and modules, assignment marks, attendance records with their dates and classes, and participation history.
 
 Format: `view INDEX`
 
 * The index refers to the number shown in the displayed student list.
-* Details are organised into Particulars, Classes and modules, Assignments and marks, and Attendance sections.
+* Details are organized into Particulars, Classes and modules, Assignments and marks, Attendance, and Participation sections.
 * Classes are listed by module code and class group. Students without classes show `No classes enrolled`.
 * Running `view` again updates the same window with the selected student's latest details, even when selecting the same student. Press `Esc` to close the window.
-* While the window is open, successful changes to that student's particulars, class enrolments, attendance, assignments, or marks automatically refresh the displayed details without taking keyboard focus from the main window. Editing their matriculation number preserves the visible assignments and recorded marks.
+* While the window is open, successful changes to that student's particulars, class enrollments, attendance, assignments, marks, or participation records automatically refresh the displayed details without taking keyboard focus from the main window. Editing their matriculation number preserves the visible assignments and recorded marks.
 * Deleting the displayed student or clearing all students closes the details window.
 * Successful `undo` and `redo` also close the details window. Run `view` again to inspect the restored records. A manually closed window stays closed when later commands change the student or their marks.
 * Finding, filtering, or sorting students keeps the window on the same student, even if that student is no longer in the displayed list. Changes to other students do not switch the window to another student.
 * Attendance records show the date and class, ordered from newest to oldest, then by class code for records on the same date. If there are no attendance records, the Attendance section shows `None recorded`.
+* The Participation section groups records by class code. Within each class, records are ordered by date, from earliest to latest. Each record shows its date and awarded points. If the student has no participation records, the section shows `None recorded`.
 * The Assignments and marks section shows only assignments attached to the selected student, ordered by assignment ID. Each entry includes its ID, name, maximum mark, and score (for example, `Mark: 8.5/10`).
 * An assignment without a recorded score shows `Mark: Unmarked`. A recorded zero shows a score such as `Mark: 0/10`. If the student has no assignments, the section shows `None assigned`.
 * After `assignment`, `mark`, or `removeassignment` succeeds, the open window immediately shows the updated assignments and scores. You do not need to run `view` again.
@@ -205,12 +213,15 @@ Example: `view 1` displays the first student in the current list.
 
 ### Assigning work to a student: `assignment`
 
-Creates an assignment definition and assigns it to one student, or assigns an existing definition to another student. The student is identified by matriculation number, even if they are absent from the current search results.
+Creates an assignment definition and assigns it to one student, or assigns an existing definition to another student. Identify the student by their displayed index or matriculation number.
 
-Format for new work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK`
+Format for new work: `assignment INDEX id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK`
 
-Format for existing work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`
+Format for existing work: `assignment INDEX id/MODULE:CODE` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`
 
+* Specify exactly one student identifier: a positive displayed `INDEX` or `m/MATRICULATION_NUMBER`, never both.
+* An index refers to the current displayed list, including searches, filters, and sorting. Zero, negative, malformed, and out-of-range indices are rejected without changing records.
+* Matriculation numbers are case-insensitive and can target students hidden from the displayed list.
 * `id/` identifies an assignment within a module, such as `CS2103T:A1`. IDs ignore letter case.
 * Both forms require an existing student who is enrolled in the assignment's module. Use `enroll` to enroll the student first. Any class within that module qualifies; enrollment only in another module does not.
 * A rejected assignment request changes no records, including when creating new work: neither the shared definition nor the student's assignment link is created.
@@ -220,6 +231,7 @@ Format for existing work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`
 * `max/` is a positive numeric maximum mark; decimals are allowed.
 * Values whose displayed decimal form would exceed 64 characters are rejected. This prevents very large or very precise values from slowing the app when it displays or saves them.
 * The assignment begins without a recorded mark. A mark of zero, when later recorded, is different from an unmarked assignment.
+* Both forms confirm the assignment's stored maximum, for example, `Assigned CS2103T:A1 (out of 20) to student A1234567X.`
 * If that student's details window is open, the new assignment appears immediately with `Mark: Unmarked`.
 * To assign the same work to another student, use its existing ID without `n/` or `max/`. Repeating the assignment for the same student reports an error and changes nothing.
 * An existing ID or name cannot be used to create a second definition in the same module. A student and assignment ID must already exist when using the shorter form.
@@ -228,6 +240,8 @@ Format for existing work: `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`
 
 Examples:
 * These examples assume both students are already enrolled in `CS2103T` using `enroll`.
+* `assignment 1 id/CS2103T:A1 n/Assignment One max/20`
+* `assignment 1 id/CS2103T:A1` attaches an existing definition to the first displayed student.
 * `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20`
 * `assignment m/A2345678Y id/CS2103T:A1`
 
@@ -235,17 +249,23 @@ Examples:
 
 Records a student's numeric mark for work already assigned to them. Entering another mark for the same student and assignment updates the previous value. Use `mark` (singular) to record or update a score; `marks` (plural) only displays results. Use `attendance` to record attendance.
 
-Format: `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`
+Format: `mark INDEX id/MODULE:CODE mark/MARK` or `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`
 
+* Specify exactly one student identifier: a positive displayed `INDEX` or `m/MATRICULATION_NUMBER`, never both.
+* An index refers to the current displayed list, including searches, filters, and sorting. Zero, negative, malformed, and out-of-range indices are rejected without changing records.
+* Matriculation numbers are case-insensitive and can target students hidden from the displayed list.
 * The student and assignment must exist, and the assignment must already be attached to that student using `assignment`.
 * Existing assigned work can still be marked, including updating a previous mark, after the student is unenrolled from its module.
 * `MARK` may be zero or a positive decimal, up to the assignment's maximum mark. A recorded `0` is different from an unmarked assignment.
+* A score above the maximum is rejected with the actual limit, for example, `Mark cannot exceed the maximum mark of 10.` For a decimal maximum of `10.25`, the message ends with `10.25.` Maximums use plain decimal notation. Rejection preserves the previous score, assignment data, and saved records.
 * A mark's displayed decimal form must also fit within 64 characters.
 * The confirmation includes the score and maximum mark. Updating a recorded score gives a short updated message.
 * If that student's details window is open, its score updates immediately after the command succeeds, without another `view` command.
-* The student's matriculation number identifies them even when they are absent from the current search results. Use `mark` to change a score; `edit` changes student details and does not accept marks.
+* With a student identifier supplied, a missing `id/` or `mark/` prefix is named in the error, followed by command usage. For example, `mark m/A1234567X i/CS2103T:A1 mark/5` reports `Missing required prefix: id/`. Use `id/` for the assignment ID. Rejected commands leave marks unchanged.
+* Use `mark` to change a score; `edit` changes student details and does not accept marks.
 
 Examples:
+* `mark 1 id/CS2103T:A1 mark/10`
 * `mark m/A1234567X id/CS2103T:A1 mark/17.5`
 * `mark m/A1234567X id/CS2103T:A1 mark/0`
 
@@ -335,7 +355,7 @@ Format: `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MODULE:CODE [asc|desc]
 * The sort only changes how the list is displayed. Your saved data and the original order of students are not affected.
 * Commands that use an `INDEX`, such as `delete`, `edit` and `view`, use the index number shown in the sorted list.
 * The displayed list uses name order by default. A later `add`, `find`, or `list` resets to that order.
-* Changing an assignment, mark, or student details after a mark sort also returns the list to name order, so the previous marks and ordering are not left on screen.
+* Changing an assignment, a mark, or a student's name, matriculation number, email address, or tags after a mark sort returns the displayed list to name order and clears the assignment result shown on student cards. Recording or removing attendance, changing class enrollment, and recording or removing participation preserve the mark sort and assignment results.
 
 Examples:
 * `sort name desc` displays students in reverse alphabetical name order.
@@ -359,14 +379,14 @@ or
 * `c/MODULE-CLASS` is required. The student must be enrolled in that class using `enroll`. Class codes ignore letter case, as in `enroll`.
 * For a single student, specify either `INDEX` or `MATRICULATION_NUMBER`, not both.
 * Without `INDEX` or `m/`, marks every student enrolled in `MODULE-CLASS`, including students not in the displayed list.
-* When marking a whole class, students already recorded for that class and date are skipped and named in the result; the others are still marked.
+* When marking a whole class, students already recorded for that class and date are skipped and listed in the result by name and matriculation number, e.g. `Alex Yeoh (A1234567X)`; the others are still marked.
 * A class with no enrolled students shows an error and changes nothing.
 * To take attendance quickly, mark the whole class, then use `attendance unmark` for each absent student. Unmarking removes that student's record for the class and date; TAssist does not store absences.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
 * The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
 * The matriculation number can identify a student who is not in the displayed list, for example after `find`.
-* `DATE` must be in `dd-MM-yyyy` format. If omitted, today's date is used.
+* `DATE` must be in `dd-MM-yyyy` format and cannot be later than today. If omitted, today's date is used.
 * When marking a single student, an existing record for that class and date shows an error and changes nothing.
 * The same student can be marked in different classes on one date.
 
@@ -394,14 +414,20 @@ or
 * The index **must be a positive integer** 1, 2, 3, ...
 * The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
 * The matriculation number can identify a student who is not in the displayed list, for example after `find`.
-* `DATE` must be in `dd-MM-yyyy` format. If omitted, today's date is used.
+* `DATE` must be in `dd-MM-yyyy` format and cannot be later than today. If omitted, today's date is used.
 * `unmark` is not case-sensitive.
 * Unmarking a date with no attendance recorded for that student, or specifying a class with no record on that date, shows an error and changes nothing.
+* Attendance records dated later than today, such as those saved by an earlier version of TAssist or added by editing the data file, still load, but `attendance unmark` cannot remove them. To remove one, edit the data file.
 
 Examples:
 * `attendance unmark 1 d/07-10-2026` removes the only attendance record for `07-10-2026` for the 1st student in the displayed list.
 * `attendance unmark 1 c/CS2103T-T10 d/07-10-2026` removes that student's record for `CS2103T-T10` on `07-10-2026`, leaving any records for other classes unchanged.
 * `attendance unmark m/A1234567X` removes the only attendance record for today's date for the student whose matriculation number is `A1234567X`.
+
+<box type="tip" seamless>
+
+**Tip:** There is no command to change an attendance record's class or date. To correct a record, remove it with `attendance unmark`, then record the correct class and date with `attendance`. For example, `attendance unmark m/A1234567X c/CS2103T-T10 d/07-10-2026` followed by `attendance m/A1234567X c/CS2103T-T11 d/07-10-2026` moves that student's record for `07-10-2026` from `CS2103T-T10` to `CS2103T-T11`. The student must be enrolled in the new class.
+</box>
 
 ### Recording class participation: `participation`
 
@@ -427,6 +453,7 @@ or
 * The class, date and points are required.
 * The date must be a valid calendar date in `dd-MM-yyyy` format,
   with a year from 0001 to 9999.
+* The date cannot be in the future. Today and earlier dates are accepted.
 * Points must contain digits only and be between `0` and `2147483647`,
   inclusive. Negative numbers and fractional points are not accepted.
 * There is no configurable maximum score per module.
@@ -550,47 +577,59 @@ Examples:
 Enrolls a student in a class.
 
 Format: `enroll INDEX c/MODULE-CLASS`
+or
+`enroll m/MATRICULATION_NUMBER c/MODULE-CLASS`
 
-* Enrolls the student at the specified `INDEX` in the class `CLASS` of the module `MODULE`.
+* Enrolls the student at the specified `INDEX` or with the specified `MATRICULATION_NUMBER` in the class `CLASS` of the module `MODULE`.
+* Specify the student by either `INDEX` or `MATRICULATION_NUMBER`, not both.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
+* The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
+* The matriculation number can identify a student who is not in the displayed list, for example after `find`.
 * `MODULE` and `CLASS` are joined by a hyphen, e.g. `CS2103T-T10`.
 * `MODULE` is a module code: 2 to 3 letters, followed by 4 digits and an optional suffix of up to 2 letters (e.g. `CS2103T`), with no spaces.
 * `CLASS` is a class group: 1 to 5 letters or digits (e.g. `T10`), with no spaces or symbols.
 * Class codes are not case-sensitive: `cs2103t-t10` is saved as `CS2103T-T10`.
 * A student can be enrolled in more than one class, including classes from different modules. Use `enroll` once for each class.
 * Enrolling a student in a class they are already in shows an error and changes nothing.
-* Only one `c/` can be given per command.
+* Only one `c/` and, if used, one `m/` can be given per command.
 
 Examples:
 * `enroll 1 c/CS2103T-T10` enrolls the 1st student in the displayed list in class `T10` of module `CS2103T`.
 * `enroll 2 c/CS3230-T01` enrolls the 2nd student in class `T01` of module `CS3230`.
+* `enroll m/A1234567X c/CS2103T-T10` enrolls the student whose matriculation number is `A1234567X` in class `T10` of module `CS2103T`.
 
-### Unenrolling a student `unenroll`
+### Unenrolling a student: `unenroll`
 
 Unenrolls a student from a class or all classes.
 
-Format: `unenroll INDEX c/MODULE-CLASS`, or `unenroll INDEX all/`
+Format: `unenroll INDEX c/MODULE-CLASS` or `unenroll INDEX all/`
+or
+`unenroll m/MATRICULATION_NUMBER c/MODULE-CLASS` or `unenroll m/MATRICULATION_NUMBER all/`
 
-* If only `c/MODULE-CLASS` is provided, unenrolls the student at the specified `INDEX` from that class.
-* If only `all/` is provided, unenrolls the student at the specified `INDEX` from all classes.
+* If only `c/MODULE-CLASS` is provided, unenrolls the student at the specified `INDEX` or with the specified `MATRICULATION_NUMBER` from that class.
+* If only `all/` is provided, unenrolls that student from all classes.
 * Both forms keep existing assignments and marks. Marks for retained assignments can still be recorded or updated after unenrollment.
+* Specify the student by either `INDEX` or `MATRICULATION_NUMBER`, not both.
 * The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
+* The matriculation number must start with `A`, followed by 7 digits, and end with a letter. It is case-insensitive.
+* The matriculation number can identify a student who is not in the displayed list, for example after `find`.
 * `MODULE` and `CLASS` are joined by a hyphen, e.g. `CS2103T-T10`.
 * `MODULE` is a module code: 2 to 3 letters, followed by 4 digits and an optional suffix of up to 2 letters (e.g. `CS2103T`), with no spaces.
 * `CLASS` is a class group: 1 to 5 letters or digits (e.g. `T10`), with no spaces or symbols.
 * Class codes are not case-sensitive: `cs2103t-t10` matches `CS2103T-T10`.
-* If neither `c/MODULE-CLASS` nor `all/` prefixes are provided, it shows an error and changes nothing.
-* If both `c/MODULE-CLASS` and `all/` prefixes are provided, it shows an error and changes nothing.
+* If neither `c/MODULE-CLASS` nor `all/` is provided, it shows an error and changes nothing.
+* If both `c/MODULE-CLASS` and `all/` are provided, it shows an error and changes nothing.
 * Unenrolling a student from a class they are not enrolled in shows an error and changes nothing.
-* If the student is not enrolled in any classes, `unenroll INDEX all/` shows an error and changes nothing.
-* Only one `c/` can be given per command.
-* Only one `all/` can be given per command.
+* If the student is not enrolled in any classes, unenrolling from `all/` shows an error and changes nothing.
+* Only one `c/` or one `all/` can be given per command. If used, one `m/` can be given per command.
 
 Examples:
 * `unenroll 1 c/CS2103T-T10` unenrolls the 1st student in the displayed list from class `T10` of module `CS2103T`.
 * `unenroll 2 all/` unenrolls the 2nd student from all classes.
+* `unenroll m/A1234567X c/CS2103T-T10` unenrolls the student whose matriculation number is `A1234567X` from class `T10` of module `CS2103T`.
+* `unenroll m/A1234567X all/` unenrolls that student from all classes.
 
 ### Clearing all entries: `clear`
 
@@ -639,6 +678,10 @@ Format: `exit`
 
 TAssist automatically saves data after every command. You do not need to save manually.
 
+To protect saved records, TAssist blocks a second instance from opening the same home folder, even when launched from another folder. The second launch displays an error and closes without opening another main window. Use the existing TAssist window, or close it before relaunching.
+
+TAssist creates a `.tassist.lock` file in its home folder. Do not delete or move this file while TAssist is running. It may remain after the app closes; this is normal and does not prevent the next launch. If TAssist cannot create or access the lock, it displays an error and closes. Check that you have permission to create and update files in the home folder before trying again.
+
 If a save fails, TAssist displays an error. The command may already have changed the records in memory, but those changes have not been saved and may be lost when you close the app. For a write-permission error, restore write access to the data file and its folder, then run `list` to retry saving the current records before closing TAssist.
 
 ### Editing the data file
@@ -668,7 +711,7 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous TAssist home folder.
+**A**: Copy the JAR file into a new home folder on the other computer. Create a `data` folder inside it, copy `data/addressbook.json` from your previous TAssist home folder into that `data` folder, then launch TAssist.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -676,7 +719,7 @@ _Details coming soon ..._
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
-3. **On macOS, using fullscreen mode for secondary windows**, such as the Help or student details window, may cause unexpected window behaviour. Keep these windows in windowed mode. If you encounter this issue, exit fullscreen mode before continuing.
+3. **On macOS, using fullscreen mode for secondary windows**, such as the Help or student details window, may cause unexpected window behavior. Keep these windows in windowed mode. If you encounter this issue, exit fullscreen mode before continuing.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -688,8 +731,8 @@ Action     | Format, Examples
 **Mark attendance** | `attendance INDEX c/MODULE-CLASS [d/DATE]` or `attendance m/MATRICULATION_NUMBER c/MODULE-CLASS [d/DATE]` or `attendance c/MODULE-CLASS [d/DATE]`<br> e.g., `attendance 1 c/CS2103T-T10 d/07-10-2026`, `attendance m/A1234567X c/CS2103T-T10`, `attendance c/CS2103T-T10 d/07-10-2026`
 **Unmark attendance** | `attendance unmark INDEX [c/MODULE-CLASS] [d/DATE]` or `attendance unmark m/MATRICULATION_NUMBER [c/MODULE-CLASS] [d/DATE]`<br> e.g., `attendance unmark 1 d/07-10-2026`, `attendance unmark 1 c/CS2103T-T10 d/07-10-2026`
 **View attendance statistics** | `attendance stats c/MODULE-CLASS d/DATE`<br> e.g., `attendance stats c/CS2103T-T10 d/28-10-2026`
-**Assignment** | `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`<br> e.g., `assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20`
-**Mark** | `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`<br> e.g., `mark m/A1234567A id/CS2103T:A1 mark/17.5`
+**Assignment** | `assignment INDEX id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE n/NAME max/MAX_MARK` or `assignment INDEX id/MODULE:CODE` or `assignment m/MATRICULATION_NUMBER id/MODULE:CODE`<br> e.g., `assignment m/A1234567A id/CS2103T:A1 n/Assignment One max/20`
+**Mark** | `mark INDEX id/MODULE:CODE mark/MARK` or `mark m/MATRICULATION_NUMBER id/MODULE:CODE mark/MARK`<br> e.g., `mark m/A1234567A id/CS2103T:A1 mark/17.5`
 **Marks** | `marks id/MODULE:CODE`<br> e.g., `marks id/CS2103T:A1`
 **Remove assignment** | `removeassignment id/MODULE:CODE [m/MATRICULATION_NUMBER]`<br> e.g., `removeassignment id/CS2103T:A1 m/A1234567A`
 **Clear**  | `clear`
@@ -701,8 +744,8 @@ Action     | Format, Examples
 **View participation** | `participation view INDEX`<br>or `participation view m/MATRICULATION_NUMBER`<br>Example: `participation view 1` |
 **Remove participation record** | `participation remove INDEX c/MODULE-CLASS d/DATE`<br>or `participation remove m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE`<br>Example: `participation remove 1 c/CS2103T-T10 d/28-10-2026` |
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
-**Enroll** | `enroll INDEX c/MODULE-CLASS` <br> e.g., `enroll 1 c/CS2103T-T10`
-**Unenroll** | `unenroll INDEX c/MODULE-CLASS` or `unenroll INDEX all/` <br> e.g., `unenroll 1 c/CS2103T-T10`, `unenroll 1 all/`
+**Enroll** | `enroll INDEX c/MODULE-CLASS` or `enroll m/MATRICULATION_NUMBER c/MODULE-CLASS`<br> e.g., `enroll 1 c/CS2103T-T10`, `enroll m/A1234567X c/CS2103T-T10`
+**Unenroll** | `unenroll INDEX c/MODULE-CLASS` or `unenroll INDEX all/` or `unenroll m/MATRICULATION_NUMBER c/MODULE-CLASS` or `unenroll m/MATRICULATION_NUMBER all/`<br> e.g., `unenroll 1 c/CS2103T-T10`, `unenroll m/A1234567X all/`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...` or `find m/MATRICULATION_NUMBER`<br> e.g., `find James Jake`, `find m/A1234567X`
 **List**   | `list`
 **Sort**   | `sort`, `sort FIELD [asc\|desc]`, or `sort mark id/MODULE:CODE [asc\|desc]`<br> e.g., `sort matric desc`, `sort mark id/CS2103T:A1 desc`
