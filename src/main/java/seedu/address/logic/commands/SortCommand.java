@@ -96,7 +96,7 @@ public class SortCommand extends Command {
             case NAME -> Comparator.comparing(person -> person.getName().fullName, String.CASE_INSENSITIVE_ORDER);
             case MATRIC -> Comparator.comparing(person -> person.getMatriculationNumber().value);
             case EMAIL -> Comparator.comparing(person -> person.getEmail().value, String.CASE_INSENSITIVE_ORDER);
-            case ATTENDANCE -> Comparator.comparingInt(person -> person.getAttendance().getDates().size());
+            case ATTENDANCE -> Comparator.comparingInt(person -> person.getAttendance().getRecords().size());
             case MARK -> throw new AssertionError("Mark sorting is handled separately.");
         };
         if (direction == SortDirection.DESC) {

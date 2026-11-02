@@ -15,6 +15,7 @@ import static seedu.address.logic.commands.CommandTestUtil.PREAMBLE_NON_EMPTY;
 import static seedu.address.logic.commands.CommandTestUtil.PREAMBLE_WHITESPACE;
 import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_HUSBAND;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAILS_WITH_UNQUOTED_SPECIAL_CHARACTERS;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_MATRICULATION_NUMBER_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
@@ -25,6 +26,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
+import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.AMY;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
@@ -41,6 +43,28 @@ import seedu.address.testutil.PersonBuilder;
 
 public class AddCommandParserTest {
     private AddCommandParser parser = new AddCommandParser();
+
+    @Test
+    public void parse_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> parser.parse(null));
+    }
+
+    @Test
+    public void parse_emailWithConsecutiveUnderscores_success() {
+        Person expectedPerson = new PersonBuilder().withName("John Doe").withMatriculationNumber("A7654321B")
+                .withEmail("john__doe@example.com").withTags().build();
+        assertParseSuccess(parser, " n/John Doe m/A7654321B e/john__doe@example.com",
+                new AddCommand(expectedPerson));
+    }
+
+    @Test
+    public void parse_emailWithUnquotedSpecialCharacters_success() {
+        for (String email : VALID_EMAILS_WITH_UNQUOTED_SPECIAL_CHARACTERS) {
+            Person expectedPerson = new PersonBuilder().withName("John Doe").withMatriculationNumber("A7654321B")
+                    .withEmail(email).withTags().build();
+            assertParseSuccess(parser, " n/John Doe m/A7654321B e/" + email, new AddCommand(expectedPerson));
+        }
+    }
 
     @Test
     public void parse_allFieldsPresent_success() {

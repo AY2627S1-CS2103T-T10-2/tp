@@ -3,6 +3,8 @@ package seedu.address;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
@@ -14,6 +16,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.core.AppInstanceLock;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
@@ -29,17 +32,107 @@ import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PersonBuilder;
 
 public class MainAppTest {
+    private static final String VALID_RECORD_JSON =
+            "{\"date\":\"07-10-2026\",\"classCode\":\"CS2103T-T10\"}";
     private static final String VALID_STUDENT_JSON = "{\"name\":\"Amy Bee\",\"matriculationNumber\":\"A1234567Z\","
-            + "\"email\":\"amy@gmail.com\",\"tags\":[],\"attendance\":[\"07-10-2026\"]}";
+            + "\"email\":\"amy@gmail.com\",\"tags\":[],\"attendance\":[" + VALID_RECORD_JSON + "]}";
 
     @TempDir
     public Path temporaryFolder;
 
     @Test
+    public void init_secondInstance_preservesSavedRecordsAndPreferences() throws Exception {
+        MainApp firstApp = new MainApp(temporaryFolder);
+        MainApp secondApp = new MainApp(temporaryFolder);
+        try {
+            firstApp.init();
+            firstApp.logic.execute("add n/New Student m/A0123456B e/new@example.com");
+            Path dataFilePath = temporaryFolder.resolve("data").resolve("addressbook.json");
+            Path prefsFilePath = temporaryFolder.resolve("preferences.json");
+            byte[] savedRecords = Files.readAllBytes(dataFilePath);
+            byte[] savedPrefs = Files.readAllBytes(prefsFilePath);
+
+            secondApp.init();
+
+            assertNull(secondApp.storage);
+            assertNull(secondApp.model);
+            assertNull(secondApp.logic);
+            assertNull(secondApp.ui);
+            secondApp.stop();
+            assertArrayEquals(savedRecords, Files.readAllBytes(dataFilePath));
+            assertArrayEquals(savedPrefs, Files.readAllBytes(prefsFilePath));
+        } finally {
+            secondApp.stop();
+            firstApp.stop();
+        }
+
+        MainApp reopenedApp = new MainApp(temporaryFolder);
+        try {
+            reopenedApp.init();
+            assertTrue(reopenedApp.model.getAddressBook().getPersonList().stream()
+                    .anyMatch(person -> person.getName().fullName.equals("New Student")));
+            reopenedApp.logic.execute("list");
+        } finally {
+            reopenedApp.stop();
+        }
+    }
+
+    @Test
+    public void init_lockFileCannotBeOpened_skipsInitializationAndPreservesPreferences() throws Exception {
+        Files.createDirectory(temporaryFolder.resolve(".tassist.lock"));
+        Path prefsFilePath = temporaryFolder.resolve("preferences.json");
+        Files.writeString(prefsFilePath, "original preferences");
+        MainApp app = new MainApp(temporaryFolder);
+
+        app.init();
+        app.stop();
+
+        assertNull(app.storage);
+        assertNull(app.model);
+        assertNull(app.logic);
+        assertNull(app.ui);
+        assertEquals("original preferences", Files.readString(prefsFilePath));
+        assertFalse(Files.exists(temporaryFolder.resolve("data")));
+    }
+
+    @Test
+    public void init_initializationThrows_releasesLock() throws Exception {
+        MainApp app = new MainApp(temporaryFolder) {
+            @Override
+            protected UserPrefs initPrefs(JsonUserPrefsStorage storage) {
+                throw new IllegalStateException("Initialization failed");
+            }
+        };
+
+        assertThrows(IllegalStateException.class, "Initialization failed", app::init);
+
+        try (AppInstanceLock lock = AppInstanceLock.tryAcquire(temporaryFolder).orElseThrow()) {
+            assertNotNull(lock);
+        }
+    }
+
+    @Test
+    public void stop_preferencesCannotBeSaved_releasesLock() throws Exception {
+        MainApp app = new MainApp(temporaryFolder);
+        try {
+            app.init();
+            Path prefsFilePath = temporaryFolder.resolve("preferences.json");
+            Files.delete(prefsFilePath);
+            Files.createDirectory(prefsFilePath);
+        } finally {
+            app.stop();
+        }
+
+        try (AppInstanceLock lock = AppInstanceLock.tryAcquire(temporaryFolder).orElseThrow()) {
+            assertNotNull(lock);
+        }
+    }
+
+    @Test
     public void initModelAndLogic_validRecords_restoresStudentsAndAttendance() throws Exception {
         Path dataFilePath = temporaryFolder.resolve("addressbook.json");
         AddressBook savedRecords = new AddressBook();
-        savedRecords.addPerson(new PersonBuilder().withAttendance("07-10-2026").build());
+        savedRecords.addPerson(new PersonBuilder().withAttendance("CS2103T-T10", "07-10-2026").build());
         new JsonAddressBookStorage(dataFilePath).saveAddressBook(savedRecords);
 
         MainApp app = initializeApp(new JsonAddressBookStorage(dataFilePath));
@@ -61,11 +154,58 @@ public class MainAppTest {
         assertFalse(Files.exists(dataFilePath));
         app.logic.execute("list");
         assertTrue(Files.exists(dataFilePath));
+        MainApp restartedApp = initializeApp(new JsonAddressBookStorage(dataFilePath));
+        assertEquals(app.model.getAddressBook(), restartedApp.model.getAddressBook());
+    }
+
+    @Test
+    public void initModelAndLogic_savedEmptyFile_doesNotInsertSamples() throws Exception {
+        Path dataFilePath = temporaryFolder.resolve("empty.json");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(dataFilePath);
+        storage.saveAddressBook(new AddressBook());
+        byte[] savedRecords = Files.readAllBytes(dataFilePath);
+
+        MainApp app = initializeApp(storage);
+
+        assertEquals(new AddressBook(), app.model.getAddressBook());
+        assertArrayEquals(savedRecords, Files.readAllBytes(dataFilePath));
+        app.logic.execute("list");
+        assertEquals(new AddressBook(), storage.readAddressBook().orElseThrow());
     }
 
     @Test
     public void initModelAndLogic_malformedJson_blocksCommandsAndPreservesFile() throws Exception {
         assertRestoreFailure("{invalid json", "Reason:");
+    }
+
+    @Test
+    public void initModelAndLogic_consecutiveObjects_blocksCommandsAndPreservesFile() throws Exception {
+        String savedRecords = "{\"persons\":[" + VALID_STUDENT_JSON + "]}";
+        assertRestoreFailure("{\"persons\":[]}" + savedRecords, "Reason:");
+        assertRestoreFailure("{\"persons\":[]} \t\r\n" + savedRecords, "Reason:");
+    }
+
+    @Test
+    public void initModelAndLogic_trailingContent_blocksCommandsAndPreservesFile() throws Exception {
+        String savedRecords = "{\"persons\":[" + VALID_STUDENT_JSON + "]}";
+        for (String trailingContent : new String[]{" []", " \"extra\"", " 42", " true", " null", " garbage", " }"}) {
+            assertRestoreFailure(savedRecords + trailingContent, "Reason:");
+        }
+    }
+
+    @Test
+    public void initModelAndLogic_trailingWhitespace_restoresRecordsAndAllowsCommands() throws Exception {
+        Path dataFilePath = temporaryFolder.resolve("addressbook.json");
+        Files.writeString(dataFilePath, "{\"persons\":[" + VALID_STUDENT_JSON + "]} \t\r\n");
+        MainApp app = initializeApp(new JsonAddressBookStorage(dataFilePath));
+        AddressBook restoredRecords = new AddressBook(app.model.getAddressBook());
+
+        assertTrue(app.logic.getStartupErrorMessage().isEmpty());
+        assertEquals(1, restoredRecords.getPersonList().size());
+        assertEquals("Amy Bee", restoredRecords.getPersonList().getFirst().getName().fullName);
+        app.logic.execute("list");
+        app.stop();
+        assertEquals(restoredRecords, new JsonAddressBookStorage(dataFilePath).readAddressBook().orElseThrow());
     }
 
     @Test
@@ -83,8 +223,8 @@ public class MainAppTest {
     @Test
     public void initModelAndLogic_duplicateAttendance_blocksCommandsAndPreservesFile() throws Exception {
         assertRestoreFailure("{\"persons\":["
-                + VALID_STUDENT_JSON.replace("[\"07-10-2026\"]", "[\"07-10-2026\",\"07-10-2026\"]") + "]}",
-                Attendance.MESSAGE_DUPLICATE_DATE);
+                + VALID_STUDENT_JSON.replace(VALID_RECORD_JSON, VALID_RECORD_JSON + "," + VALID_RECORD_JSON) + "]}",
+                Attendance.MESSAGE_DUPLICATE_RECORD);
     }
 
     @Test
@@ -155,6 +295,7 @@ public class MainAppTest {
 
         MainApp app = initializeApp(new JsonAddressBookStorage(dataFilePath));
 
+        assertArrayEquals(originalContents, Files.readAllBytes(dataFilePath));
         assertStartupError(app, dataFilePath, expectedReason);
         assertEquals(new AddressBook(), app.model.getAddressBook());
         assertThrows(CommandException.class, () -> app.logic.execute("list"));

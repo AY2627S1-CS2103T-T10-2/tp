@@ -12,16 +12,22 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import seedu.address.model.AddressBook;
+import seedu.address.commons.core.index.Index;
+import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.gradebook.Assignment;
 import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.gradebook.Gradebook;
+import seedu.address.model.gradebook.Mark;
 import seedu.address.model.person.MatriculationNumber;
+import seedu.address.model.person.Person;
+import seedu.address.testutil.PersonBuilder;
 
 public class AssignmentCommandTest {
     private final AssignmentId id = new AssignmentId("CS2103T:A1");
@@ -29,12 +35,53 @@ public class AssignmentCommandTest {
     private final MatriculationNumber student = ALICE.getMatriculationNumber();
     private final Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
+    @BeforeEach
+    public void setUp() {
+        model.setPerson(ALICE, ALICE.withClassCode(new ClassCode("CS2103T-T10")));
+        model.setPerson(BENSON, BENSON.withClassCode(new ClassCode("CS2103T-T11")));
+    }
+
+    @Test
+    public void execute_filteredIndex_attachesExistingDefinition() throws Exception {
+        model.addAssignmentForStudent(assignment, student);
+        model.updateFilteredPersonList(person -> person.getMatriculationNumber()
+                .equals(BENSON.getMatriculationNumber()));
+        new AssignmentCommand(new StudentIdentifier(Index.fromOneBased(1)), id).execute(model);
+        assertEquals(1, model.getAddressBook().getGradebook().getAssignments().size());
+        assertEquals(Optional.empty(), model.getAddressBook().getGradebook()
+                .getMarksForStudent(BENSON.getMatriculationNumber()).get(id));
+    }
+
+    @Test
+    public void execute_filteredSortedIndex_targetsDisplayedStudent() throws Exception {
+        model.updateFilteredPersonList(person -> person.getMatriculationNumber().equals(student)
+                || person.getMatriculationNumber().equals(BENSON.getMatriculationNumber()));
+        model.sortPersons(Model.COMPARATOR_NAME_ASC.reversed());
+        MatriculationNumber displayed = model.getFilteredPersonList().get(0).getMatriculationNumber();
+        assertEquals(BENSON.getMatriculationNumber(), displayed);
+
+        StudentIdentifier identifier = new StudentIdentifier(Index.fromOneBased(1));
+        new AssignmentCommand(identifier, assignment).execute(model);
+        assertTrue(model.getAddressBook().getGradebook().getMarksForStudent(displayed).containsKey(id));
+        assertFalse(model.getAddressBook().getGradebook().getMarksForStudent(student).containsKey(id));
+    }
+
+    @Test
+    public void execute_outOfRangeIndex_rejectsWithoutChangingModel() {
+        model.addAssignmentForStudent(assignment, student);
+        model.recordMark(student, id, new Mark(BigDecimal.ONE));
+        model.updateFilteredPersonList(person -> false);
+        StudentIdentifier identifier = new StudentIdentifier(Index.fromOneBased(1));
+        assertCommandFailure(new AssignmentCommand(identifier, assignment), model,
+                Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    }
+
     @Test
     public void execute_newAssignment_addsDefinitionAndUnmarkedStudentEntry() {
         Model expected = new ModelManager(model.getAddressBook(), new UserPrefs());
         expected.addAssignmentForStudent(assignment, student);
         assertCommandSuccess(new AssignmentCommand(student, assignment), model,
-                String.format(AssignmentCommand.MESSAGE_SUCCESS, id, student), expected);
+                String.format(AssignmentCommand.MESSAGE_SUCCESS, id, student, "20"), expected);
         assertEquals(Optional.empty(), model.getAddressBook().getGradebook().getMarksForStudent(student).get(id));
     }
 
@@ -45,8 +92,18 @@ public class AssignmentCommandTest {
         Model expected = new ModelManager(model.getAddressBook(), new UserPrefs());
         expected.assignStudent(otherStudent, id);
         assertCommandSuccess(new AssignmentCommand(otherStudent, id), model,
-                String.format(AssignmentCommand.MESSAGE_SUCCESS, id, otherStudent), expected);
+                String.format(AssignmentCommand.MESSAGE_SUCCESS, id, otherStudent, "20"), expected);
         assertEquals(1, model.getAddressBook().getGradebook().getAssignments().size());
+    }
+
+    @Test
+    public void execute_decimalMaximum_showsStoredMaximumInBothForms() throws Exception {
+        Assignment decimalAssignment = new Assignment(id, "Decimal Assignment", new BigDecimal("1.025e1"));
+        assertEquals("Assigned " + id + " (out of 10.25) to student " + student + ".",
+                new AssignmentCommand(student, decimalAssignment).execute(model).getFeedbackToUser());
+        MatriculationNumber otherStudent = BENSON.getMatriculationNumber();
+        assertEquals("Assigned " + id + " (out of 10.25) to student " + otherStudent + ".",
+                new AssignmentCommand(otherStudent, id).execute(model).getFeedbackToUser());
     }
 
     @Test
@@ -73,20 +130,70 @@ public class AssignmentCommandTest {
     public void execute_unknownStudentOrAssignment_rejectsWithoutChangingModel() {
         MatriculationNumber unknownStudent = new MatriculationNumber("A9999999Z");
         assertCommandFailure(new AssignmentCommand(unknownStudent, assignment), model,
-                AddressBook.MESSAGE_STUDENT_NOT_FOUND);
+                String.format(Messages.MESSAGE_STUDENT_NOT_FOUND, unknownStudent));
+        assertCommandFailure(new AssignmentCommand(unknownStudent, id), model,
+                String.format(Messages.MESSAGE_STUDENT_NOT_FOUND, unknownStudent));
         assertCommandFailure(new AssignmentCommand(student, id), model,
                 Gradebook.MESSAGE_UNKNOWN_ASSIGNMENT);
     }
 
     @Test
+    public void execute_noEnrollment_rejectsBothFormsWithoutChangingModel() {
+        assertBothFormsRejectUnenrolledStudent(ALICE);
+    }
+
+    @Test
+    public void execute_onlyOtherModuleEnrollment_rejectsBothFormsWithoutChangingModel() {
+        assertBothFormsRejectUnenrolledStudent(ALICE.withClassCode(new ClassCode("CS3230-T01")));
+    }
+
+    @Test
+    public void execute_onlyModulePrefixMatches_rejectsBothFormsWithoutChangingModel() {
+        assertBothFormsRejectUnenrolledStudent(ALICE.withClassCode(new ClassCode("CS2103-T10")));
+    }
+
+    @Test
+    public void execute_multipleClassesAndMixedCaseModule_acceptsBothForms() throws Exception {
+        Person enrolled = new PersonBuilder(ALICE).withClassCodes("CS3230-T01", "cs2103t-l02").build();
+        model.setPerson(model.getAddressBook().getPersonList().get(0), enrolled);
+        Assignment mixedCaseAssignment = new Assignment(new AssignmentId("cS2103t:a2"),
+                "Assignment Two", BigDecimal.TEN);
+        new AssignmentCommand(student, mixedCaseAssignment).execute(model);
+        model.addAssignment(assignment);
+        new AssignmentCommand(student, new AssignmentId("cs2103t:a1")).execute(model);
+
+        assertEquals(Optional.empty(), model.getAddressBook().getGradebook().getMarksForStudent(student).get(id));
+        assertEquals(Optional.empty(), model.getAddressBook().getGradebook().getMarksForStudent(student)
+                .get(mixedCaseAssignment.getId()));
+    }
+
+    @Test
     public void execute_studentOutsideFilter_canBeAssigned() {
         model.updateFilteredPersonList(person -> !person.getMatriculationNumber().equals(student));
-        assertFalse(model.getFilteredPersonList().contains(ALICE));
+        assertFalse(model.getFilteredPersonList().stream()
+                .anyMatch(person -> person.getMatriculationNumber().equals(student)));
         Model expected = new ModelManager(model.getAddressBook(), new UserPrefs());
         expected.updateFilteredPersonList(person -> !person.getMatriculationNumber().equals(student));
         expected.addAssignmentForStudent(assignment, student);
         assertCommandSuccess(new AssignmentCommand(student, assignment), model,
-                String.format(AssignmentCommand.MESSAGE_SUCCESS, id, student), expected);
+                String.format(AssignmentCommand.MESSAGE_SUCCESS, id, student, "20"), expected);
+        MatriculationNumber otherStudent = BENSON.getMatriculationNumber();
+        model.updateFilteredPersonList(person -> !person.getMatriculationNumber().equals(otherStudent));
+        expected = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expected.updateFilteredPersonList(person -> !person.getMatriculationNumber().equals(otherStudent));
+        expected.assignStudent(otherStudent, id);
+        assertCommandSuccess(new AssignmentCommand(otherStudent, id), model,
+                String.format(AssignmentCommand.MESSAGE_SUCCESS, id, otherStudent, "20"), expected);
+    }
+
+    @Test
+    public void execute_unenrollLastClass_preservesWorkAndAllowsMarking() throws Exception {
+        assertUnenrollmentPreservesWork(false);
+    }
+
+    @Test
+    public void execute_unenrollAllClasses_preservesWorkAndAllowsMarking() throws Exception {
+        assertUnenrollmentPreservesWork(true);
     }
 
     @Test
@@ -96,5 +203,52 @@ public class AssignmentCommandTest {
         assertFalse(newAssignment.equals(new AssignmentCommand(student, id)));
         assertFalse(newAssignment.equals(new AssignmentCommand(BENSON.getMatriculationNumber(), assignment)));
         assertFalse(newAssignment.equals(null));
+    }
+
+    private void assertBothFormsRejectUnenrolledStudent(Person targetStudent) {
+        model.setPerson(model.getAddressBook().getPersonList().get(0), targetStudent);
+        model.addAssignmentForStudent(assignment, BENSON.getMatriculationNumber());
+        model.recordMark(BENSON.getMatriculationNumber(), id, new Mark(BigDecimal.TEN));
+        Assignment newWork = new Assignment(new AssignmentId("CS2103T:A2"), "Assignment Two", BigDecimal.TEN);
+        assertCommandFailure(new AssignmentCommand(student, newWork), model,
+                String.format(AssignmentCommand.MESSAGE_STUDENT_NOT_ENROLLED,
+                        newWork.getId(), student, newWork.getId().getModuleCode()));
+        assertCommandFailure(new AssignmentCommand(student, id), model,
+                String.format(AssignmentCommand.MESSAGE_STUDENT_NOT_ENROLLED, id, student, id.getModuleCode()));
+        StudentIdentifier index = new StudentIdentifier(Index.fromOneBased(1));
+        assertCommandFailure(new AssignmentCommand(index, newWork), model,
+                String.format(AssignmentCommand.MESSAGE_STUDENT_NOT_ENROLLED,
+                        newWork.getId(), student, newWork.getId().getModuleCode()));
+        assertCommandFailure(new AssignmentCommand(index, id), model,
+                String.format(AssignmentCommand.MESSAGE_STUDENT_NOT_ENROLLED, id, student, id.getModuleCode()));
+    }
+
+    private void assertUnenrollmentPreservesWork(boolean allClasses) throws Exception {
+        model.addAssignmentForStudent(assignment, student);
+        model.recordMark(student, id, new Mark(BigDecimal.ZERO));
+        Assignment unmarkedWork = new Assignment(new AssignmentId("CS2103T:A2"),
+                "Assignment Two", BigDecimal.TEN);
+        model.addAssignmentForStudent(unmarkedWork, student);
+        if (allClasses) {
+            new UnenrollCommand(Index.fromOneBased(1)).execute(model);
+        } else {
+            new UnenrollCommand(Index.fromOneBased(1), new ClassCode("CS2103T-T10")).execute(model);
+        }
+        assertEquals(Optional.of(new Mark(BigDecimal.ZERO)),
+                model.getAddressBook().getGradebook().getMarksForStudent(student).get(id));
+        assertEquals(Optional.empty(), model.getAddressBook().getGradebook().getMarksForStudent(student)
+                .get(unmarkedWork.getId()));
+        new MarkCommand(student, unmarkedWork.getId(), new Mark(BigDecimal.TEN)).execute(model);
+        assertEquals(Optional.of(new Mark(BigDecimal.TEN)), model.getAddressBook().getGradebook()
+                .getMarksForStudent(student).get(unmarkedWork.getId()));
+        new MarkCommand(student, id, new Mark(BigDecimal.TEN)).execute(model);
+        assertEquals(Optional.of(new Mark(BigDecimal.TEN)),
+                model.getAddressBook().getGradebook().getMarksForStudent(student).get(id));
+        model.unassignStudent(student, id);
+        assertCommandFailure(new AssignmentCommand(student, id), model,
+                String.format(AssignmentCommand.MESSAGE_STUDENT_NOT_ENROLLED, id, student, id.getModuleCode()));
+        new EnrollCommand(Index.fromOneBased(1), new ClassCode("CS2103T-T11")).execute(model);
+        new AssignmentCommand(student, id).execute(model);
+        assertEquals(Optional.empty(), model.getAddressBook().getGradebook().getMarksForStudent(student).get(id));
     }
 }

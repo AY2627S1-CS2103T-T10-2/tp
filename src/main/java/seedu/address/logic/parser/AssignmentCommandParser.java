@@ -11,10 +11,10 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import seedu.address.logic.commands.AssignmentCommand;
+import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.gradebook.Assignment;
 import seedu.address.model.gradebook.AssignmentId;
-import seedu.address.model.person.MatriculationNumber;
 
 /**
  * Parses the student, assignment ID, and optional new assignment details.
@@ -27,18 +27,17 @@ public class AssignmentCommandParser implements Parser<AssignmentCommand> {
         requireNonNull(args);
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_MATRICULATION_NUMBER,
                 PREFIX_ASSIGNMENT_ID, PREFIX_NAME, PREFIX_MAX_MARK);
-        Optional<String> studentValue = arguments.getValue(PREFIX_MATRICULATION_NUMBER);
+        StudentIdentifier student = ParserUtil.parseStudentIdentifier(arguments, AssignmentCommand.MESSAGE_USAGE);
         Optional<String> idValue = arguments.getValue(PREFIX_ASSIGNMENT_ID);
         Optional<String> nameValue = arguments.getValue(PREFIX_NAME);
         Optional<String> maximumValue = arguments.getValue(PREFIX_MAX_MARK);
-        if (!arguments.getPreamble().isEmpty() || studentValue.isEmpty() || idValue.isEmpty()
+        if (idValue.isEmpty()
                 || nameValue.isPresent() != maximumValue.isPresent()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AssignmentCommand.MESSAGE_USAGE));
         }
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_MATRICULATION_NUMBER, PREFIX_ASSIGNMENT_ID,
                 PREFIX_NAME, PREFIX_MAX_MARK);
 
-        MatriculationNumber student = ParserUtil.parseMatriculationNumber(studentValue.orElseThrow());
         String idText = idValue.orElseThrow().trim();
         if (!AssignmentId.isValidAssignmentId(idText)) {
             throw new ParseException(AssignmentId.MESSAGE_CONSTRAINTS);

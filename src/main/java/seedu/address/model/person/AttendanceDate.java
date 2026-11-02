@@ -12,11 +12,13 @@ import java.time.format.ResolverStyle;
  * Represents a valid attendance date in dd-MM-yyyy format. Instances are immutable.
  */
 public final class AttendanceDate implements Comparable<AttendanceDate> {
+
     public static final String MESSAGE_CONSTRAINTS =
             "Attendance dates must be valid calendar dates in the format dd-MM-yyyy.";
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-uuuu")
             .withResolverStyle(ResolverStyle.STRICT);
+
     private final LocalDate date;
 
     /**
@@ -48,6 +50,13 @@ public final class AttendanceDate implements Comparable<AttendanceDate> {
         } catch (DateTimeParseException e) {
             return false;
         }
+    }
+
+    /**
+     * Returns the underlying immutable calendar date.
+     */
+    public LocalDate toLocalDate() {
+        return date;
     }
 
     @Override

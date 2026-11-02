@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -41,6 +42,25 @@ public class JsonUserPrefsStorageTest {
     @Test
     public void readUserPrefs_notJsonFormat_exceptionThrown() {
         assertThrows(DataLoadingException.class, () -> readUserPrefs("NotJsonFormatUserPrefs.json"));
+    }
+
+    @Test
+    public void readUserPrefs_trailingContent_throwsDataLoadingException() throws IOException {
+        Path prefsFilePath = testFolder.resolve("TrailingContentUserPrefs.json");
+        JsonUserPrefsStorage storage = new JsonUserPrefsStorage(prefsFilePath);
+        for (String trailingContent : new String[]{"{}", " \t\r\n{}", " true", " garbage"}) {
+            Files.writeString(prefsFilePath, "{}" + trailingContent);
+
+            assertThrows(DataLoadingException.class, storage::readUserPrefs);
+        }
+    }
+
+    @Test
+    public void readUserPrefs_trailingWhitespace_defaultValuesUsed() throws Exception {
+        Path prefsFilePath = testFolder.resolve("TrailingWhitespaceUserPrefs.json");
+        Files.writeString(prefsFilePath, "{} \t\r\n");
+
+        assertEquals(new UserPrefs(), new JsonUserPrefsStorage(prefsFilePath).readUserPrefs().orElseThrow());
     }
 
     private Path addToTestDataPathIfNotNull(String userPrefsFileInTestDataFolder) {

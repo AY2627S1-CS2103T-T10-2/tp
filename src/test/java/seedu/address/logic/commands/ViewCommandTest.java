@@ -43,7 +43,7 @@ public class ViewCommandTest {
     public void execute_studentWithClassesAndAttendance_returnsStudentDetails() {
         Person originalPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         Person personWithAttendance = new PersonBuilder(originalPerson)
-                .withAttendance("07-10-2026", "14-10-2026")
+                .withAttendance("CS2103T-T10", "07-10-2026", "14-10-2026")
                 .withClassCodes("CS2103T-T10", "CS2100-T01")
                 .build();
         model.setPerson(originalPerson, personWithAttendance);

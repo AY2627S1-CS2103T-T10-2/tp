@@ -41,6 +41,12 @@ deactivate UndoCommand
 UndoCommand -[hidden]-> LogicManager : result
 destroy UndoCommand
 
+LogicManager -> Model : commitAddressBook()
+activate Model
+note right: No-op: restored data matches the current snapshot.
+Model --> LogicManager
+deactivate Model
+
 [<--LogicManager
 deactivate LogicManager
 @enduml

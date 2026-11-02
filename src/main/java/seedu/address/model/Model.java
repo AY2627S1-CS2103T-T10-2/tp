@@ -117,8 +117,68 @@ public interface Model {
     ObservableList<Person> getFilteredPersonList();
 
     /**
-     * Updates the filter of the filtered person list to filter by the given {@code predicate}.
+     * Updates the filter of the filtered person list to filter by the given {@code predicate} and resets the find
+     * predicate to show all persons.
+     *
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /**
+     * Resets the filtered person list to show all persons.
+     */
+    void resetFilteredPersonList();
+
+    /**
+     * Updates the find predicate of the filtered person list to filter by the given {@code predicate}.
+     *
+     * @throws NullPointerException if {@code predicate} is null.
+     */
+    void updateFindPredicate(Predicate<Person> predicate);
+
+    /**
+     * Updates the filter predicate of the filtered person list to filter by the given {@code predicate}.
+     *
+     * @throws NullPointerException if {@code predicate} is null.
+     */
+    void updateFilterPredicate(Predicate<Person> predicate);
+
+    /**
+     * Saves changed address book data for undo and clears any redo history.
+     * Does nothing if the data matches the current saved state.
+     */
+    void commitAddressBook();
+
+    /**
+     * Reverses the most recent change to the address book.
+     * On success, clears the person list filter and resets sorting to {@link #COMPARATOR_NAME_ASC}
+     * with no extra sort detail displayed.
+     *
+     * @throws IllegalStateException if undo is unavailable.
+     */
+    void undoAddressBook();
+
+    /**
+     * Reapplies the most recently undone change.
+     * On success, clears the person list filter and resets sorting to {@link #COMPARATOR_NAME_ASC}
+     * with no extra sort detail displayed.
+     *
+     * @throws IllegalStateException if redo is unavailable.
+     */
+    void redoAddressBook();
+
+    /**
+     * Returns true if there is a change to undo.
+     */
+    boolean canUndoAddressBook();
+
+    /**
+     * Returns true if there is a change to redo.
+     */
+    boolean canRedoAddressBook();
+
+    /**
+     * Returns an observable counter that increases after each successful undo or redo.
+     */
+    ObservableValue<Number> addressBookRestoreCountProperty();
 }

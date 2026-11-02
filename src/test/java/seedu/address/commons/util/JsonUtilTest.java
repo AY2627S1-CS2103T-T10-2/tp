@@ -1,6 +1,7 @@
 package seedu.address.commons.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.testutil.Assert.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -39,7 +40,46 @@ public class JsonUtilTest {
         assertEquals(serializableTestClass.getMapOfIntegerToString(), SerializableTestClass.getHashMapTestValues());
     }
 
-    //TODO: @Test jsonUtil_readJsonStringToObjectInstance_correctObject()
+    @Test
+    public void fromJsonString_consecutiveObjects_throwsIoException() {
+        String json = SerializableTestClass.JSON_STRING_REPRESENTATION;
+        assertThrows(IOException.class, () -> JsonUtil.fromJsonString(json + json, SerializableTestClass.class));
+        assertThrows(IOException.class, () -> JsonUtil.fromJsonString(
+                json + " \t\r\n" + json, SerializableTestClass.class));
+    }
 
-    //TODO: @Test jsonUtil_writeThenReadObjectToJson_correctObject()
+    @Test
+    public void fromJsonString_trailingJsonValue_throwsIoException() {
+        String json = SerializableTestClass.JSON_STRING_REPRESENTATION;
+        for (String trailingValue : new String[]{"[]", "\"another value\"", "42", "true", "false", "null"}) {
+            assertThrows(IOException.class, () -> JsonUtil.fromJsonString(
+                    json + " " + trailingValue, SerializableTestClass.class));
+        }
+    }
+
+    @Test
+    public void fromJsonString_invalidTrailingContent_throwsIoException() {
+        String json = SerializableTestClass.JSON_STRING_REPRESENTATION;
+        for (String trailingContent : new String[]{"garbage", "}", ",", "/* comment */"}) {
+            assertThrows(IOException.class, () -> JsonUtil.fromJsonString(
+                    json + " " + trailingContent, SerializableTestClass.class));
+        }
+    }
+
+    @Test
+    public void fromJsonString_trailingWhitespace_success() throws IOException {
+        SerializableTestClass actual = JsonUtil.fromJsonString(
+                SerializableTestClass.JSON_STRING_REPRESENTATION + " \t\r\n", SerializableTestClass.class);
+
+        assertEquals(SerializableTestClass.JSON_STRING_REPRESENTATION, JsonUtil.toJsonString(actual));
+    }
+
+    @Test
+    public void fromJsonString_unknownField_ignored() throws IOException {
+        String json = "{\"name\":\"Test\",\"unknown\":{\"nested\":[1,2]}}";
+
+        SerializableTestClass actual = JsonUtil.fromJsonString(json, SerializableTestClass.class);
+
+        assertEquals("Test", actual.getName());
+    }
 }

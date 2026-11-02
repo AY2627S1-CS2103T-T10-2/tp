@@ -163,7 +163,7 @@ public class DeleteCommandTest {
         Index targetIndex = Index.fromOneBased(1);
         DeleteCommand deleteCommand = new DeleteCommand(targetIndex);
         String expected = DeleteCommand.class.getCanonicalName()
-                + "{targetStudent=" + new StudentIdentifier(targetIndex) + "}";
+                + "{targetStudents=[" + new StudentIdentifier(targetIndex) + "]}";
         assertEquals(expected, deleteCommand.toString());
     }
 

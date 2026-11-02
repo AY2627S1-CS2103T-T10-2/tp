@@ -2,14 +2,12 @@ package seedu.address.model.person;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.function.Predicate;
-
 import seedu.address.commons.util.ToStringBuilder;
 
 /**
  * Tests whether a person's matriculation number matches the given number.
  */
-public class MatriculationNumberMatchesPredicate implements Predicate<Person> {
+public class MatriculationNumberMatchesPredicate implements FindPredicate {
 
     private final MatriculationNumber matriculationNumber;
 
@@ -18,6 +16,11 @@ public class MatriculationNumberMatchesPredicate implements Predicate<Person> {
      */
     public MatriculationNumberMatchesPredicate(MatriculationNumber matriculationNumber) {
         this.matriculationNumber = requireNonNull(matriculationNumber);
+    }
+
+    @Override
+    public boolean ignoresActiveFilter() {
+        return true;
     }
 
     @Override

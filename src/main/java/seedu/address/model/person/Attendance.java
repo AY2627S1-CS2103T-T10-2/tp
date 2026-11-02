@@ -5,31 +5,38 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 
 /**
- * Represents an immutable history of dates on which a student was marked present.
- * Missing dates indicate unrecorded attendance, not absence.
+ * Represents an immutable history of class sessions a student was marked present at.
+ * A missing record indicates unrecorded attendance, not absence.
  */
 public final class Attendance {
-    public static final String MESSAGE_DUPLICATE_DATE = "Attendance for this date has already been recorded.";
-    public static final String MESSAGE_DATE_NOT_RECORDED = "Attendance for this date has not been recorded.";
+    public static final String MESSAGE_DUPLICATE_RECORD =
+            "Attendance for this class on this date has already been recorded.";
+    public static final String MESSAGE_RECORD_NOT_FOUND =
+            "Attendance for this class on this date has not been recorded.";
 
-    private final NavigableSet<AttendanceDate> dates;
+    private static final Comparator<AttendanceRecord> NEWEST_FIRST =
+            Comparator.comparing(AttendanceRecord::getDate).reversed()
+                    .thenComparing(record -> record.getClassCode().toString());
+
+    private final NavigableSet<AttendanceRecord> records;
 
     /**
-     * Constructs a history from unique, non-null dates, making a defensive copy.
+     * Constructs a history from unique, non-null records, making a defensive copy.
      */
-    public Attendance(Collection<AttendanceDate> dates) {
-        requireNonNull(dates);
-        NavigableSet<AttendanceDate> copiedDates = new TreeSet<>();
-        for (AttendanceDate date : dates) {
-            requireNonNull(date);
-            checkArgument(copiedDates.add(date), MESSAGE_DUPLICATE_DATE);
+    public Attendance(Collection<AttendanceRecord> records) {
+        requireNonNull(records);
+        NavigableSet<AttendanceRecord> copiedRecords = new TreeSet<>();
+        for (AttendanceRecord record : records) {
+            requireNonNull(record);
+            checkArgument(copiedRecords.add(record), MESSAGE_DUPLICATE_RECORD);
         }
-        this.dates = Collections.unmodifiableNavigableSet(copiedDates);
+        this.records = Collections.unmodifiableNavigableSet(copiedRecords);
     }
 
     /**
@@ -40,53 +47,61 @@ public final class Attendance {
     }
 
     /**
-     * Returns whether attendance has been recorded for the given date.
+     * Returns whether attendance has been recorded for the given record.
      */
-    public boolean contains(AttendanceDate date) {
-        return dates.contains(requireNonNull(date));
+    public boolean contains(AttendanceRecord record) {
+        return records.contains(requireNonNull(record));
     }
 
     /**
-     * Returns a new history with the date added, rejecting an already recorded date.
+     * Returns a new history with the record added, rejecting an already recorded record.
      */
-    public Attendance withDate(AttendanceDate date) {
+    public Attendance withRecord(AttendanceRecord record) {
+        requireNonNull(record);
+        checkArgument(!contains(record), MESSAGE_DUPLICATE_RECORD);
+        NavigableSet<AttendanceRecord> updatedRecords = new TreeSet<>(records);
+        updatedRecords.add(record);
+        return new Attendance(updatedRecords);
+    }
+
+    /**
+     * Returns a new history with the record removed, rejecting a record that is not recorded.
+     */
+    public Attendance withoutRecord(AttendanceRecord record) {
+        requireNonNull(record);
+        checkArgument(contains(record), MESSAGE_RECORD_NOT_FOUND);
+        NavigableSet<AttendanceRecord> updatedRecords = new TreeSet<>(records);
+        updatedRecords.remove(record);
+        return new Attendance(updatedRecords);
+    }
+
+    /**
+     * Returns an immutable list of records ordered by newest date first, then class code ascending.
+     */
+    public List<AttendanceRecord> getRecords() {
+        return records.stream().sorted(NEWEST_FIRST).toList();
+    }
+
+    /**
+     * Returns an immutable list of records on the given date, ordered by class code ascending.
+     */
+    public List<AttendanceRecord> getRecordsOn(AttendanceDate date) {
         requireNonNull(date);
-        checkArgument(!contains(date), MESSAGE_DUPLICATE_DATE);
-        NavigableSet<AttendanceDate> updatedDates = new TreeSet<>(dates);
-        updatedDates.add(date);
-        return new Attendance(updatedDates);
-    }
-
-    /**
-     * Returns a new history with the date removed, rejecting a date that is not recorded.
-     */
-    public Attendance withoutDate(AttendanceDate date) {
-        requireNonNull(date);
-        checkArgument(contains(date), MESSAGE_DATE_NOT_RECORDED);
-        NavigableSet<AttendanceDate> updatedDates = new TreeSet<>(dates);
-        updatedDates.remove(date);
-        return new Attendance(updatedDates);
-    }
-
-    /**
-     * Returns an immutable list of dates ordered from newest to oldest.
-     */
-    public List<AttendanceDate> getDates() {
-        return List.copyOf(dates.descendingSet());
+        return records.stream().filter(record -> record.getDate().equals(date)).toList();
     }
 
     @Override
     public boolean equals(Object other) {
-        return other == this || other instanceof Attendance otherAttendance && dates.equals(otherAttendance.dates);
+        return other == this || other instanceof Attendance otherAttendance && records.equals(otherAttendance.records);
     }
 
     @Override
     public int hashCode() {
-        return dates.hashCode();
+        return records.hashCode();
     }
 
     @Override
     public String toString() {
-        return getDates().toString();
+        return getRecords().toString();
     }
 }

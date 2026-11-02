@@ -63,6 +63,8 @@ public class MainWindow extends UiPart<Stage> {
         // Set dependencies
         this.primaryStage = primaryStage;
         this.logic = logic;
+        logic.addressBookRestoreCountProperty().addListener((
+                observable, oldValue, newValue) -> closeStudentDetailsWindow());
         this.dataFilePath = dataFilePath;
 
         // Configure the UI
@@ -170,14 +172,18 @@ public class MainWindow extends UiPart<Stage> {
                 (int) primaryStage.getX(), (int) primaryStage.getY());
         logic.setGuiSettings(guiSettings);
         helpWindow.hide();
-        if (studentDetailsWindow != null) {
-            studentDetailsWindow.getRoot().hide();
-        }
+        closeStudentDetailsWindow();
         primaryStage.hide();
     }
 
     public PersonListPanel getPersonListPanel() {
         return personListPanel;
+    }
+
+    private void closeStudentDetailsWindow() {
+        if (studentDetailsWindow != null) {
+            studentDetailsWindow.getRoot().hide();
+        }
     }
 
     /**
@@ -197,10 +203,15 @@ public class MainWindow extends UiPart<Stage> {
 
             commandResult.getPersonToView().ifPresent(person -> {
                 if (studentDetailsWindow == null) {
-                    studentDetailsWindow = new StudentDetailsWindow(primaryStage);
+                    studentDetailsWindow = new StudentDetailsWindow(primaryStage, logic.getPersonList(),
+                            logic::getGradebook);
                 }
                 studentDetailsWindow.showStudent(person);
             });
+
+            if (studentDetailsWindow != null && commandResult.getPersonToView().isEmpty()) {
+                studentDetailsWindow.refreshIfShowing();
+            }
 
             if (commandResult.isExit()) {
                 handleExit();

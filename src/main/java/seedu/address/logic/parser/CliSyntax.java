@@ -1,7 +1,7 @@
 package seedu.address.logic.parser;
 
 /**
- * Contains Command Line Interface (CLI) syntax definitions common to multiple commands
+ * Contains Command Line Interface (CLI) syntax definitions common to multiple commands.
  */
 public class CliSyntax {
 
@@ -16,5 +16,6 @@ public class CliSyntax {
     public static final Prefix PREFIX_MAX_MARK = new Prefix("max/");
     public static final Prefix PREFIX_MARK = new Prefix("mark/");
     public static final Prefix PREFIX_ALL = new Prefix("all/");
+    public static final Prefix PREFIX_PARTICIPATION_POINTS = new Prefix("p/");
 
 }

@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_CODE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_DATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_MATRICULATION_NUMBER;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
@@ -14,8 +15,10 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.StudentIdentifier;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.classcode.ClassCode;
 import seedu.address.model.person.AttendanceDate;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.MatriculationNumber;
@@ -23,6 +26,7 @@ import seedu.address.model.person.Name;
 import seedu.address.model.tag.Tag;
 
 public class ParserUtilTest {
+    private static final AttendanceDate TODAY = new AttendanceDate("15-06-2026");
     private static final String USAGE = "usage";
     private static final String INVALID_NAME = "R@chel";
     private static final String INVALID_MATRICULATION_NUMBER = "+651234";
@@ -32,6 +36,7 @@ public class ParserUtilTest {
     private static final String VALID_NAME = "Rachel Walker";
     private static final String VALID_MATRICULATION_NUMBER = "A1234567A";
     private static final String VALID_ATTENDANCE_DATE = "07-10-2026";
+    private static final String VALID_CLASS_CODE = "CS2103T-T10";
     private static final String VALID_EMAIL = "rachel@example.com";
     private static final String VALID_TAG_1 = "friend";
     private static final String VALID_TAG_2 = "neighbour";
@@ -82,9 +87,56 @@ public class ParserUtilTest {
 
     @Test
     public void parseStudentIdentifier_malformedIndex_throwsParseException() {
-        for (String input : List.of(" 0", " -1", " a", " 1 extra")) {
+        for (String input : List.of(" 0", " -1", " a")) {
             assertStudentIdentifierParseFailure(input, "Index must be a positive integer.");
         }
+        assertStudentIdentifierParseFailure(" 1 extra", "Invalid command format!\nusage");
+    }
+
+    @Test
+    public void parseStudentIdentifier_preambleWithWhitespaceOrSlash_throwsUsageError() {
+        for (String input : List.of(" 1 C/CS2103T-T10", " 1c/CS2103T-T10", " unmak 1", " unmak\t1", " 1/2")) {
+            assertStudentIdentifierParseFailure(input, "Invalid command format!\nusage");
+        }
+    }
+
+    @Test
+    public void parseStudentIdentifier_indexTooLarge_throwsInvalidIndexError() {
+        for (String input : List.of(" 2147483648", " 99999999999999999999", " 0002147483648")) {
+            assertStudentIdentifierParseFailure(input, "The student index provided is invalid.");
+        }
+    }
+
+    @Test
+    public void parseStudentIdentifier_largestValidIndex_returnsIdentifier() throws Exception {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" 2147483647", PREFIX_MATRICULATION_NUMBER);
+        assertEquals(new StudentIdentifier(Index.fromOneBased(2147483647)),
+                ParserUtil.parseStudentIdentifier(arguments, USAGE));
+    }
+
+    @Test
+    public void parseStudentIdentifier_leadingZeros_returnsIdentifier() throws Exception {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" 000000000001", PREFIX_MATRICULATION_NUMBER);
+        assertEquals(new StudentIdentifier(INDEX_FIRST_PERSON), ParserUtil.parseStudentIdentifier(arguments, USAGE));
+    }
+
+    @Test
+    public void parseStudentIdentifier_malformedIndexNotTooLarge_throwsIndexError() {
+        for (String input : List.of(" 00", " 00000000000", " +2147483648", " -2147483648", " 1c", " 1,2", " stat")) {
+            assertStudentIdentifierParseFailure(input, "Index must be a positive integer.");
+        }
+    }
+
+    @Test
+    public void parseStudentIdentifier_mistypedPreambleWithMatriculationNumber_throwsMultipleIdentifiersError() {
+        assertStudentIdentifierParseFailure(" 1 extra m/A1234567X",
+                "Specify the student by either INDEX or m/MATRICULATION_NUMBER, not both.\nusage");
+    }
+
+    @Test
+    public void parseStudentIdentifier_mistypedPreambleWithDuplicateMatriculationNumbers_throwsDuplicateError() {
+        assertStudentIdentifierParseFailure(" 1 extra m/A1234567X m/A7654321B",
+                "Multiple values specified for the following single-valued field(s): m/");
     }
 
     @Test
@@ -211,6 +263,119 @@ public class ParserUtilTest {
             assertThrows(ParseException.class, AttendanceDate.MESSAGE_CONSTRAINTS, ()
                     -> ParserUtil.parseOptionalAttendanceDate(arguments));
         }
+    }
+
+    @Test
+    public void parseOptionalPastOrPresentAttendanceDate_absentDate_returnsEmptyOptional() throws Exception {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" 1", PREFIX_DATE);
+        assertEquals(Optional.empty(), ParserUtil.parseOptionalPastOrPresentAttendanceDate(arguments, TODAY));
+    }
+
+    @Test
+    public void parseOptionalPastOrPresentAttendanceDate_today_returnsDate() throws Exception {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" d/15-06-2026", PREFIX_DATE);
+        assertEquals(Optional.of(TODAY), ParserUtil.parseOptionalPastOrPresentAttendanceDate(arguments, TODAY));
+    }
+
+    @Test
+    public void parseOptionalPastOrPresentAttendanceDate_dayBeforeToday_returnsDate() throws Exception {
+        AttendanceDate expectedDate = new AttendanceDate("14-06-2026");
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" d/14-06-2026", PREFIX_DATE);
+        assertEquals(Optional.of(expectedDate),
+                ParserUtil.parseOptionalPastOrPresentAttendanceDate(arguments, TODAY));
+    }
+
+    @Test
+    public void parseOptionalPastOrPresentAttendanceDate_earlierYearLaterDayAndMonth_returnsDate() throws Exception {
+        AttendanceDate expectedDate = new AttendanceDate("31-12-2025");
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" d/31-12-2025", PREFIX_DATE);
+        assertEquals(Optional.of(expectedDate),
+                ParserUtil.parseOptionalPastOrPresentAttendanceDate(arguments, TODAY));
+    }
+
+    @Test
+    public void parseOptionalPastOrPresentAttendanceDate_dayAfterToday_throwsParseException() {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" d/16-06-2026", PREFIX_DATE);
+        assertThrows(ParseException.class,
+                "Attendance date 16-06-2026 is in the future. Use today or an earlier date.", ()
+                -> ParserUtil.parseOptionalPastOrPresentAttendanceDate(arguments, TODAY));
+    }
+
+    @Test
+    public void parseOptionalPastOrPresentAttendanceDate_nextYearEarlierDayAndMonth_throwsParseException() {
+        AttendanceDate today = new AttendanceDate("31-12-2026");
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" d/01-01-2027", PREFIX_DATE);
+        assertThrows(ParseException.class,
+                "Attendance date 01-01-2027 is in the future. Use today or an earlier date.", ()
+                -> ParserUtil.parseOptionalPastOrPresentAttendanceDate(arguments, today));
+    }
+
+    @Test
+    public void parseOptionalPastOrPresentAttendanceDate_invalidDate_throwsParseException() {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" d/32-01-2099", PREFIX_DATE);
+        assertThrows(ParseException.class, AttendanceDate.MESSAGE_CONSTRAINTS, ()
+                -> ParserUtil.parseOptionalPastOrPresentAttendanceDate(arguments, TODAY));
+    }
+
+    @Test
+    public void parseOptionalPastOrPresentAttendanceDate_nullArguments_throwsNullPointerException() {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" d/15-06-2026", PREFIX_DATE);
+        assertThrows(NullPointerException.class, ()
+                -> ParserUtil.parseOptionalPastOrPresentAttendanceDate(null, TODAY));
+        assertThrows(NullPointerException.class, ()
+                -> ParserUtil.parseOptionalPastOrPresentAttendanceDate(arguments, null));
+    }
+
+    @Test
+    public void parseClassCode_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseClassCode(null));
+    }
+
+    @Test
+    public void parseClassCode_validValue_returnsClassCode() throws Exception {
+        for (String classCode : List.of("CS1010-T1", "ABC1234XY-ABCDE", VALID_CLASS_CODE)) {
+            assertEquals(new ClassCode(classCode), ParserUtil.parseClassCode(classCode));
+        }
+    }
+
+    @Test
+    public void parseClassCode_lowerCaseWithWhitespace_returnsTrimmedClassCode() throws Exception {
+        assertEquals(new ClassCode(VALID_CLASS_CODE), ParserUtil.parseClassCode("  cs2103t-t10  "));
+    }
+
+    @Test
+    public void parseClassCode_invalidValue_throwsParseException() {
+        for (String classCode : List.of("", "CS2103T", "CS2103T-", "-T10", "CS2103T-T10-X",
+                "C2103-T1", "CS2103T-ABCDEF", "CS2103T T10")) {
+            assertThrows(ParseException.class, ClassCode.MESSAGE_CONSTRAINTS, ()
+                    -> ParserUtil.parseClassCode(classCode));
+        }
+    }
+
+    @Test
+    public void parseOptionalClassCode_nullMultimap_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseOptionalClassCode(null));
+    }
+
+    @Test
+    public void parseOptionalClassCode_absentClassCode_returnsEmptyOptional() throws Exception {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" 1", PREFIX_CLASS_CODE);
+        assertEquals(Optional.empty(), ParserUtil.parseOptionalClassCode(arguments));
+    }
+
+    @Test
+    public void parseOptionalClassCode_validClassCode_returnsClassCode() throws Exception {
+        for (String input : List.of(" 1 c/CS2103T-T10", " 1 c/ CS2103T-T10 ")) {
+            ArgumentMultimap arguments = ArgumentTokenizer.tokenize(input, PREFIX_CLASS_CODE);
+            assertEquals(Optional.of(new ClassCode(VALID_CLASS_CODE)), ParserUtil.parseOptionalClassCode(arguments));
+        }
+    }
+
+    @Test
+    public void parseOptionalClassCode_emptyClassCode_throwsParseException() {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" 1 c/", PREFIX_CLASS_CODE);
+        assertThrows(ParseException.class, ClassCode.MESSAGE_CONSTRAINTS, ()
+                -> ParserUtil.parseOptionalClassCode(arguments));
     }
 
     @Test
