@@ -61,8 +61,14 @@ TAssist is a **desktop application for managing students, optimized for use thro
 * Items followed by `...` can appear zero or more times.<br>
   For example, `[t/TAG]... ` may be omitted, or written as `t/friend` or `t/friend t/family`.
 
-* Parameters can be in any order.<br>
+* Parameters with a prefix, such as `n/NAME` or `c/MODULE-CLASS`, can be in any order.<br>
   For example, if the command specifies `n/NAME m/MATRICULATION_NUMBER`, `m/MATRICULATION_NUMBER n/NAME` is also acceptable.
+
+* Parameters without a prefix, such as `INDEX`, and subcommand words, such as `unmark`, must be in the position shown in the format.<br>
+  For example, `attendance 1 c/CS2103T-T10` is accepted, but `attendance c/CS2103T-T10 1` is rejected.
+
+* A mistyped subcommand word with no `INDEX` after it is read as the index.<br>
+  For example, `attendance stat c/CS2103T-T10 d/07-10-2026` (instead of `stats`) shows `Index must be a positive integer.` If you see this error, check the spelling of the subcommand.
 
 * Extraneous parameters for some of the commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
@@ -189,10 +195,10 @@ Opens a separate student details window showing particulars, enrolled classes an
 Format: `view INDEX`
 
 * The index refers to the number shown in the displayed student list.
-* Details are organised into Particulars, Classes and modules, Assignments and marks, Attendance, and Participation sections.
+* Details are organized into Particulars, Classes and modules, Assignments and marks, Attendance, and Participation sections.
 * Classes are listed by module code and class group. Students without classes show `No classes enrolled`.
 * Running `view` again updates the same window with the selected student's latest details, even when selecting the same student. Press `Esc` to close the window.
-* While the window is open, successful changes to that student's particulars, class enrolments, attendance, assignments, marks, or participation records automatically refresh the displayed details without taking keyboard focus from the main window. Editing their matriculation number preserves the visible assignments and recorded marks.
+* While the window is open, successful changes to that student's particulars, class enrollments, attendance, assignments, marks, or participation records automatically refresh the displayed details without taking keyboard focus from the main window. Editing their matriculation number preserves the visible assignments and recorded marks.
 * Deleting the displayed student or clearing all students closes the details window.
 * Successful `undo` and `redo` also close the details window. Run `view` again to inspect the restored records. A manually closed window stays closed when later commands change the student or their marks.
 * Finding, filtering, or sorting students keeps the window on the same student, even if that student is no longer in the displayed list. Changes to other students do not switch the window to another student.
@@ -417,6 +423,11 @@ Examples:
 * `attendance unmark 1 d/07-10-2026` removes the only attendance record for `07-10-2026` for the 1st student in the displayed list.
 * `attendance unmark 1 c/CS2103T-T10 d/07-10-2026` removes that student's record for `CS2103T-T10` on `07-10-2026`, leaving any records for other classes unchanged.
 * `attendance unmark m/A1234567X` removes the only attendance record for today's date for the student whose matriculation number is `A1234567X`.
+
+<box type="tip" seamless>
+
+**Tip:** There is no command to change an attendance record's class or date. To correct a record, remove it with `attendance unmark`, then record the correct class and date with `attendance`. For example, `attendance unmark m/A1234567X c/CS2103T-T10 d/07-10-2026` followed by `attendance m/A1234567X c/CS2103T-T11 d/07-10-2026` moves that student's record for `07-10-2026` from `CS2103T-T10` to `CS2103T-T11`. The student must be enrolled in the new class.
+</box>
 
 ### Recording class participation: `participation`
 
@@ -700,7 +711,7 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous TAssist home folder.
+**A**: Copy the JAR file into a new home folder on the other computer. Create a `data` folder inside it, copy `data/addressbook.json` from your previous TAssist home folder into that `data` folder, then launch TAssist.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -708,7 +719,7 @@ _Details coming soon ..._
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
-3. **On macOS, using fullscreen mode for secondary windows**, such as the Help or student details window, may cause unexpected window behaviour. Keep these windows in windowed mode. If you encounter this issue, exit fullscreen mode before continuing.
+3. **On macOS, using fullscreen mode for secondary windows**, such as the Help or student details window, may cause unexpected window behavior. Keep these windows in windowed mode. If you encounter this issue, exit fullscreen mode before continuing.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -733,8 +744,8 @@ Action     | Format, Examples
 **View participation** | `participation view INDEX`<br>or `participation view m/MATRICULATION_NUMBER`<br>Example: `participation view 1` |
 **Remove participation record** | `participation remove INDEX c/MODULE-CLASS d/DATE`<br>or `participation remove m/MATRICULATION_NUMBER c/MODULE-CLASS d/DATE`<br>Example: `participation remove 1 c/CS2103T-T10 d/28-10-2026` |
 **Edit**   | `edit INDEX [n/NAME] [m/MATRICULATION_NUMBER] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
-**Enroll** | `enroll INDEX c/MODULE-CLASS` <br> e.g., `enroll 1 c/CS2103T-T10`
-**Unenroll** | `unenroll INDEX c/MODULE-CLASS` or `unenroll INDEX all/` <br> e.g., `unenroll 1 c/CS2103T-T10`, `unenroll 1 all/`
+**Enroll** | `enroll INDEX c/MODULE-CLASS` or `enroll m/MATRICULATION_NUMBER c/MODULE-CLASS`<br> e.g., `enroll 1 c/CS2103T-T10`, `enroll m/A1234567X c/CS2103T-T10`
+**Unenroll** | `unenroll INDEX c/MODULE-CLASS` or `unenroll INDEX all/` or `unenroll m/MATRICULATION_NUMBER c/MODULE-CLASS` or `unenroll m/MATRICULATION_NUMBER all/`<br> e.g., `unenroll 1 c/CS2103T-T10`, `unenroll m/A1234567X all/`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...` or `find m/MATRICULATION_NUMBER`<br> e.g., `find James Jake`, `find m/A1234567X`
 **List**   | `list`
 **Sort**   | `sort`, `sort FIELD [asc\|desc]`, or `sort mark id/MODULE:CODE [asc\|desc]`<br> e.g., `sort matric desc`, `sort mark id/CS2103T:A1 desc`
