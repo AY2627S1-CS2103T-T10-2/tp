@@ -141,7 +141,7 @@ The `Model` component,
 * stores shared assignment definitions and student marks in a `Gradebook` owned by `AddressBook`. Gradebook mutations are exposed through the `Model` API, while reads use a snapshot.
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * displays the filtered students through a sorted view. Name order is the default; `add`, `find`, and `list` restore it after a sort. `SortCommand` selects a comparator for name, matriculation number, email, attendance record count, or one assignment's marks, and may reverse its primary comparison. Equal values use name and matriculation number as tie-breakers. Sorting changes only the view, not the stored student order.
-* exposes the active sort's optional card detail through an observable `SortDisplay`. The UI refreshes student cards when this changes. Attendance sorting shows each student's record count; mark sorting shows the selected assignment's result or missing status. Gradebook changes, student edits, and data restoration reset an active mark sort to name order so the saved comparison snapshot does not become stale.
+* exposes the active sort's optional card detail through an observable `SortDisplay`. The UI refreshes student cards when this changes. Attendance sorting shows each student's record count; mark sorting shows the selected assignment's result or missing status. Assignment or mark changes, changes to a student's name, matriculation number, email address, or tags, and data restoration reset an active mark sort to name order and clear the assignment result on student cards. Attendance, class enrollment, and participation updates preserve the mark sort and assignment results.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -241,7 +241,9 @@ The `participationRecords` container in `StudentDetailsWindow.fxml` holds these 
 
 The `sort` command accepts `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MODULE:CODE [asc|desc]`. `SortCommandParser` ignores letter case for field and direction keywords, and reports the assignment ID constraints for an invalid ID. `SortCommand` sorts the displayed students without changing their stored order. Name and email comparisons ignore case, and an empty attendance history counts as zero. Recorded marks come before `Unmarked` and `Not assigned` in either direction; ties use name and then matriculation number.
 
-`SortDisplay` supplies the optional extra line on each student card. An attendance sort shows the record count. A mark sort shows the assignment ID and each student's mark or missing status. `add`, `find`, and `list` restore name order and remove that line. Assignment, mark, or student detail changes reset an active mark sort so its display does not become stale.
+`SortDisplay` supplies the optional extra line on each student card. An attendance sort shows the record count. A mark sort shows the assignment ID and each student's assignment mark, `Unmarked`, or `Not assigned`. `add`, `find`, and `list` restore name order and remove that line.
+
+The mark comparator and card details capture a gradebook snapshot. Assignment and mark changes invalidate that snapshot; changing a matriculation number also invalidates it because the student's gradebook entries move to a new key. After a successful replacement, `ModelManager#setPerson` resets an active mark sort only if the student's name, matriculation number, email address, or tags changed. Updates affecting only attendance, class enrollment, or participation history preserve the comparator, `SortDisplay`, and displayed list's filter because they do not change the snapshot's marks or matriculation-number keys. Attendance sorting continues to use the updated attendance count. Index-based commands resolve the displayed index against the current displayed list.
 
 ### Keeping the student details window up to date
 
@@ -1331,6 +1333,34 @@ Start in a fresh test folder with the original sample students. Run `unenroll 1 
 
    1. Record another mark using `mark m/A6789012U id/CS2103T:A1 mark/15`.<br>
       Expected: The list returns to name order and the assignment result line disappears. Running `sort mark id/CS2103T:A1 desc` again shows the student with 15 first.
+
+1. Preserving an assignment-mark sort during attendance, enrollment, and participation updates
+
+   1. Prerequisites: Use a fresh data folder with the original six sample students. Each student already has two September attendance records and one September participation record. These existing records should remain throughout the following steps. Enter each command separately:
+
+      ```text
+      enroll 1 c/CS2103T-T10
+      enroll 2 c/CS2103T-T10
+      assignment m/A2345678Y id/CS2103T:A1 n/Quiz max/10
+      mark m/A2345678Y id/CS2103T:A1 mark/5
+      sort mark id/CS2103T:A1 desc
+      attendance 1 c/CS2103T-T10 d/10-10-2026
+      attendance 1 c/CS2103T-T10 d/11-10-2026
+      ```
+
+      Expected: Bernice Yu remains at displayed index 1 after each attendance command, with <samp>CS2103T:A1: 5/10</samp> on her student card. Alex Yeoh remains at displayed index 2 with <samp>CS2103T:A1: Not assigned</samp>. Run `view 1` and `view 2` separately to confirm Bernice has attendance records for 10-10-2026 and 11-10-2026 in CS2103T-T10 and Alex has neither of those records. Both students retain their two September attendance records, so Bernice has four attendance records in total and Alex has two.
+
+   1. Run `enroll 1 c/CS2103T-T11`, `unenroll 1 c/CS2103T-T11`, `participation 1 c/CS2103T-T10 d/10-10-2026 p/2`, and `participation remove 1 c/CS2103T-T10 d/10-10-2026` separately.<br>
+      Expected: Each update applies to Bernice. Removing the 10-10-2026 participation record preserves her September participation record. The displayed order and assignment results remain unchanged after every command.
+
+   1. Run `attendance unmark 1 c/CS2103T-T10 d/10-10-2026`, then `attendance c/CS2103T-T10 d/12-10-2026`.<br>
+      Expected: Bernice's 10 October attendance is removed; both enrolled students receive 12 October attendance. Bernice remains first, and the assignment results remain visible and correct.
+
+   1. Run `find Alex Bernice`, `sort mark id/CS2103T:A1 asc`, then `participation 1 c/CS2103T-T10 d/11-10-2026 p/3`.<br>
+      Expected: Only Bernice and Alex remain displayed, in that order, with their assignment results. Bernice receives the participation record. Run `enroll 1 c/CS2103T-T10` again; the duplicate enrollment is rejected without changing the displayed order or assignment results.
+
+   1. Run `edit 1 m/A2345679Y`.<br>
+      Expected: The displayed list returns to name order, shows all six students, and clears assignment results from student cards. Run `sort mark id/CS2103T:A1 desc` again; Bernice returns to displayed index 1 with the new matriculation number and <samp>5/10</samp>.
 
 ### Keeping an open student profile current
 
