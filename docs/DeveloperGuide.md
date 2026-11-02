@@ -1803,6 +1803,8 @@ Start with the original six sample students in a disposable data folder. Ensure 
    Expected: The existing definition attaches to the first search result, and only their mark changes.
 1. Use `mark m/MATRICULATION_NUMBER id/CS2103T:INDEX151 mark/12`, substituting the hidden student's number.<br>
    Expected: Their mark changes despite being hidden. Use the matriculation form of `assignment` with a fresh ID, name, and maximum to verify hidden-student creation too.
+1. Run `marks id/CS2103T:INDEX151` and confirm Irfan (`A5678901V`) has <samp>5/20</samp> and Roy (`A6789012U`) has <samp>12/20</samp>. Enter `mark m/A5678901V id/CS2103T:INDEX151 mark/6`.<br>
+   Expected: Irfan's mark becomes <samp>6/20</samp> and Roy's remains <samp>12/20</samp>. This accepted change provides a known undo checkpoint for the rejection cases below. Do not restart yet. Use matriculation numbers for the history checks because undo and redo reset the displayed list.
 1. For both commands, omit the identifier, combine `1 m/MATRICULATION_NUMBER`, repeat `m/`, or use `0`, `-1`, `abc`, `1.5`, `1 2`, or an index beyond the displayed list.<br>
    Expected: Each request fails without changing students, definitions, links, or marks. A rejected new assignment must not leave its definition behind.
 
@@ -1818,10 +1820,16 @@ Start with the original six sample students in a disposable data folder. Ensure 
    | `assignment 2147483648 id/CS2103T:INDEX151` | <samp>The student index provided is invalid.</samp> |
    | `mark 1 mark/5` | <samp>Missing required prefix: id/</samp>, followed by usage containing `mark 1 id/CS2103T:A1 mark/17.5` and `mark m/A1234567X id/CS2103T:A1 mark/17.5`. |
    | `mark 1 id/CS2103T:INDEX151` | <samp>Missing required prefix: mark/</samp>, followed by the same worked examples. |
-   | `assignment 1` | Command-format error and usage containing `assignment 1 id/CS2103T:A1 n/Assignment One max/20`, its matriculation counterpart, and both shorter existing-work examples. |
+   | `assignment 1` | <samp>Invalid command format!</samp>, followed by usage containing `assignment 1 id/CS2103T:A1 n/Assignment One max/20`, its matriculation counterpart, and both shorter existing-work examples. |
 
+1. Enter `undo`, then `marks id/CS2103T:INDEX151`.<br>
+   Expected: Undo succeeds and Irfan's mark returns to <samp>5/20</samp>, while Roy's remains <samp>12/20</samp>. This confirms the rejected commands added no undo history entries.
+1. Repeat the rejection cases from the preceding two rejection steps, without running any successful data-changing commands. Then enter `redo`, followed by `marks id/CS2103T:INDEX151`.<br>
+   Expected: Redo succeeds and Irfan's mark returns to <samp>6/20</samp>, while Roy's remains <samp>12/20</samp>. This confirms the rejected commands preserved the pending redo.
+1. Enter `mark m/A5678901V id/CS2103T:INDEX151 mark/5`, then `marks id/CS2103T:INDEX151`.<br>
+   Expected: Irfan has <samp>5/20</samp> and Roy has <samp>12/20</samp>, restoring the expected marks before checking persistence.
 1. Close and reopen TAssist. Run `marks id/CS2103T:INDEX151`.<br>
-   Expected: Both students' assignment links and latest accepted marks persist; rejected changes remain absent.
+   Expected: Both students' assignment links persist, with Irfan at <samp>5/20</samp> and Roy at <samp>12/20</samp>. Rejected changes remain absent.
 
 ### Recording an assignment mark
 
