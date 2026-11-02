@@ -1276,7 +1276,7 @@ Start in a fresh test folder with the original sample students. Run `unenroll 1 
 1. Run `unenroll m/A1234567X c/CS2103T-T10`, then `list` and `view 1`.<br>
    Expected: The command succeeds even though Alex was hidden. Only CS3230-T01 remains enrolled.
 1. Run `unenroll m/A1234567X all/`, then repeat it.<br>
-   Expected: The first run unenrolls Alex from all classes. The second reports that the student has no class enrolments to remove and changes nothing.
+   Expected: The first run unenrolls Alex from all classes. The second reports that the student has no class enrollments to remove and changes nothing.
 1. Run `unenroll m/A9999999Z all/` and `unenroll 1 m/A1234567X all/` separately.<br>
    Expected: Both fail without changing records: the first matches no student, and the second gives both an index and a matriculation number.
 
