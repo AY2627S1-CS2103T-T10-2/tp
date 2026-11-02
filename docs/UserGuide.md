@@ -783,7 +783,7 @@ These rules apply to the `c/CLASS_CODE` field, and to the class code keywords in
 
 Accepted examples: `CS2103T-T10`, `cs2103t-t10`, `CS3230-1`.
 
-Rejected examples: `CS2103T` (no group), `CS2103T-` (empty group), `CS2103T-T1000` (group longer than 5 characters), `CS2103T-T-10` (two hyphens).
+Rejected examples: `CS2103T` (no group), `CS2103T-` (empty group), `CS2103T-T10000` (group longer than 5 characters), `CS2103T-T-10` (two hyphens).
 
 ### Assignment ID constraints
 
