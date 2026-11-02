@@ -472,6 +472,54 @@ enrollment changes preserve the participation history.
   whole-number range is determined by the integer representation.
 
 
+### Searching and filtering students
+
+`find` and `filter` narrow the displayed student list independently. A student is displayed only if they satisfy both the active class/module filter set by `filter` and the active search set by `find`. Neither command overwrites the other's criteria, so they can be run in either order.
+
+`ModelManager` stores each layer in its own field, both defaulting to `PREDICATE_SHOW_ALL_PERSONS`:
+
+* `filterPredicate` is set by `FilterCommand` through `Model#updateFilterPredicate` to a `PersonInModuleOrClassPredicate`.
+* `findPredicate` is set by `FindCommand` through `Model#updateFindPredicate` to a `FindPredicate`: a `NameContainsKeywordsPredicate` for `find KEYWORD...` or a `MatriculationNumberMatchesPredicate` for `find m/MATRICULATION_NUMBER`.
+
+Whenever either field changes, `applyPredicates()` calls `filteredPersons.setPredicate(filterPredicate.and(findPredicate))`. The sorted view that the UI binds to wraps this filtered list, so the UI updates without further work.
+
+How each command affects the layers:
+
+| Command | `filterPredicate` | `findPredicate` |
+|---|---|---|
+| `filter KEYWORD...` | replaced | kept |
+| `find KEYWORD...` | kept | replaced |
+| `find m/MATRICULATION_NUMBER` | cleared | replaced |
+| `list`, `add`, `edit`, successful `undo`/`redo` | cleared | cleared |
+
+`find` resets the sort to name order, as described in [Sorting displayed students](#sorting-displayed-students). `filter` does not change the sort.
+
+The sequence diagram below shows `find John` while a class/module filter is active. `FindCommand` replaces only `findPredicate`, so the filter still applies.
+
+<puml src="diagrams/FindFilterLayeringSequenceDiagram.puml" alt="FindFilterLayeringSequenceDiagram" />
+
+`find m/MATRICULATION_NUMBER` is the one case that ignores the filter. A matriculation number identifies exactly one student, and tutors use it to look up a student who is hidden by the current view, as `attendance m/`, `delete m/` and `enroll m/` also do. `FindCommand` does not check the predicate's type. It asks `FindPredicate#ignoresActiveFilter()`, which returns `true` only for `MatriculationNumberMatchesPredicate`, and resets both layers first when the answer is `true`. A future predicate can opt in or out by implementing this method, without changing `FindCommand`.
+
+<puml src="diagrams/FindActivityDiagram.puml" alt="FindActivityDiagram" width="300" />
+
+An active `find` can make a new `filter` return no students, so `FilterCommand` reports a dedicated message in that case telling the user to run `list` to clear the search.
+
+#### Design considerations
+
+**Aspect: How `find` and `filter` combine:**
+
+* **Alternative 1 (current choice):** Store `filterPredicate` and `findPredicate` separately and combine them with `Predicate#and`.
+  * Pros: Each command replaces only its own layer, so the result does not depend on the order of the commands. `list`, `edit` and `undo` can clear everything with one reset.
+  * Cons: `ModelManager` holds two display-state fields, and a third kind of criterion would need a new field.
+
+* **Alternative 2:** `find` searches only the currently displayed list.
+  * Pros: Needs no extra state.
+  * Cons: Repeated `find` commands keep narrowing the list, so a new `find` cannot replace the previous one, and the result depends on the history of commands. The user must run `list` to widen it again.
+
+* **Alternative 3:** Keep a list of active predicates and combine them all.
+  * Pros: Supports any number of criteria.
+  * Cons: Each command needs a way to find and replace its own entry. This is more complex than two criteria need.
+
 
 --------------------------------------------------------------------------------------------------------------------
 
