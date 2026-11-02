@@ -8,8 +8,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.gradebook.AssignmentId;
 import seedu.address.model.gradebook.Gradebook;
@@ -63,7 +63,7 @@ public class RemoveAssignmentCommand extends Command {
             boolean hasStudent = model.getAddressBook().getPersonList().stream()
                     .anyMatch(person -> person.getMatriculationNumber().equals(studentNumber));
             if (!hasStudent) {
-                throw new CommandException(AddressBook.MESSAGE_STUDENT_NOT_FOUND);
+                throw new CommandException(String.format(Messages.MESSAGE_STUDENT_NOT_FOUND, studentNumber));
             }
             try {
                 model.unassignStudent(studentNumber, assignmentId);
