@@ -23,6 +23,7 @@ public class MarkClassAttendanceCommand extends AttendanceCommand {
 
     public static final String MESSAGE_SUCCESS = "Marked attendance for %1$s in %2$s on %3$s";
     public static final String MESSAGE_SKIPPED = "\nAlready recorded, skipped: %1$s";
+    public static final String MESSAGE_SKIPPED_STUDENT = "%1$s (%2$s)";
     public static final String MESSAGE_NO_ENROLLED_STUDENTS = "No students are enrolled in %1$s.";
 
     private final ClassCode classCode;
@@ -80,10 +81,11 @@ public class MarkClassAttendanceCommand extends AttendanceCommand {
             return message;
         }
 
-        String skippedNames = skippedStudents.stream()
-                .map(student -> student.getName().toString())
+        String skippedStudentText = skippedStudents.stream()
+                .map(student -> String.format(MESSAGE_SKIPPED_STUDENT,
+                        student.getName(), student.getMatriculationNumber()))
                 .collect(Collectors.joining(", "));
-        return message + String.format(MESSAGE_SKIPPED, skippedNames);
+        return message + String.format(MESSAGE_SKIPPED, skippedStudentText);
     }
 
     /**

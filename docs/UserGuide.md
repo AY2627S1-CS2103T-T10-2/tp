@@ -255,6 +255,7 @@ Format: `mark INDEX id/MODULE:CODE mark/MARK` or `mark m/MATRICULATION_NUMBER id
 * A mark's displayed decimal form must also fit within 64 characters.
 * The confirmation includes the score and maximum mark. Updating a recorded score gives a short updated message.
 * If that student's details window is open, its score updates immediately after the command succeeds, without another `view` command.
+* With a student identifier supplied, a missing `id/` or `mark/` prefix is named in the error, followed by command usage. For example, `mark m/A1234567X i/CS2103T:A1 mark/5` reports `Missing required prefix: id/`. Use `id/` for the assignment ID. Rejected commands leave marks unchanged.
 * Use `mark` to change a score; `edit` changes student details and does not accept marks.
 
 Examples:
@@ -372,7 +373,7 @@ or
 * `c/MODULE-CLASS` is required. The student must be enrolled in that class using `enroll`. Class codes ignore letter case, as in `enroll`.
 * For a single student, specify either `INDEX` or `MATRICULATION_NUMBER`, not both.
 * Without `INDEX` or `m/`, marks every student enrolled in `MODULE-CLASS`, including students not in the displayed list.
-* When marking a whole class, students already recorded for that class and date are skipped and named in the result; the others are still marked.
+* When marking a whole class, students already recorded for that class and date are skipped and listed in the result by name and matriculation number, e.g. `Alex Yeoh (A1234567X)`; the others are still marked.
 * A class with no enrolled students shows an error and changes nothing.
 * To take attendance quickly, mark the whole class, then use `attendance unmark` for each absent student. Unmarking removes that student's record for the class and date; TAssist does not store absences.
 * The index refers to the index number shown in the displayed student list.

@@ -258,7 +258,7 @@ The `attendance` command marks a student or a whole class present at a class ses
 
 `AttendanceCommandParser` checks the first word of the arguments. If it is `unmark`, in any letter case, it calls `parseUnmark` with the remaining arguments; otherwise, it tokenizes the arguments before choosing the mark form. Both paths use `tokenizeAttendanceArguments` to tokenize `m/`, `c/` and `d/` and reject duplicate prefixes. Single-student requests then parse the student identifier, class code and optional date, in that order, before constructing their command. `parseMark` requires a class code, while `parseUnmark` leaves it optional. Duplicate-prefix errors take priority over identifier errors, then class code errors, then date errors. After date parsing, `parseMark`, `parseMarkClass` and `parseUnmark` reject a date later than today. The parser reads today's date from `AttendanceDate.today()` when constructed, and tests pass in a fixed date. `parseStats` does not apply this check, and neither does loading the data file, so future-dated records already saved still load.
 
-For marking, an empty preamble with no `m/` and a present `c/` selects `parseMarkClass`, which parses the class code and optional date and constructs `MarkClassAttendanceCommand`; all other arguments go to `parseMark`. The whole-class command collects enrolled students from all students in TAssist, including those outside the displayed list. It reports an error without changing anything if none are enrolled. Otherwise, it skips students already recorded for that class and date, reuses `AttendanceCommand#createStudentWithAttendance` to create each updated student, and calls `Model#setPerson` once per marked student. The result reports the marked count and names any skipped students.
+For marking, an empty preamble with no `m/` and a present `c/` selects `parseMarkClass`, which parses the class code and optional date and constructs `MarkClassAttendanceCommand`; all other arguments go to `parseMark`. The whole-class command collects enrolled students from all students in TAssist, including those outside the displayed list. It reports an error without changing anything if none are enrolled. Otherwise, it skips students already recorded for that class and date, reuses `AttendanceCommand#createStudentWithAttendance` to create each updated student, and calls `Model#setPerson` once per marked student. The result reports the marked count and lists any skipped students by name and matriculation number.
 
 The simplified sequence diagram below shows a successful run of `attendance unmark m/A1234567X` after parsing, assuming the student exists and has exactly one attendance record today. It omits date selection and choosing which record to remove, which the steps below explain.
 
@@ -762,7 +762,7 @@ Use case ends.
 
 Removing an attendance record (unmarking) follows the same interaction, with these differences: in step 2, TAssist removes the student's record for the given class and date instead of adding one. The class is optional when exactly one record exists on that date. With several records on that date and no class supplied, TAssist reports an error naming the classes and asks the tutor to specify one; no records change (use case resumes at step 1). Extensions 1d and 1h do not apply, and 1g applies only to an invalid supplied class: the record's class need not be a current enrollment. If no record matches the given class and date, or no records exist on that date when the class is omitted, TAssist reports this and leaves the student's records unchanged (use case ends). Success confirms the removed record's class even when inferred. A date later than today is rejected and nothing changes.
 
-For whole-class marking, the tutor supplies a class and an optional date without a student identifier. TAssist marks every enrolled student present for that session and reports how many students were marked, naming any students already recorded for that class and date who were skipped. If no students are enrolled in the class, TAssist reports an error and changes nothing. A date later than today is rejected and nothing changes.
+For whole-class marking, the tutor supplies a class and an optional date without a student identifier. TAssist marks every enrolled student present for that session and reports how many students were marked, naming any students already recorded for that class and date who were skipped, each with their matriculation number. If no students are enrolled in the class, TAssist reports an error and changes nothing. A date later than today is rejected and nothing changes.
 
 #### UC05: List all students
 
@@ -1765,20 +1765,41 @@ Start with the original six sample students in a disposable data folder. Ensure 
 
 ### Recording an assignment mark
 
-1. After assigning `CS2103T:A1` with maximum `20` to student `A1234567X`, enter `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
+Run these steps in order without restarting until instructed. Before starting, ensure student `A1234567X` exists and has been assigned `CS2103T:A1` with maximum `20`.
+
+1. Enter `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
    Expected: TAssist confirms a recorded score of <samp>0/20</samp>.
 1. Enter the same command with `mark/20`.<br>
    Expected: TAssist accepts a score equal to the maximum and confirms <samp>20/20</samp>.
 1. Enter `mark m/A1234567X id/CS2103T:A1 mark/17.5`.<br>
    Expected: TAssist confirms the score was updated to <samp>17.5/20</samp>.
-1. Enter the same command with `mark/21`.<br>
-   Expected: <samp>Mark cannot exceed the maximum mark of 20.</samp> The previous score of <samp>17.5/20</samp>, assignment data, and saved records remain unchanged after reopening the app.
-1. Enter the same command with `mark/1e1000000`.<br>
+1. Enter the same command with `mark/21`, then enter `marks id/CS2103T:A1`.<br>
+   Expected: <samp>Mark cannot exceed the maximum mark of 20.</samp> The previous score remains <samp>17.5/20</samp>, and assignment data remains unchanged. Do not restart yet; persistence is checked later.
+1. Enter `mark m/A1234567X i/CS2103T:A1 mark/5`.<br>
+   Expected: <samp>Missing required prefix: id/</samp> followed by `mark` usage. Enter `marks id/CS2103T:A1`; the mark remains <samp>17.5/20</samp>.
+1. Enter `undo`, then `marks id/CS2103T:A1`.<br>
+   Expected: Undo succeeds and the mark returns to <samp>20/20</samp>, confirming the rejected commands added no history entries.
+1. Enter `mark m/A1234567X i/CS2103T:A1 mark/5` again, then `redo`, then `marks id/CS2103T:A1`.<br>
+   Expected: <samp>Missing required prefix: id/</samp> followed by `mark` usage, then a successful redo restoring <samp>17.5/20</samp>. This confirms rejection preserves pending redo history and restores the score needed by later steps.
+1. Run each command in the table below. Each must fail with the stated message. After each rejection, enter `marks id/CS2103T:A1`; the mark must remain <samp>17.5/20</samp>.
+
+   | Command | Expected error |
+      | --- | --- |
+   | `mark m/A1234567X mark/5` | <samp>Missing required prefix: id/</samp>, followed by `mark` usage. |
+   | `mark m/A1234567X id/CS2103T:A1` | <samp>Missing required prefix: mark/</samp>, followed by `mark` usage. |
+   | `mark m/A1234567X` | <samp>Missing required prefix: id/</samp>, followed by `mark` usage. |
+   | `mark m/ id/CS2103T:A1 mark/5` | <samp>Matriculation numbers should only start with an A, followed by 7 digits, and end with a letter</samp> |
+   | `mark m/A1234567X id/ mark/5` | <samp>Assignment IDs should be MODULE:CODE, where CODE starts with a letter and contains only letters and digits (e.g. CS2103T:A1).</samp> |
+   | `mark m/A1234567X id/CS2103T:A1 mark/` | <samp>Mark must be a valid number.</samp> |
+   | `mark m/A1234567X id/CS2103T:A1 id/CS2103T:A1 mark/5` | <samp>Multiple values specified for the following single-valued field(s): id/</samp> |
+   | `mark m/A1234567X id/CS2103T:A/1 mark/5` | <samp>Assignment IDs should be MODULE:CODE, where CODE starts with a letter and contains only letters and digits (e.g. CS2103T:A1).</samp> The slash-containing value is not reported as an unknown prefix. |
+
+1. Enter `mark m/A1234567X id/CS2103T:A1 mark/1e1000000`.<br>
    Expected: TAssist rejects the score as too long for display. The previous score remains stored.
 1. Repeat with `mark/100e2147483647`.<br>
    Expected: TAssist shows <samp>Mark's displayed decimal form must be at most 64 characters.</samp> The existing mark and saved data remain unchanged.
 1. Close and reopen TAssist. Enter `marks id/CS2103T:A1`.<br>
-   Expected: The student's score remains <samp>17.5/20</samp>.
+   Expected: The student's score remains <samp>17.5/20</samp>, and the assignment maximum remains <samp>20</samp>.
 1. Record the mark with `mark m/A1234567X id/CS2103T:A1 mark/1.7500e1`.<br>
    Expected: TAssist accepts the scientific notation and confirms a normalized score of <samp>17.5/20</samp>.
 1. Repeat with `mark/0e2147483647`.<br>
