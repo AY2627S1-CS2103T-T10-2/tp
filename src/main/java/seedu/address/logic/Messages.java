@@ -45,6 +45,9 @@ public class Messages {
                 .append("; Email: ")
                 .append(person.getEmail())
                 .append("; Tags: ");
+        if (person.getTags().isEmpty()) {
+            builder.append("No tags");
+        }
         person.getTags().forEach(builder::append);
         return builder.toString();
     }
