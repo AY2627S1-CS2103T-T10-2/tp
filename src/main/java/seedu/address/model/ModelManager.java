@@ -112,7 +112,12 @@ public class ModelManager implements Model {
         requireAllNonNull(target, editedPerson);
 
         versionedAddressBook.setPerson(target, editedPerson);
-        resetAssignmentSort();
+        if (!target.getName().equals(editedPerson.getName())
+                || !target.getMatriculationNumber().equals(editedPerson.getMatriculationNumber())
+                || !target.getEmail().equals(editedPerson.getEmail())
+                || !target.getTags().equals(editedPerson.getTags())) {
+            resetAssignmentSort();
+        }
     }
 
     @Override

@@ -45,6 +45,23 @@ public class DeleteCommandParserTest {
     }
 
     @Test
+    public void parse_singleMistypedToken_throwsUsageError() {
+        assertParseFailure(parser, "1c/CS2103T-T10",
+                String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parse_tooLargeSingleIndex_throwsInvalidIndexError() {
+        assertParseFailure(parser, "2147483648", Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void parse_multipleTokensWithBadIndex_throwsIndexError() {
+        assertParseFailure(parser, "1 C/CS2103T-T10", ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, "1 2147483648", ParserUtil.MESSAGE_INVALID_INDEX);
+    }
+
+    @Test
     public void parse_invalidMatriculationNumber_throwsParseException() {
         assertParseFailure(parser, " m/invalid", MatriculationNumber.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, " m/A123", MatriculationNumber.MESSAGE_CONSTRAINTS);
