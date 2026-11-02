@@ -31,7 +31,9 @@ public class SortCommand extends Command {
             + "Examples: sort matric desc; sort mark id/CS2103T:A1 desc";
     public static final String MESSAGE_SUCCESS = "Sorted displayed students by %1$s in %2$s order.";
 
-    /** Fields supported by the sort command. */
+    /**
+     * Fields supported by the sort command.
+     */
     public enum SortField {
         NAME("name"),
         MATRIC("matriculation number"),
@@ -46,7 +48,9 @@ public class SortCommand extends Command {
         }
     }
 
-    /** Directions supported by the sort command. */
+    /**
+     * Directions supported by the sort command.
+     */
     public enum SortDirection {
         ASC("ascending"),
         DESC("descending");
@@ -62,12 +66,16 @@ public class SortCommand extends Command {
     private final SortDirection direction;
     private final Optional<AssignmentId> assignmentId;
 
-    /** Creates a name-ascending sort command. */
+    /**
+     * Creates a name-ascending sort command.
+     */
     public SortCommand() {
         this(SortField.NAME, SortDirection.ASC);
     }
 
-    /** Creates a sort command for the given field and direction. */
+    /**
+     * Creates a sort command for the given field and direction.
+     */
     public SortCommand(SortField field, SortDirection direction) {
         this.field = requireNonNull(field);
         this.direction = requireNonNull(direction);
@@ -77,7 +85,9 @@ public class SortCommand extends Command {
         this.assignmentId = Optional.empty();
     }
 
-    /** Creates a sort command for one assignment's marks. */
+    /**
+     * Creates a sort command for one assignment's marks.
+     */
     public SortCommand(AssignmentId assignmentId, SortDirection direction) {
         this.field = SortField.MARK;
         this.direction = requireNonNull(direction);
@@ -116,6 +126,10 @@ public class SortCommand extends Command {
         Comparator<Person> comparator = (first, second) -> {
             Optional<Mark> firstMark = marks.getOrDefault(first.getMatriculationNumber(), Optional.empty());
             Optional<Mark> secondMark = marks.getOrDefault(second.getMatriculationNumber(), Optional.empty());
+            if (firstMark.isEmpty() && secondMark.isEmpty()) {
+                return Boolean.compare(!marks.containsKey(first.getMatriculationNumber()),
+                        !marks.containsKey(second.getMatriculationNumber()));
+            }
             if (firstMark.isEmpty() || secondMark.isEmpty()) {
                 return Boolean.compare(firstMark.isEmpty(), secondMark.isEmpty());
             }

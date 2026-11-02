@@ -190,7 +190,7 @@ public class SortCommandTest {
     }
 
     @Test
-    public void execute_markSort_placesMissingMarksLastInBothDirections() throws Exception {
+    public void execute_markSort_ordersMarkedUnmarkedThenNotAssignedInBothDirections() throws Exception {
         model.addAssignmentForStudent(new Assignment(assignmentId, "Assignment One", new BigDecimal("20")),
                 BOB.getMatriculationNumber());
         model.assignStudent(ZOE.getMatriculationNumber(), assignmentId);
@@ -199,14 +199,56 @@ public class SortCommandTest {
         model.recordMark(CHARLIE.getMatriculationNumber(), assignmentId, new Mark(new BigDecimal("12.5")));
 
         new SortCommand(assignmentId, ASC).execute(model);
-        assertEquals(List.of(ZOE, CHARLIE, ALICE_LOWERCASE, BOB), model.getFilteredPersonList());
+        assertEquals(List.of(ZOE, CHARLIE, BOB, ALICE_LOWERCASE), model.getFilteredPersonList());
         assertEquals("CS2103T:A1: 0/20", model.sortDisplayProperty().getValue().getDetailFor(ZOE).orElseThrow());
         assertEquals("CS2103T:A1: Unmarked", model.sortDisplayProperty().getValue().getDetailFor(BOB).orElseThrow());
         assertEquals("CS2103T:A1: Not assigned",
                 model.sortDisplayProperty().getValue().getDetailFor(ALICE_LOWERCASE).orElseThrow());
 
         new SortCommand(assignmentId, DESC).execute(model);
-        assertEquals(List.of(CHARLIE, ZOE, ALICE_LOWERCASE, BOB), model.getFilteredPersonList());
+        assertEquals(List.of(CHARLIE, ZOE, BOB, ALICE_LOWERCASE), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_markSortWithMissingMarks_ordersEachStatusByNameThenMatricInBothDirections() throws Exception {
+        Person otherBob = new PersonBuilder(BOB).withName("bob Ng")
+                .withMatriculationNumber("A1000000Z").build();
+        Person otherAlice = new PersonBuilder(ALICE_LOWERCASE).withName("Alice Lim")
+                .withMatriculationNumber("A1000005E").build();
+        model.addPerson(otherBob);
+        model.addPerson(otherAlice);
+        model.addAssignmentForStudent(new Assignment(assignmentId, "Assignment One", new BigDecimal("20")),
+                ZOE.getMatriculationNumber());
+        model.assignStudent(BOB.getMatriculationNumber(), assignmentId);
+        model.assignStudent(otherBob.getMatriculationNumber(), assignmentId);
+
+        for (SortCommand.SortDirection direction : List.of(ASC, DESC)) {
+            new SortCommand(assignmentId, direction).execute(model);
+
+            assertEquals(List.of(otherBob, BOB, ZOE, ALICE_LOWERCASE, otherAlice, CHARLIE),
+                    model.getFilteredPersonList());
+        }
+    }
+
+    @Test
+    public void execute_markSortWithEqualMarks_ordersByNameThenMatricInBothDirections() throws Exception {
+        Person otherBob = new PersonBuilder(BOB).withName("bob Ng")
+                .withMatriculationNumber("A1000000Z").build();
+        model.addPerson(otherBob);
+        model.addAssignmentForStudent(new Assignment(assignmentId, "Assignment One", new BigDecimal("20")),
+                BOB.getMatriculationNumber());
+        for (Person student : List.of(ALICE_LOWERCASE, otherBob, CHARLIE, ZOE)) {
+            model.assignStudent(student.getMatriculationNumber(), assignmentId);
+        }
+        for (Person student : List.of(BOB, ALICE_LOWERCASE, otherBob, CHARLIE, ZOE)) {
+            model.recordMark(student.getMatriculationNumber(), assignmentId, new Mark(new BigDecimal("10")));
+        }
+
+        for (SortCommand.SortDirection direction : List.of(ASC, DESC)) {
+            new SortCommand(assignmentId, direction).execute(model);
+
+            assertEquals(List.of(ALICE_LOWERCASE, otherBob, BOB, CHARLIE, ZOE), model.getFilteredPersonList());
+        }
     }
 
     @Test

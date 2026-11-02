@@ -209,6 +209,10 @@ Module enrollment is a prerequisite for the `assignment` command, rather than a 
 
 `MarkCommandParser` accepts one displayed index or matriculation number, an assignment ID, and a nonnegative decimal score. Both parsers reuse `ParserUtil#parseStudentIdentifier` to reject missing, combined, repeated, or malformed identifiers. `MarkCommand` uses the same `StudentIdentifier` resolution as `assignment`, before reading or mutating the gradebook. Out-of-range indices raise the standard displayed-index error. Rejected commands preserve records and undo/redo history. `MarkCommand` checks that the student, shared definition, and student's assignment link exist before calling `Model#recordMark`. The gradebook rejects scores above the shared maximum before changing any records, with `Mark cannot exceed the maximum mark of MAXIMUM.` The maximum comes from the assignment definition and uses plain decimal notation. `recordMark` returns the previous optional value, allowing the command to distinguish the first recorded mark from an update; a previous zero is present and therefore produces the updated response. The command changes only that student's score. `edit` remains for student particulars. The student profile also displays these marks, as described below.
 
+`parseStudentIdentifier` uses the calling command's usage when an identifier is missing, both forms are supplied, or a nonnumeric token such as bare `A1234567X` is supplied. The nonnumeric-token error explains `INDEX` and `m/MATRICULATION_NUMBER`. Tokens beginning with a digit, sign or decimal point retain index validation; `0`, `-1` and `1.5` report `Index must be a positive integer.`, while oversized positive integers report `The student index provided is invalid.` Whitespace or slashes in the preamble still produce a command-format error with usage; `mat/` remains unsupported. These rules are shared by the other callers of this helper. `parseIndex` itself is unchanged, so index-only commands retain their own guidance.
+
+`AssignmentCommand.MESSAGE_USAGE` and `MarkCommand.MESSAGE_USAGE` contain worked index and matriculation examples. Assignment usage covers both new and existing work. Parser errors append these shared constants. Mark checks missing `id/` and `mark/` prefixes before parsing the student identifier and names the first missing prefix before showing usage.
+
 `MarksCommandParser` accepts one assignment ID. `MarksCommand` obtains a read-only gradebook snapshot and joins that assignment's student marks to current student names by matriculation number. It sorts rows by matriculation number, independently of the filtered and sorted student list, and formats each score against the shared maximum. A missing `Mark` is printed as `Unmarked`, while a recorded zero is printed as `0/MAX_MARK`. An assignment with no students prints `None assigned.`. This command does not change the model or the displayed student list.
 
 `RemoveAssignmentCommandParser` accepts an assignment ID and an optional matriculation number. With a student number, `RemoveAssignmentCommand` checks that the student and assignment exist, then calls `Model#unassignStudent`; the gradebook removes only that student's link and optional mark. Without a student number, it calls `Model#removeAssignment`, which removes the definition and all links and marks under that ID. Both operations leave `Person` objects and unrelated gradebook entries untouched. Removing a definition releases its ID and name for reuse. The changed address book is saved through the usual command flow, so the removal persists after reopening the app. There is no archive or separate assignment edit operation.
@@ -239,7 +243,7 @@ The `participationRecords` container in `StudentDetailsWindow.fxml` holds these 
 
 ### Sorting displayed students
 
-The `sort` command accepts `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MODULE:CODE [asc|desc]`. `SortCommandParser` ignores letter case for field and direction keywords, and reports the assignment ID constraints for an invalid ID. `SortCommand` sorts the displayed students without changing their stored order. Name and email comparisons ignore case, and an empty attendance history counts as zero. Recorded marks come before `Unmarked` and `Not assigned` in either direction; ties use name and then matriculation number.
+The `sort` command accepts `sort`, `sort FIELD [asc|desc]`, or `sort mark id/MODULE:CODE [asc|desc]`. `SortCommandParser` ignores letter case for field and direction keywords, and reports the assignment ID constraints for an invalid ID. `SortCommand` sorts the displayed students without changing their stored order. Name and email comparisons ignore case, and an empty attendance history counts as zero. Mark sorting compares assignment status first: recorded marks, then `Unmarked`, then `Not assigned`, in both directions. Snapshot map key presence distinguishes assigned students with an empty mark from unassigned students. Only recorded numeric marks use the requested direction. Equal marks and students within each missing-mark group use `Model.COMPARATOR_NAME_ASC`: case-insensitive name, then matriculation number, both ascending.
 
 `SortDisplay` supplies the optional extra line on each student card. An attendance sort shows the record count. A mark sort shows the assignment ID and each student's assignment mark, `Unmarked`, or `Not assigned`. `add`, `find`, and `list` restore name order and remove that line.
 
@@ -1019,7 +1023,7 @@ Neither removal form changes student particulars. A removed shared assignment ca
 
 Use case ends.
 
-With no field or direction supplied, TAssist uses name ascending. Students without a recorded mark appear after students with marks in either direction. Equal values are ordered by name, then matriculation number. Sorting changes the displayed order, not the stored student records.
+With no field or direction supplied, TAssist uses name ascending. Mark sorting places students with recorded marks first, then `Unmarked` students, then `Not assigned` students in either direction. Equal values and students within each missing-mark group are ordered by case-insensitive name, then matriculation number, both ascending. Sorting changes the displayed order, not the stored student records.
 
 **Extensions**
 
@@ -1397,8 +1401,8 @@ Start in a fresh test folder with the original sample students. Run `unenroll 1 
    1. Create an assignment and attach it to two students using `assignment m/A1234567X id/CS2103T:A1 n/Assignment One max/20` and `assignment m/A6789012U id/CS2103T:A1`. Record `mark m/A1234567X id/CS2103T:A1 mark/0`.<br>
       Expected: One student has a recorded zero, one is unmarked, and at least one other sample student is not assigned.
 
-   1. Run `sort mark id/CS2103T:A1 desc`.<br>
-      Expected: The student with zero appears before the unmarked and unassigned students. Every card shows <samp>CS2103T:A1</samp> with <samp>0/20</samp>, <samp>Unmarked</samp>, or <samp>Not assigned</samp> as appropriate.
+   1. Run `sort mark id/CS2103T:A1 desc`, then `sort mark id/CS2103T:A1 asc`.<br>
+      Expected: Both sorts show Alex Yeoh (<samp>0/20</samp>), Roy Balakrishnan (<samp>Unmarked</samp>), then the <samp>Not assigned</samp> students in ascending name order: Bernice Yu, Charlotte Oliveiro, David Li, and Irfan Ibrahim. Every card shows <samp>CS2103T:A1</samp> with its result. The recorded zero comes first, and Roy appears above Bernice despite their alphabetical order.
 
    1. Run case SORT-1 in the invalid-input table below.
 
@@ -1873,10 +1877,34 @@ Start with the original six sample students in a disposable data folder. Ensure 
    Expected: Roy's mark changes despite being hidden.
 1. Enter `assignment m/A6789012U id/CS2103T:HIDDEN151 n/Hidden Regression max/20`.<br>
    Expected: The new definition is created and attached to Roy despite being hidden.
-1. Run cases IDENTIFIER-1 to IDENTIFIER-9 in the invalid-input table below. Enter both commands in each row separately.<br>
-   Expected: Each request fails without changing students, definitions, links, or marks. No rejected assignment creates `CS2103T:REJECT151`.
+1. Run `marks id/CS2103T:INDEX151` and confirm Irfan (`A5678901V`) has <samp>5/20</samp> and Roy (`A6789012U`) has <samp>12/20</samp>. Enter `mark m/A5678901V id/CS2103T:INDEX151 mark/6`.<br>
+   Expected: Irfan's mark becomes <samp>6/20</samp> and Roy's remains <samp>12/20</samp>. This accepted change provides a known undo checkpoint for the rejection cases below. Do not restart yet. Use matriculation numbers for the history checks because undo and redo reset the displayed list.
+1. Run cases IDENTIFIER-1 to IDENTIFIER-15 in the invalid-input table below. Enter each command in each row separately.<br>
+   Expected: Each request fails with the message in the table, without changing students, definitions, links, marks, or undo/redo history. No rejected assignment creates `CS2103T:REJECT151`.
+1. Enter `undo`, then `marks id/CS2103T:INDEX151`.<br>
+   Expected: Undo succeeds and Irfan's mark returns to <samp>5/20</samp>, while Roy's remains <samp>12/20</samp>. This confirms the rejected commands added no undo history entries.
+1. Repeat cases IDENTIFIER-1 to IDENTIFIER-15 without running any successful data-changing commands. Then enter `redo`, followed by `marks id/CS2103T:INDEX151`.<br>
+   Expected: Redo succeeds and Irfan's mark returns to <samp>6/20</samp>, while Roy's remains <samp>12/20</samp>. This confirms the rejected commands preserved the pending redo.
+1. Enter `mark m/A5678901V id/CS2103T:INDEX151 mark/5`, then `marks id/CS2103T:INDEX151`.<br>
+   Expected: Irfan has <samp>5/20</samp> and Roy has <samp>12/20</samp>, restoring the expected marks before checking persistence.
 1. Close and reopen TAssist. Run `marks id/CS2103T:INDEX151`.<br>
-   Expected: Both students' assignment links and latest accepted marks persist; rejected changes remain absent.
+   Expected: Both students' assignment links persist, with Irfan at <samp>5/20</samp> and Roy at <samp>12/20</samp>. Rejected changes remain absent.
+
+**Invalid inputs**
+
+Run these cases while `find Irfan` is still active. Both commands in each row test the same invalid identifier; all other arguments are valid.
+
+| Case | Invalid input | Why it is invalid | Expected result |
+| --- | --- | --- | --- |
+| IDENTIFIER-1 | `assignment id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark id/CS2103T:INDEX151 mark/5` | No student identifier is supplied. | Each request is rejected; no records or assignment definitions change. |
+| IDENTIFIER-2 | `assignment 1 m/A6789012U id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 1 m/A6789012U id/CS2103T:INDEX151 mark/5` | An index and matriculation number cannot be supplied together. | Each request is rejected; no records or assignment definitions change. |
+| IDENTIFIER-3 | `assignment m/A6789012U m/A6789012U id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark m/A6789012U m/A6789012U id/CS2103T:INDEX151 mark/5` | The matriculation-number prefix is repeated. | Each request is rejected; no records or assignment definitions change. |
+| IDENTIFIER-4 | `assignment 0 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 0 id/CS2103T:INDEX151 mark/5` | Displayed student indices start at 1. | Each request is rejected; no records or assignment definitions change. |
+| IDENTIFIER-5 | `assignment -1 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark -1 id/CS2103T:INDEX151 mark/5` | A displayed index cannot be negative. | Each request is rejected; no records or assignment definitions change. |
+| IDENTIFIER-6 | `assignment abc id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark abc id/CS2103T:INDEX151 mark/5` | A displayed index must be an integer. | Each request is rejected; no records or assignment definitions change. |
+| IDENTIFIER-7 | `assignment 1.5 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 1.5 id/CS2103T:INDEX151 mark/5` | A displayed index cannot be a decimal. | Each request is rejected; no records or assignment definitions change. |
+| IDENTIFIER-8 | `assignment 1 2 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 1 2 id/CS2103T:INDEX151 mark/5` | Only one student identifier is allowed. | Each request is rejected; no records or assignment definitions change. |
+| IDENTIFIER-9 | `assignment 99 id/CS2103T:REJECT151 n/Rejected Regression max/20`<br>`mark 99 id/CS2103T:INDEX151 mark/5` | Index 99 is outside the displayed list. | Each request raises the displayed-index error; no records or assignment definitions change. |
 
 **Invalid inputs**
 
@@ -1961,10 +1989,12 @@ Prerequisites: Start in a fresh test folder with the original six sample student
 
 ### Viewing assignment marks
 
+Prerequisites: Ensure `CS2103T:A1` is assigned to multiple students, including Alex Yeoh and at least one student whose name does not contain the word `Alex`. Record a mark for at least one assigned student and leave at least one other assigned student unmarked. Run `list` to show all students before starting.
+
 1. After recording marks for `CS2103T:A1`, enter `marks id/CS2103T:A1`.<br>
    Expected: TAssist shows the assignment name and maximum, then every assigned student in matriculation number order. Recorded scores appear as <samp>MARK/MAX_MARK</samp>; students without a score appear as <samp>Unmarked</samp>.
-1. Run `find` so some assigned students are hidden, then enter `marks id/CS2103T:A1` again.<br>
-   Expected: The marks result still contains all assigned students, and the current student list remains filtered.
+1. Enter `find Alex`. Confirm that Alex Yeoh is displayed and at least one other assigned student is hidden. Then enter `marks id/CS2103T:A1` again.<br>
+   Expected: The marks result still contains every assigned student, including those hidden by `find Alex`, with the same scores and unmarked statuses as before. The student list still shows only the students matching `Alex`, in the same order as immediately before the `marks` command.
 
 ### Viewing marks in a student profile
 
