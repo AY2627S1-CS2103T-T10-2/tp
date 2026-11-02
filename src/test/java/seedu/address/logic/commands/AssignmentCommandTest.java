@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
-import seedu.address.model.AddressBook;
+import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -39,6 +39,41 @@ public class AssignmentCommandTest {
     public void setUp() {
         model.setPerson(ALICE, ALICE.withClassCode(new ClassCode("CS2103T-T10")));
         model.setPerson(BENSON, BENSON.withClassCode(new ClassCode("CS2103T-T11")));
+    }
+
+    @Test
+    public void execute_filteredIndex_attachesExistingDefinition() throws Exception {
+        model.addAssignmentForStudent(assignment, student);
+        model.updateFilteredPersonList(person -> person.getMatriculationNumber()
+                .equals(BENSON.getMatriculationNumber()));
+        new AssignmentCommand(new StudentIdentifier(Index.fromOneBased(1)), id).execute(model);
+        assertEquals(1, model.getAddressBook().getGradebook().getAssignments().size());
+        assertEquals(Optional.empty(), model.getAddressBook().getGradebook()
+                .getMarksForStudent(BENSON.getMatriculationNumber()).get(id));
+    }
+
+    @Test
+    public void execute_filteredSortedIndex_targetsDisplayedStudent() throws Exception {
+        model.updateFilteredPersonList(person -> person.getMatriculationNumber().equals(student)
+                || person.getMatriculationNumber().equals(BENSON.getMatriculationNumber()));
+        model.sortPersons(Model.COMPARATOR_NAME_ASC.reversed());
+        MatriculationNumber displayed = model.getFilteredPersonList().get(0).getMatriculationNumber();
+        assertEquals(BENSON.getMatriculationNumber(), displayed);
+
+        StudentIdentifier identifier = new StudentIdentifier(Index.fromOneBased(1));
+        new AssignmentCommand(identifier, assignment).execute(model);
+        assertTrue(model.getAddressBook().getGradebook().getMarksForStudent(displayed).containsKey(id));
+        assertFalse(model.getAddressBook().getGradebook().getMarksForStudent(student).containsKey(id));
+    }
+
+    @Test
+    public void execute_outOfRangeIndex_rejectsWithoutChangingModel() {
+        model.addAssignmentForStudent(assignment, student);
+        model.recordMark(student, id, new Mark(BigDecimal.ONE));
+        model.updateFilteredPersonList(person -> false);
+        StudentIdentifier identifier = new StudentIdentifier(Index.fromOneBased(1));
+        assertCommandFailure(new AssignmentCommand(identifier, assignment), model,
+                Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
     @Test
@@ -95,9 +130,9 @@ public class AssignmentCommandTest {
     public void execute_unknownStudentOrAssignment_rejectsWithoutChangingModel() {
         MatriculationNumber unknownStudent = new MatriculationNumber("A9999999Z");
         assertCommandFailure(new AssignmentCommand(unknownStudent, assignment), model,
-                AddressBook.MESSAGE_STUDENT_NOT_FOUND);
+                String.format(Messages.MESSAGE_STUDENT_NOT_FOUND, unknownStudent));
         assertCommandFailure(new AssignmentCommand(unknownStudent, id), model,
-                AddressBook.MESSAGE_STUDENT_NOT_FOUND);
+                String.format(Messages.MESSAGE_STUDENT_NOT_FOUND, unknownStudent));
         assertCommandFailure(new AssignmentCommand(student, id), model,
                 Gradebook.MESSAGE_UNKNOWN_ASSIGNMENT);
     }
@@ -179,6 +214,12 @@ public class AssignmentCommandTest {
                 String.format(AssignmentCommand.MESSAGE_STUDENT_NOT_ENROLLED,
                         newWork.getId(), student, newWork.getId().getModuleCode()));
         assertCommandFailure(new AssignmentCommand(student, id), model,
+                String.format(AssignmentCommand.MESSAGE_STUDENT_NOT_ENROLLED, id, student, id.getModuleCode()));
+        StudentIdentifier index = new StudentIdentifier(Index.fromOneBased(1));
+        assertCommandFailure(new AssignmentCommand(index, newWork), model,
+                String.format(AssignmentCommand.MESSAGE_STUDENT_NOT_ENROLLED,
+                        newWork.getId(), student, newWork.getId().getModuleCode()));
+        assertCommandFailure(new AssignmentCommand(index, id), model,
                 String.format(AssignmentCommand.MESSAGE_STUDENT_NOT_ENROLLED, id, student, id.getModuleCode()));
     }
 
