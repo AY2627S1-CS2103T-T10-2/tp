@@ -93,7 +93,7 @@ public class MarkClassAttendanceCommandTest {
 
         assertCommandSuccess(new MarkClassAttendanceCommand(CLASS_T10, Optional.of(DATE)), model,
                 "Marked attendance for 2 students in CS2103T-T10 on 07-10-2026"
-                        + "\nAlready recorded, skipped: Alice Pauline", expectedModel);
+                        + "\nAlready recorded, skipped: Alice Pauline (A1234567A)", expectedModel);
     }
 
     @Test
@@ -108,7 +108,24 @@ public class MarkClassAttendanceCommandTest {
 
         assertCommandSuccess(new MarkClassAttendanceCommand(CLASS_T10, Optional.of(DATE)), model,
                 "Marked attendance for 0 students in CS2103T-T10 on 07-10-2026"
-                        + "\nAlready recorded, skipped: Alice Pauline, Benson Meier", expectedModel);
+                        + "\nAlready recorded, skipped: Alice Pauline (A1234567A), Benson Meier (A1234567B)",
+                expectedModel);
+    }
+
+    @Test
+    public void execute_sameNameOneRecorded_identifiesSkippedStudentByMatric() {
+        Person alice = new PersonBuilder(ALICE).withClassCodes(CLASS_T10.toString())
+                .withAttendance(CLASS_T10.toString(), DATE.toString()).build();
+        Person benson = new PersonBuilder(BENSON).withName("Alice Pauline")
+                .withClassCodes(CLASS_T10.toString()).build();
+        model.setPerson(ALICE, alice);
+        model.setPerson(BENSON, benson);
+        Model expectedModel = copyModel();
+        setExpectedAttendance(expectedModel, benson, new AttendanceRecord(DATE, CLASS_T10));
+
+        assertCommandSuccess(new MarkClassAttendanceCommand(CLASS_T10, Optional.of(DATE)), model,
+                "Marked attendance for 1 student in CS2103T-T10 on 07-10-2026"
+                        + "\nAlready recorded, skipped: Alice Pauline (A1234567A)", expectedModel);
     }
 
     @Test
