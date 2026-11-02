@@ -1331,7 +1331,7 @@ Start in a fresh test folder with the original sample students. Run `unenroll 1 
 
 1. Preserving an assignment-mark sort during attendance, enrollment, and participation updates
 
-   1. Prerequisites: Use a fresh data folder with the original six sample students. Enter each command separately:
+   1. Prerequisites: Use a fresh data folder with the original six sample students. Each student already has two September attendance records and one September participation record. These existing records should remain throughout the following steps. Enter each command separately:
 
       ```text
       enroll 1 c/CS2103T-T10
@@ -1343,10 +1343,10 @@ Start in a fresh test folder with the original sample students. Run `unenroll 1 
       attendance 1 c/CS2103T-T10 d/11-10-2026
       ```
 
-      Expected: Bernice Yu remains at displayed index 1 after each attendance command, with <samp>CS2103T:A1: 5/10</samp> on her student card. Alex Yeoh remains at displayed index 2 with <samp>CS2103T:A1: Not assigned</samp>. Run `view 1` and `view 2` separately to confirm Bernice has both dated attendance records and Alex has neither.
+      Expected: Bernice Yu remains at displayed index 1 after each attendance command, with <samp>CS2103T:A1: 5/10</samp> on her student card. Alex Yeoh remains at displayed index 2 with <samp>CS2103T:A1: Not assigned</samp>. Run `view 1` and `view 2` separately to confirm Bernice has attendance records for 10-10-2026 and 11-10-2026 in CS2103T-T10 and Alex has neither of those records. Both students retain their two September attendance records, so Bernice has four attendance records in total and Alex has two.
 
    1. Run `enroll 1 c/CS2103T-T11`, `unenroll 1 c/CS2103T-T11`, `participation 1 c/CS2103T-T10 d/10-10-2026 p/2`, and `participation remove 1 c/CS2103T-T10 d/10-10-2026` separately.<br>
-      Expected: Each update applies to Bernice. The displayed order and assignment results remain unchanged after every command.
+      Expected: Each update applies to Bernice. Removing the 10-10-2026 participation record preserves her September participation record. The displayed order and assignment results remain unchanged after every command.
 
    1. Run `attendance unmark 1 c/CS2103T-T10 d/10-10-2026`, then `attendance c/CS2103T-T10 d/12-10-2026`.<br>
       Expected: Bernice's 10 October attendance is removed; both enrolled students receive 12 October attendance. Bernice remains first, and the assignment results remain visible and correct.
