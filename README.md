@@ -4,7 +4,7 @@
 
 * **TAssist** is a desktop application for **university Computer Science tutors** to manage the students in their tutorial groups across multiple modules.
   * It is optimized for tutors who **prefer typing**: all actions are done through a Command Line Interface (CLI).
-  * It is written in Java and has about 9 KLoC.
+  * It is written in Java and has about 19 KLoC (including tests, excluding comments and blank lines).
 * Main features:
   * Add, edit, delete and search for students (by name or matriculation number)
   * Filter students by module and class
