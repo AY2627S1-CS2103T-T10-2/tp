@@ -1350,15 +1350,15 @@ Start in a fresh test folder with the original sample students. Run `unenroll 1 
 
 #### Invalid inputs
 
-| Case | Invalid input | Why it is invalid | Expected result                                                                           |
-| --- | --- | --- |-------------------------------------------------------------------------------------------|
+| Case | Invalid input | Why it is invalid | Expected result |
+| --- | --- | --- | --- |
 | UNENROLL-1 | `unenroll 1 c/CS2103T-T10` | Alex has already been unenrolled from CS2103T-T10. | An error reports that the student is not enrolled in that class; records remain unchanged. |
-| UNENROLL-2 | `assignment m/A1234567X id/CS2103T:A2 n/New Quiz max/10` | Alex has no remaining enrollment in CS2103T; module enrollment is required for new work. | The assignment is rejected and no records change.                                         |
-| UNENROLL-3 | `unenroll 1 all/` | Alex has no remaining class enrollments to remove. | An error reports that the student is not enrolled in any class; no records change.                                    |
-| UNENROLL-4 | `unenroll 1 c/CS3230-T01 all/` | A specific class and `all/` are mutually exclusive forms. | The request fails without changing records.                                               |
-| UNENROLL-5 | `unenroll m/A1234567X all/` after removing Alex's remaining enrollments | Alex has no remaining class enrollments to remove. | An error reports that the student is not enrolled in any class; no records change.        |
-| UNENROLL-6 | `unenroll m/A9999999Z all/` | No student has the supplied matriculation number. | The request fails without changing records.                                               |
-| UNENROLL-7 | `unenroll 1 m/A1234567X all/` | An index and a matriculation number cannot be supplied together. | The request fails without changing records.                                               |
+| UNENROLL-2 | `assignment m/A1234567X id/CS2103T:A2 n/New Quiz max/10` | Alex has no remaining enrollment in CS2103T; module enrollment is required for new work. | The assignment is rejected and no records change. |
+| UNENROLL-3 | `unenroll 1 all/` | Alex has no remaining class enrollments to remove (student identified by displayed index). | <samp>Student is not enrolled in any class.</samp> No records change. |
+| UNENROLL-4 | `unenroll 1 c/CS3230-T01 all/` | A specific class and `all/` are mutually exclusive forms. | The request fails without changing records. |
+| UNENROLL-5 | `unenroll m/A1234567X all/` after removing Alex's remaining enrollments | Alex has no remaining class enrollments to remove (student identified by matriculation number, even though Alex may not be in the displayed list). | <samp>Student is not enrolled in any class.</samp> No records change. |
+| UNENROLL-6 | `unenroll m/A9999999Z all/` | No student has the supplied matriculation number. | The request fails without changing records. |
+| UNENROLL-7 | `unenroll 1 m/A1234567X all/` | An index and a matriculation number cannot be supplied together. | The request fails without changing records. |
 
 ### Sorting the displayed students
 
@@ -1434,8 +1434,8 @@ Start in a fresh test folder with the original sample students. Run `unenroll 1 
       Expected: Bernice's 10 October attendance is removed; both enrolled students receive 12 October attendance. Bernice remains first, and the assignment results remain visible and correct.
 
    1. Run `find Alex Bernice`, `sort mark id/CS2103T:A1 asc`, then `participation 1 c/CS2103T-T10 d/11-10-2026 p/3`.<br>
-      Expected: Only Bernice and Alex remain displayed, in that order, with their assignment results. Bernice receives the participation record. 
-      
+      Expected: Only Bernice and Alex remain displayed, in that order, with their assignment results. Bernice receives the participation record.
+
    1. Run case SORT-2 in the invalid-input table below.
 
    1. Run `edit 1 m/A2345679Y`.<br>
@@ -1945,20 +1945,20 @@ Run these steps in order without restarting until instructed. Before starting, e
 
 Run each case at the point indicated in the steps above. Every rejected command preserves the assignment data and undo/redo history.
 
-| Case | Invalid input | Why it is invalid | Expected result                                                                                                                                                                                             |
-| --- | --- | --- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| MARK-1 | `mark m/A1234567X id/CS2103T:A1 mark/21` | The score exceeds the assignment maximum of 20. | <samp>Mark cannot exceed the maximum mark of 20.</samp> The previous score of <samp>17.5/20</samp> remains stored.                                                                                          |
-| MARK-2 | `mark m/A1234567X i/CS2103T:A1 mark/5` | The misspelled `i/` does not supply the required `id/` prefix. | <samp>Missing required prefix: id/</samp>, followed by `mark` usage.                                                                                                                                        |
-| MARK-3 | `mark m/A1234567X mark/5` | The required `id/` prefix is missing. | <samp>Missing required prefix: id/</samp>, followed by `mark` usage.                                                                                                                                        |
-| MARK-4 | `mark m/A1234567X id/CS2103T:A1` | The required `mark/` prefix is missing. | <samp>Missing required prefix: mark/</samp>, followed by `mark` usage.                                                                                                                                      |
-| MARK-5 | `mark m/A1234567X` | Both `id/` and `mark/` are missing; `id/` is checked first. | <samp>Missing required prefix: id/</samp>, followed by `mark` usage.                                                                                                                                        |
-| MARK-6 | `mark m/ id/CS2103T:A1 mark/5` | The matriculation number is empty. | <samp>Matriculation numbers should only start with an A, followed by 7 digits, and end with a letter</samp>                                                                                                 |
-| MARK-7 | `mark m/A1234567X id/ mark/5` | The assignment ID is empty. | <samp>Assignment IDs should be MODULE:CODE, where CODE starts with a letter and contains only letters and digits (e.g. CS2103T:A1).</samp>                                                                  |
-| MARK-8 | `mark m/A1234567X id/CS2103T:A1 mark/` | The mark value is empty. | <samp>Mark must be a valid number.</samp>                                                                                                                                                                   |
-| MARK-9 | `mark m/A1234567X id/CS2103T:A1 id/CS2103T:A1 mark/5` | The single-valued `id/` prefix is repeated. | <samp>Multiple values specified for the following single-valued field(s): id/</samp>                                                                                                                        |
+| Case | Invalid input | Why it is invalid | Expected result |
+| --- | --- | --- | --- |
+| MARK-1 | `mark m/A1234567X id/CS2103T:A1 mark/21` | The score exceeds the assignment maximum of 20. | <samp>Mark cannot exceed the maximum mark of 20.</samp> The previous score of <samp>17.5/20</samp> remains stored. |
+| MARK-2 | `mark m/A1234567X i/CS2103T:A1 mark/5` | The misspelled `i/` does not supply the required `id/` prefix. | <samp>Missing required prefix: id/</samp>, followed by `mark` usage. |
+| MARK-3 | `mark m/A1234567X mark/5` | The required `id/` prefix is missing. | <samp>Missing required prefix: id/</samp>, followed by `mark` usage. |
+| MARK-4 | `mark m/A1234567X id/CS2103T:A1` | The required `mark/` prefix is missing. | <samp>Missing required prefix: mark/</samp>, followed by `mark` usage. |
+| MARK-5 | `mark m/A1234567X` | Both `id/` and `mark/` are missing; `id/` is checked first. | <samp>Missing required prefix: id/</samp>, followed by `mark` usage. |
+| MARK-6 | `mark m/ id/CS2103T:A1 mark/5` | The matriculation number is empty. | <samp>Matriculation numbers should only start with an A, followed by 7 digits, and end with a letter</samp> |
+| MARK-7 | `mark m/A1234567X id/ mark/5` | The assignment ID is empty. | <samp>Assignment IDs should be MODULE:CODE, where CODE starts with a letter and contains only letters and digits (e.g. CS2103T:A1).</samp> |
+| MARK-8 | `mark m/A1234567X id/CS2103T:A1 mark/` | The mark value is empty. | <samp>Mark must be a valid number.</samp> |
+| MARK-9 | `mark m/A1234567X id/CS2103T:A1 id/CS2103T:A1 mark/5` | The single-valued `id/` prefix is repeated. | <samp>Multiple values specified for the following single-valued field(s): id/</samp> |
 | MARK-10 | `mark m/A1234567X id/CS2103T:A/1 mark/5` | The assignment code contains a slash. | <samp>Assignment IDs should be MODULE:CODE, where CODE starts with a letter and contains only letters and digits (e.g. CS2103T:A1).</samp> The slash-containing value is not reported as an unknown prefix. |
-| MARK-11 | `mark m/A1234567X id/CS2103T:A1 mark/1e1000000` | The mark's displayed decimal form exceeds 64 characters. | The score is rejected as too long for display; the previous score remains stored.                                                                                                                           |
-| MARK-12 | `mark m/A1234567X id/CS2103T:A1 mark/100e2147483647` | The mark's displayed decimal form exceeds 64 characters. | <samp>Mark's displayed decimal form must be at most 64 characters.</samp> is shown. The existing mark and saved data are unchanged.                                                                         |
+| MARK-11 | `mark m/A1234567X id/CS2103T:A1 mark/1e1000000` | The mark's displayed decimal form exceeds 64 characters. | The score is rejected as too long for display; the previous score remains stored. |
+| MARK-12 | `mark m/A1234567X id/CS2103T:A1 mark/100e2147483647` | The mark's displayed decimal form exceeds 64 characters. | <samp>Mark's displayed decimal form must be at most 64 characters.</samp> is shown. The existing mark and saved data are unchanged. |
 
 ### Recording marks with a decimal maximum
 
@@ -2037,7 +2037,7 @@ Run these steps in order in a test data folder. Ensure matriculation numbers `A9
    Expected: TAssist confirms removal from that student. `marks id/CS2103T:A1` still shows the other student's mark, and both student records remain.
 1. Run case REMOVE-1 in the table below.
 1. Enter `removeassignment id/CS2103T:A1` and close and reopen TAssist.<br>
-   Expected: Both students remain. 
+   Expected: Both students remain.
 1. Run case REMOVE-2 in the table below.
 1. Create a new assignment with the same ID and name.<br>
    Expected: The assignment is created successfully, because the old definition no longer exists.
