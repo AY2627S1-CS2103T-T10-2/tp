@@ -1434,7 +1434,9 @@ Start in a fresh test folder with the original sample students. Run `unenroll 1 
       Expected: Bernice's 10 October attendance is removed; both enrolled students receive 12 October attendance. Bernice remains first, and the assignment results remain visible and correct.
 
    1. Run `find Alex Bernice`, `sort mark id/CS2103T:A1 asc`, then `participation 1 c/CS2103T-T10 d/11-10-2026 p/3`.<br>
-      Expected: Only Bernice and Alex remain displayed, in that order, with their assignment results. Bernice receives the participation record. Run case SORT-2 in the invalid-input table below.
+      Expected: Only Bernice and Alex remain displayed, in that order, with their assignment results. Bernice receives the participation record. 
+      
+   1. Run case SORT-2 in the invalid-input table below.
 
    1. Run `edit 1 m/A2345679Y`.<br>
       Expected: The displayed list returns to name order, shows all six students, and clears assignment results from student cards. Run `sort mark id/CS2103T:A1 desc` again; Bernice returns to displayed index 1 with the new matriculation number and <samp>5/10</samp>.
@@ -2035,7 +2037,10 @@ Run these steps in order in a test data folder. Ensure matriculation numbers `A9
    Expected: TAssist confirms removal from that student. `marks id/CS2103T:A1` still shows the other student's mark, and both student records remain.
 1. Run case REMOVE-1 in the table below.
 1. Enter `removeassignment id/CS2103T:A1` and close and reopen TAssist.<br>
-   Expected: Both students remain. Run case REMOVE-2 in the table below, then check that the same ID and name can be used to create a new assignment.
+   Expected: Both students remain. 
+1. Run case REMOVE-2 in the table below.
+1. Create a new assignment with the same ID and name.<br>
+   Expected: The assignment is created successfully, because the old definition no longer exists.
 
 #### Invalid inputs
 
