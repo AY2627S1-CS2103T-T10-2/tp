@@ -1280,7 +1280,9 @@ Start in a fresh test folder with the original sample students.
 1. Run `add n/Zoe Test m/A9900001Z e/zoe@example.com t/tutorial`.<br>
    Expected: Zoe appears after the six sample students in name order, with the supplied details.
 1. Run case STUDENT-1 in the invalid-input table below.
-1. Run `find m/A9900001Z`, then `edit 1 n/Zoe Updated e/zoe.updated@example.com t/` and `view 1`.<br>
+1. Run `find m/A9900001Z`, then `edit 1 n/Zoe Updated e/zoe.updated@example.com t/`.<br>
+   Expected: All seven students are displayed in name order.
+1. Run `find m/A9900001Z` again, then `view 1`.<br>
    Expected: The name and email change and all tags are cleared. The matriculation number remains A9900001Z.
 1. Run cases STUDENT-2 and STUDENT-3 in the invalid-input table below.
 1. Close and reopen the app from the same folder. Run `find m/A9900001Z` and `view 1`.<br>
